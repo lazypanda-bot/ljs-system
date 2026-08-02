@@ -8,15 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('lifestyle_results', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('customer_id')->constrained('users')->cascadeOnDelete();
-            $table->timestamps();
+        Schema::create('roles', function (Blueprint $table) {
+            $table->id('role_id');
+            $table->string('role_name');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('lifestyle_results');
+        Schema::dropIfExists('roles');
     }
 };
