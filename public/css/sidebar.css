@@ -1,0 +1,115 @@
+.sidebar {
+    width: 260px;
+    background-color: var(--color-bg-main);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar-top {
+    display: flex;
+    justify-content: center;
+    padding: 24px 0 18px;
+}
+
+.brand-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.brand-logo {
+    width: auto;
+    height: auto;
+    border-radius: 10px;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+}
+
+.brand-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.nav-menu {
+    padding: 0 0 20px;
+    display: flex;
+    flex-direction: column;
+    /* gap: 2px; */
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 14px 22px;
+    color: var(--color-text-dark);
+    text-decoration: none;
+    /* border-radius: 18px; */
+    background: transparent;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    min-height: 56px;
+    gap: 10px;
+}
+
+.nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: transparent;
+    color: var(--color-primary);
+}
+
+.nav-icon svg {
+    width: 30px;
+    height: 30px;
+    transition: transform 0.18s ease, color 0.18s ease;
+    display: block;
+}
+
+.nav-link:hover .nav-icon svg {
+    transform: translateX(6px);
+}
+
+.nav-link span:last-child {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.nav-link:hover {
+    background: var(--color-primary);
+    color: #ffffff;
+    padding-left: 24px;
+}
+
+.nav-link:hover .nav-icon {
+    color: #ffffff;
+}
+
+.nav-link.active {
+    background: var(--color-primary);
+    color: #ffffff;
+    box-shadow: 0 10px 30px var(--color-primary-shadow);
+}
+
+.nav-link.active .nav-icon {
+    color: #ffffff;
+}
+.sidebar.collapsed {
+    display: none;
+}

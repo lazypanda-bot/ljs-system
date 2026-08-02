@@ -1,0 +1,108 @@
+.login-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+}
+
+.login-modal-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.login-modal {
+    width: min(440px, calc(100% - 32px));
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 28px;
+    box-shadow: 0 40px 80px rgba(15, 23, 42, 0.16);
+    position: relative;
+}
+
+.login-modal-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(226, 232, 240, 0.9);
+    color: #334155;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.login-modal-header {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 10px;
+}
+
+.login-modal-note {
+    font-size: 13px;
+    color: #475569;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.login-modal-error {
+    padding: 14px 16px;
+    border: 1px solid #fca5a5;
+    background: #fef2f2;
+    color: #991b1b;
+    border-radius: 16px;
+    margin-bottom: 18px;
+}
+
+.login-modal form {
+    display: grid;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.form-group input {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 16px;
+    background: #f8fafc;
+    padding: 14px 16px;
+    color: #0f172a;
+    font-size: 14px;
+}
+
+.login-submit-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 16px;
+    background: var(--color-primary);
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.login-submit-btn:hover {
+    transform: translateY(-1px);
+    background: #1658d8;
+}
