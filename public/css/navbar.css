@@ -7,20 +7,17 @@
     justify-content: space-between;
     padding: 0 30px;
 }
-
 .header-left,
 .header-right {
     display: flex;
     align-items: center;
     gap: 16px;
 }
-
 .page-label {
     display: inline-flex;
     align-items: center;
     gap: 16px;
 }
-
 .page-icon {
     width: 40px;
     height: 40px;
@@ -32,18 +29,15 @@
     font-size: 18px;
     color: var(--color-primary);
 }
-
 .page-label-title {
     font-size: 18px;
     font-weight: 700;
     color: #0f172a;
 }
-
 .page-label-subtitle {
     font-size: 13px;
     color: #64748b;
 }
-
 .notification-btn {
     width: 38px;
     height: 38px;
@@ -57,12 +51,10 @@
     color: #334155;
     position: relative;
 }
-
 .notification-btn:hover {
     background: var(--color-primary);
     color: #ffffff;
 }
-
 .notification-count {
     display: inline-flex;
     align-items: center;
@@ -79,7 +71,6 @@
     font-size: 11px;
     font-weight: 700;
 }
-
 .signin-btn {
     display: inline-flex;
     align-items: center;
@@ -93,14 +84,12 @@
     font-weight: 700;
     border: 1px solid var(--color-primary);
 }
-
 .signin-btn:hover {
     background: var(--color-accent-green);
     color: var(--color-text);
     border-color: rgba(31,108,255,0.12);
     transform: translateY(-2px);
 }
-
 .user-profile-nav {
     display: inline-flex;
     align-items: center;
@@ -111,7 +100,6 @@
     border: 1px solid #e2e8f0;
     cursor: pointer;
 }
-
 .user-profile-nav .avatar {
     width: 42px;
     height: 42px;
@@ -124,34 +112,28 @@
     font-weight: 700;
     font-size: 16px;
 }
-
 .user-info-nav {
     display: flex;
     flex-direction: column;
     gap: 2px;
     text-align: left;
 }
-
 .user-name {
     font-size: 14px;
     font-weight: 700;
     color: #0f172a;
 }
-
 .user-email {
     font-size: 12px;
     color: #475569;
 }
-
 .profile-arrow {
     color: #475569;
     font-size: 14px;
 }
-
 .profile-menu-wrap {
     position: relative;
 }
-
 .profile-menu {
     position: absolute;
     top: calc(100% + 10px);
@@ -167,11 +149,9 @@
     gap: 10px;
     z-index: 10;
 }
-
 .profile-menu.open {
     display: flex;
 }
-
 .profile-menu-header {
     display: flex;
     align-items: center;
@@ -179,18 +159,15 @@
     padding-bottom: 8px;
     border-bottom: 1px solid #eff6ff;
 }
-
 .profile-menu-title {
     font-size: 14px;
     font-weight: 700;
     color: #0f172a;
 }
-
 .profile-menu-subtitle {
     font-size: 12px;
     color: #475569;
 }
-
 .profile-menu-item {
     display: inline-flex;
     width: 100%;
@@ -206,12 +183,10 @@
     font-weight: 600;
     cursor: pointer;
 }
-
 .profile-menu-item:hover,
 .profile-menu-logout:hover {
     background: #f8fafc;
 }
-
 .profile-menu-logout {
     width: 100%;
     text-align: left;

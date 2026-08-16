@@ -10,12 +10,10 @@
     transition: opacity 0.2s ease;
     z-index: 1000;
 }
-
 .login-modal-overlay.open {
     opacity: 1;
     pointer-events: auto;
 }
-
 .login-modal {
     width: min(440px, calc(100% - 32px));
     background: #ffffff;
@@ -24,7 +22,6 @@
     box-shadow: 0 40px 80px rgba(15, 23, 42, 0.16);
     position: relative;
 }
-
 .login-modal-close {
     position: absolute;
     top: 18px;
@@ -39,21 +36,18 @@
     line-height: 1;
     cursor: pointer;
 }
-
 .login-modal-header {
     font-size: 22px;
     font-weight: 800;
     color: #0f172a;
     margin-bottom: 10px;
 }
-
 .login-modal-note {
     font-size: 13px;
     color: #475569;
     margin-bottom: 20px;
     line-height: 1.5;
 }
-
 .login-modal-error {
     padding: 14px 16px;
     border: 1px solid #fca5a5;
@@ -62,24 +56,20 @@
     border-radius: 16px;
     margin-bottom: 18px;
 }
-
 .login-modal form {
     display: grid;
     gap: 16px;
 }
-
 .form-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
-
 .form-group label {
     font-size: 13px;
     font-weight: 700;
     color: #334155;
 }
-
 .form-group input {
     width: 100%;
     border: 1px solid #d1d5db;
@@ -89,7 +79,6 @@
     color: #0f172a;
     font-size: 14px;
 }
-
 .login-submit-btn {
     width: 100%;
     padding: 14px;
@@ -101,7 +90,6 @@
     cursor: pointer;
     transition: transform 0.15s ease, background 0.15s ease;
 }
-
 .login-submit-btn:hover {
     transform: translateY(-1px);
     background: #1658d8;

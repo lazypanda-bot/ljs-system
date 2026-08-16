@@ -1,18 +1,20 @@
 .sidebar {
     width: 260px;
+    height: 100vh;
+    min-height: 100vh;
+    /* position: sticky; */
+    top: 0;
     background: var(--color-bg-ex);
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     gap: 30px;
 }
-
 .sidebar-top {
     display: flex;
     justify-content: center;
     padding: 20px 0 0 0;
 }
-
 .brand-block {
     display: flex;
     align-items: center;
@@ -23,7 +25,6 @@
     border: none;
     box-shadow: none;
 }
-
 .brand-logo {
     width: auto;
     height: auto;
@@ -35,21 +36,18 @@
     background: transparent;
     border: none;
 }
-
 .brand-logo img {
     width: 100%;
     height: 100%;
     object-fit: contain;
     display: block;
 }
-
 .nav-menu {
     padding: 0 0 20px;
     display: flex;
     flex-direction: column;
     /* gap: 2px; */
 }
-
 .nav-link {
     display: flex;
     align-items: center;
@@ -58,7 +56,8 @@
     /* padding: 14px 22px; */
     padding-left: 28px;
     margin-top: 1px;
-    color: var(--color-text-dark);
+    /* color: var(--color-text-dark); */
+    color: #111111 !important;
     text-decoration: none;
     /* border-radius: 18px; */
     background: transparent;
@@ -66,7 +65,6 @@
     min-height: 56px;
     gap: 10px;
 }
-
 .nav-icon {
     display: inline-flex;
     align-items: center;
@@ -77,39 +75,33 @@
     background: transparent;
     color: var(--color-text-dark);
 }
-
 .nav-icon svg {
     width: 30px;
     height: 30px;
     transition: transform 0.18s ease, color 0.18s ease;
     display: block;
 }
-
 .nav-link:hover .nav-icon svg {
     transform: translateX(6px);
 }
-
 .nav-link span:last-child {
     font-size: 20px;
     font-weight: 700;
+    color: #111111 !important;
 }
-
 .nav-link:hover {
     background: var(--color-primary);
     color: #ffffff;
     padding-left: 24px;
 }
-
 .nav-link:hover .nav-icon {
     color: #ffffff;
 }
-
 .nav-link.active {
     background: var(--color-primary);
     color: #ffffff;
     box-shadow: 0 10px 30px var(--color-primary-shadow);
 }
-
 .nav-link.active .nav-icon {
     color: #ffffff;
 }
