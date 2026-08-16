@@ -10,17 +10,20 @@ return new class extends Migration
     {
         Schema::create('property_listings', function (Blueprint $table) {
             $table->id('property_id');
-            $table->foreignId('user_id')->constrained('users', 'user_id');
+            $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
             $table->string('referral_code')->nullable();
             $table->string('property_name');
             $table->text('property_description')->nullable();
             $table->string('property_type', 100);
             $table->text('property_location');
             $table->integer('price');
-            $table->enum('property_status', ['Available', 'Reserved', 'Sold', 'Rented', 'Unavailable'])->default('Available');
+            $table->enum('property_status', ['For Sale', 'Reserved', 'Sold', 'For Rent', 'Unavailable']);
             $table->enum('approval_status', ['Pending', 'Approved', 'Rejected'])->default('Pending');
-            $table->timestamp('update_at')->nullable();
+            $table->decimal('latitude', 10, 8)->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
+            // $table->timestamp('update_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

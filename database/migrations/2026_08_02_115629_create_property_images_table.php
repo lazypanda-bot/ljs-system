@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id('image_id');
             $table->foreignId('property_id')->constrained('property_listings', 'property_id')->onDelete('cascade');
             $table->string('image_path');
-            $table->timestamp('update_at')->nullable();
+            // $table->timestamp('update_at')->nullable();
             $table->timestamps();
         });
     }

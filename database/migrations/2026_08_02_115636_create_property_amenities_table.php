@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('property_amenities', function (Blueprint $table) {
             $table->id('amenity_id');
             $table->foreignId('details_id')->constrained('property_details', 'details_id')->onDelete('cascade');
-            $table->string('amenity_name');
+            $table->string('amenity_name', 100);
         });
     }
 

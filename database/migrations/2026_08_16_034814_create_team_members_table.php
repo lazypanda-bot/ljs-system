@@ -8,19 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('reviews', function (Blueprint $table) {
-            $table->id('review_id');
+        Schema::create('team_member', function (Blueprint $table) {
+            $table->id('member_id');
             $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
-            $table->integer('rating');
-            $table->text('review');
+            $table->enum('status', ['Pending', 'Approved', 'Rejected'])->default('Pending');
+            $table->timestamp('requested_at')->nullable();
+            $table->timestamp('approved_at')->nullable();
             $table->timestamps();
-            // $table->timestamp('updated_at')->nullable();
-            // $table->timestamp('created_at')->nullable();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('reviews');
+        Schema::dropIfExists('team_member');
     }
 };

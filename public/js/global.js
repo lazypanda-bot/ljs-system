@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const openLoginBtn = document.getElementById('openLoginModal');
     const loginModalOverlay = document.getElementById('loginModalOverlay');
     const loginModalClose = document.querySelector('.login-modal-close');
+    const openLoginBtns = document.querySelectorAll('#openLoginModal, [data-open-login-modal]');
 
     const closeLoginModal = () => {
         if (!loginModalOverlay) {
@@ -20,12 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
         loginModalOverlay.setAttribute('aria-hidden', 'true');
     };
 
-    if (openLoginBtn && loginModalOverlay) {
-        openLoginBtn.addEventListener('click', () => {
-            loginModalOverlay.classList.add('open');
-            loginModalOverlay.setAttribute('aria-hidden', 'false');
-        });
-    }
+    openLoginBtns.forEach((openLoginBtn) => {
+        if (openLoginBtn && loginModalOverlay) {
+            openLoginBtn.addEventListener('click', () => {
+                loginModalOverlay.classList.add('open');
+                loginModalOverlay.setAttribute('aria-hidden', 'false');
+            });
+        }
+    });
 
     if (loginModalClose) {
         loginModalClose.addEventListener('click', closeLoginModal);

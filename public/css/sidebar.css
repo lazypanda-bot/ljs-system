@@ -1,22 +1,23 @@
 .sidebar {
     width: 260px;
-    background-color: var(--color-bg-main);
+    background: var(--color-bg-ex);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 30px;
 }
 
 .sidebar-top {
     display: flex;
     justify-content: center;
-    padding: 24px 0 18px;
+    padding: 20px 0 0 0;
 }
 
 .brand-block {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto;
+    /* margin: 0 auto; */
     padding: 0;
     background: transparent;
     border: none;
@@ -54,7 +55,9 @@
     align-items: center;
     justify-content: flex-start;
     width: 100%;
-    padding: 14px 22px;
+    /* padding: 14px 22px; */
+    padding-left: 28px;
+    margin-top: 1px;
     color: var(--color-text-dark);
     text-decoration: none;
     /* border-radius: 18px; */
@@ -72,7 +75,7 @@
     height: 46px;
     border-radius: 14px;
     background: transparent;
-    color: var(--color-primary);
+    color: var(--color-text-dark);
 }
 
 .nav-icon svg {

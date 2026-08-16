@@ -12,11 +12,12 @@ return new class extends Migration
             $table->id('profile_id');
             $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
             $table->string('license_number', 100)->nullable();
-            $table->string('document_file')->nullable();
+            $table->string('document_file', 255)->nullable();
             $table->unsignedTinyInteger('years_experience')->nullable();
             $table->text('professional_bio')->nullable();
-            $table->timestamp('update_at')->nullable();
+            // $table->timestamp('update_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

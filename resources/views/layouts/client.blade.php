@@ -11,6 +11,8 @@
         <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
         <link rel="stylesheet" href="{{ asset('css/navbar.css') }}">
         <link rel="stylesheet" href="{{ asset('css/login-modal.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+        
     </head>
     <body>
         <div class="dashboard-container">
@@ -26,5 +28,7 @@
         </div>
 
         <script src="{{ asset('js/global.js') }}" defer></script>
+        <script src="{{ asset('js/admin.js') }}" defer></script>
+
     </body>
 </html>

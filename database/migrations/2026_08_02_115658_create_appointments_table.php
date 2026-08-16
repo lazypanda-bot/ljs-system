@@ -10,18 +10,18 @@ return new class extends Migration
     {
         Schema::create('appointments', function (Blueprint $table) {
             $table->id('appointment_id');
-            $table->foreignId('assign_id')->nullable()->constrained('property_assign', 'assign_id');
-            $table->foreignId('blocked_id')->nullable()->constrained('blocked_dates', 'block_id');
+            $table->foreignId('assign_id')->nullable()->constrained('property_assign', 'assign_id')->onDelete('cascade');
+            $table->foreignId('blocked_id')->nullable()->constrained('blocked_dates', 'block_id')->onDelete('cascade');
             $table->string('contact_name');
             $table->string('contact_number', 20);
             $table->string('contact_email');
-            $table->string('facebook_link')->nullable();
+            $table->string('facebook_link', 255)->nullable();
             $table->string('appointment_type', 100);
             $table->date('preferred_date');
             $table->time('preferred_time');
             $table->text('additional_note')->nullable();
             $table->enum('appointment_status', ['Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'])->default('Pending');
-            $table->timestamp('update_at')->nullable();
+            // $table->timestamp('update_at')->nullable();
             $table->timestamps();
         });
     }

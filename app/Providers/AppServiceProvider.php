@@ -46,33 +46,66 @@ class AppServiceProvider extends ServiceProvider
             $links = [];
 
             if ($acting === 'admin') {
+                // Legacy admin links using separate admin route names:
+                // $links = [
+                //     ['label' => 'Dashboard', 'url' => route('admin.dashboard'), 'icon' => 'dashboard'],
+                //     ['label' => 'Users', 'url' => route('admin.users'), 'icon' => 'users'],
+                //     ['label' => 'Messages', 'url' => route('admin.messages'), 'icon' => 'messages'],
+                //     ['label' => 'Properties', 'url' => route('admin.property'), 'icon' => 'property'],
+                //     ['label' => 'Appointments', 'url' => route('admin.appointments'), 'icon' => 'appointment'],
+                //     ['label' => 'Reviews', 'url' => route('admin.review'), 'icon' => 'review'],
+                //     ['label' => 'Reports', 'url' => route('admin.reports'), 'icon' => 'report'],
+                // ];
                 $links = [
-                    ['label' => 'Dashboard', 'url' => route('admin.dashboard'), 'route' => 'admin.dashboard', 'icon' => 'dashboard'],
-                    ['label' => 'Users', 'url' => route('admin.users'), 'route' => 'admin.users', 'icon' => 'users'],
-                    ['label' => 'Messages', 'url' => route('admin.messages'), 'route' => 'admin.messages', 'icon' => 'messages'],
-                    ['label' => 'Properties', 'url' => route('admin.property'), 'route' => 'admin.property', 'icon' => 'property'],
-                    ['label' => 'Appointments', 'url' => route('admin.appointments'), 'route' => 'admin.appointments', 'icon' => 'appointment'],
-                    ['label' => 'Reviews', 'url' => route('admin.review'), 'route' => 'admin.review', 'icon' => 'review'],
-                    ['label' => 'Reports', 'url' => route('admin.reports'), 'route' => 'admin.reports', 'icon' => 'report'],
+                    ['label' => 'Dashboard', 'url' => route('app.page', ['page' => 'dashboard']), 'icon' => 'dashboard'],
+                    ['label' => 'Users', 'url' => route('app.page', ['page' => 'users']), 'icon' => 'users'],
+                    ['label' => 'Messages', 'url' => route('app.page', ['page' => 'messages']), 'icon' => 'messages'],
+                    ['label' => 'Properties', 'url' => route('app.page', ['page' => 'property']), 'icon' => 'property'],
+                    ['label' => 'Appointments', 'url' => route('app.page', ['page' => 'appointments']), 'icon' => 'appointment'],
+                    ['label' => 'Reviews', 'url' => route('app.page', ['page' => 'review']), 'icon' => 'review'],
+                    ['label' => 'Reports', 'url' => route('app.page', ['page' => 'report']), 'icon' => 'report'],
                 ];
             } elseif ($acting === 'broker') {
+                // Legacy broker links using separate broker route names:
+                // $links = [
+                //     ['label' => 'Dashboard', 'url' => route('broker.dashboard'), 'icon' => 'dashboard'],
+                //     ['label' => 'Agents', 'url' => route('broker.agents'), 'icon' => 'users'],
+                //     ['label' => 'Messages', 'url' => route('broker.messages'), 'icon' => 'messages'],
+                //     ['label' => 'My Listings', 'url' => route('broker.listings'), 'icon' => 'property'],
+                //     ['label' => 'Appointments', 'url' => route('broker.appointments'), 'icon' => 'appointment'],
+                //     ['label' => 'Reviews', 'url' => route('broker.reviews'), 'icon' => 'review'],
+                //     ['label' => 'Reports', 'url' => route('broker.reports'), 'icon' => 'report'],
+                //     ['label' => 'Settings', 'url' => route('broker.settings'), 'icon' => 'users'],
+                // ];
                 $links = [
-                    ['label' => 'Dashboard', 'url' => route('broker.dashboard'), 'route' => 'broker.dashboard', 'icon' => 'dashboard'],
-                    ['label' => 'Agents', 'url' => route('broker.agents'), 'route' => 'broker.agents', 'icon' => 'users'],
-                    ['label' => 'Messages', 'url' => route('broker.messages'), 'route' => 'broker.messages', 'icon' => 'messages'],
-                    ['label' => 'My Listings', 'url' => route('broker.listings'), 'route' => 'broker.listings', 'icon' => 'property'],
-                    ['label' => 'Appointments', 'url' => route('broker.appointments'), 'route' => 'broker.appointments', 'icon' => 'appointment'],
-                    ['label' => 'Reviews', 'url' => route('broker.reviews'), 'route' => 'broker.reviews', 'icon' => 'review'],
-                    ['label' => 'Reports', 'url' => route('broker.reports'), 'route' => 'broker.reports', 'icon' => 'report'],
+                    ['label' => 'Dashboard', 'url' => route('app.page', ['page' => 'dashboard']), 'icon' => 'dashboard'],
+                    ['label' => 'Agents', 'url' => route('app.page', ['page' => 'agents']), 'icon' => 'users'],
+                    ['label' => 'Messages', 'url' => route('app.page', ['page' => 'messages']), 'icon' => 'messages'],
+                    ['label' => 'My Listings', 'url' => route('app.page', ['page' => 'listings']), 'icon' => 'property'],
+                    ['label' => 'Appointments', 'url' => route('app.page', ['page' => 'appointments']), 'icon' => 'appointment'],
+                    ['label' => 'Reviews', 'url' => route('app.page', ['page' => 'review']), 'icon' => 'review'],
+                    ['label' => 'Reports', 'url' => route('app.page', ['page' => 'report']), 'icon' => 'report'],
+                    // ['label' => 'Settings', 'url' => route('app.page', ['page' => 'settings']), 'icon' => 'users'],
                 ];
             } elseif ($acting === 'agent') {
+                // Legacy agent links using separate agent route names:
+                // $links = [
+                //     ['label' => 'Dashboard', 'url' => route('agent.dashboard'), 'icon' => 'dashboard'],
+                //     ['label' => 'Messages', 'url' => route('agent.messages'), 'icon' => 'messages'],
+                //     ['label' => 'My Listings', 'url' => route('agent.listings'), 'icon' => 'property'],
+                //     ['label' => 'Appointments', 'url' => route('agent.appointment'), 'icon' => 'appointment'],
+                //     ['label' => 'Reviews', 'url' => route('agent.review'), 'icon' => 'review'],
+                //     ['label' => 'Reports', 'url' => route('agent.reports'), 'icon' => 'report'],
+                //     ['label' => 'Settings', 'url' => route('agent.settings'), 'icon' => 'users'],
+                // ];
                 $links = [
-                    ['label' => 'Dashboard', 'url' => route('agent.dashboard'), 'route' => 'agent.dashboard', 'icon' => 'dashboard'],
-                    ['label' => 'Messages', 'url' => route('agent.messages'), 'route' => 'agent.messages', 'icon' => 'messages'],
-                    ['label' => 'My Listings', 'url' => route('agent.listings'), 'route' => 'agent.listings', 'icon' => 'property'],
-                    ['label' => 'Appointments', 'url' => route('agent.appointment'), 'route' => 'agent.appointment', 'icon' => 'appointment'],
-                    ['label' => 'Reviews', 'url' => route('agent.review'), 'route' => 'agent.review', 'icon' => 'review'],
-                    ['label' => 'Reports', 'url' => route('agent.reports'), 'route' => 'agent.reports', 'icon' => 'report'],
+                    ['label' => 'Dashboard', 'url' => route('app.page', ['page' => 'dashboard']), 'icon' => 'dashboard'],
+                    ['label' => 'Messages', 'url' => route('app.page', ['page' => 'messages']), 'icon' => 'messages'],
+                    ['label' => 'My Listings', 'url' => route('app.page', ['page' => 'listings']), 'icon' => 'property'],
+                    ['label' => 'Appointments', 'url' => route('app.page', ['page' => 'appointment']), 'icon' => 'appointment'],
+                    ['label' => 'Reviews', 'url' => route('app.page', ['page' => 'review']), 'icon' => 'review'],
+                    ['label' => 'Reports', 'url' => route('app.page', ['page' => 'report']), 'icon' => 'report'],
+                    // ['label' => 'Settings', 'url' => route('app.page', ['page' => 'settings']), 'icon' => 'users'],
                 ];
             } else {
                 // guest: no sidebar links

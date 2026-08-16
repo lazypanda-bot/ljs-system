@@ -10,12 +10,12 @@ return new class extends Migration
     {
         Schema::create('blocked_dates', function (Blueprint $table) {
             $table->id('block_id');
-            $table->foreignId('user_id')->constrained('users', 'user_id');
+            $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
             $table->date('date');
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();
-            $table->string('reason')->nullable();
-            $table->timestamp('update_at')->nullable();
+            $table->string('reason', 255)->nullable();
+            // $table->timestamp('update_at')->nullable();
             $table->timestamps();
         });
     }

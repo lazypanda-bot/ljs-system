@@ -12,6 +12,15 @@
     --color-accent-orange: #ff7a00;
     --color-accent-green: #2bbf62;
     --color-accent-cyan: #00a8ff;
+
+    --color-bg-ex: linear-gradient(190deg, #d7e8fb 45%, #afd5ff 65%, #96bdff 85%, #00a8ff 100%);
+    /* --color-bg-marble: linear-gradient(#0f172a 0%, #0f406f 25%, #1f6cff 50%, #00a8ff 75%, #f8fafc 100%); */
+    /* --color-bg-marble: linear-gradient(#ffff 0%, #00a8ff 50%, #7aa8fe 75%, #63b1ff 100%); */
+
+    /* --color-bg-marble: 
+        radial-gradient(at 10% 20%, rgba(255, 122, 0, 0.35) 0px, transparent 55%),
+        radial-gradient(at 10% 50%, rgba(43, 191, 98, 0.35) 0px, transparent 55%),
+        linear-gradient(135deg, #ffffff 0%, #00a8ff 40%, #7aa8fe 75%, #63b1ff 100%); */
 }
 
 * {

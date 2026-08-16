@@ -17,11 +17,12 @@ return new class extends Migration
             $table->integer('bathroom')->default(0);
             $table->integer('parking_spaces')->default(0);
             $table->integer('number_of_floors')->default(1);
-            $table->string('property_condition', 100)->nullable();
+            $table->string('property_condition', 255)->nullable();
             $table->year('year_built')->nullable();
             $table->text('remarks')->nullable();
-            $table->timestamp('update_at')->nullable();
+            // $table->timestamp('update_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

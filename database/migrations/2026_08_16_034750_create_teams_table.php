@@ -8,14 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id('role_id');
-            $table->enum('role_name', ['Lead Broker', 'Admin', 'Broker', 'Agent', 'Client']);
+        Schema::create('teams', function (Blueprint $table) {
+            $table->id('team_id');
+            $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
+            $table->timestamps(); 
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('team');
     }
 };

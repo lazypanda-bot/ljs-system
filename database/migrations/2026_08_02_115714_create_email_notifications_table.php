@@ -10,13 +10,13 @@ return new class extends Migration
     {
         Schema::create('email_notifications', function (Blueprint $table) {
             $table->id('notification_id');
-            $table->foreignId('user_id')->constrained('users', 'user_id');
-            $table->string('subject');
-            $table->string('type', 50);
-            $table->string('status', 50);
+            $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
+            $table->string('subject', 255);
+            $table->enum('type', ['reminder', 'announcement']);
+            $table->enum('status', ['pending', 'sent', 'failed'])->default('pending');
             $table->timestamp('sent_at')->nullable();
-            $table->timestamp('update_at')->nullable();
             $table->timestamps();
+            // $table->timestamp('update_at')->nullable();
         });
     }
 

@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id('report_id');
-            $table->foreignId('appointment_id')->constrained('appointments', 'appointment_id');
+            $table->foreignId('appointment_id')->constrained('appointments', 'appointment_id')->onDelete('cascade');
             $table->string('report_file');
-            $table->timestamp('update_at')->nullable();
+            // $table->timestamp('update_at')->nullable();
             $table->timestamps();
         });
     }

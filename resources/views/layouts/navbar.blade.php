@@ -85,11 +85,18 @@
     </div>
 </header>
 
+
+        {{-- TEMPORARY --}}
 <div id="loginModalOverlay" class="login-modal-overlay" aria-hidden="true" data-open-if-error="{{ session()->has('login_error') ? 'true' : 'false' }}">
     <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
         <button type="button" class="login-modal-close" aria-label="Close">×</button>
         <div class="login-modal-header" id="loginModalTitle">Please sign in</div>
-        <p class="login-modal-note">Temporary admin account only. Use admin@example.com / password123.</p>
+        <p class="login-modal-note">TEMPORARY ACCOUNTS. <br> 
+            admin@example.com / admin <br> 
+            agent@example.com / agent <br> 
+            leadbroker@example.com / lead <br>
+            broker@example.com / broker
+        </p>
 
         @if(session('login_error'))
             <div class="login-modal-error">{{ session('login_error') }}</div>

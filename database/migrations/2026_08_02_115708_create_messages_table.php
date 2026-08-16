@@ -10,19 +10,15 @@ return new class extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->id('message_id');
-            $table->unsignedBigInteger('sender_id');
-            $table->unsignedBigInteger('receiver_id');
+            $table->foreignId('sender_id')->constrained('users', 'user_id')->onDelete('cascade');
+            $table->foreignId('receiver_id')->constrained('users', 'user_id')->onDelete('cascade');
             $table->string('subject')->nullable();
             $table->text('message');
-            $table->string('message_type')->default('text');
-            $table->string('attachment')->nullable();
-            $table->string('sender_type')->nullable();
-            $table->string('receiver_type')->nullable();
-            $table->timestamp('update_at')->nullable();
+            $table->enum('message_type', ['Inbox', 'Sent'])->default('Inbox');
+            $table->string('attachment', 255)->nullable();
+            $table->string('sender_type', 100)->nullable();
+            $table->string('receiver_type', 100)->nullable();
             $table->timestamps();
-
-            $table->foreign('sender_id')->references('user_id')->on('users');
-            $table->foreign('receiver_id')->references('user_id')->on('users');
         });
     }
 
