@@ -1,0 +1,283 @@
+.rush-properties-section {
+    padding: 100px 20px;
+    background-color: #f8fafc;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.rush-container {
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.rush-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.rush-tag {
+    color: #16a34a;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.rush-header h2 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #111827;
+    margin-top: 6px;
+}
+
+.rush-slider-wrapper {
+    position: relative;
+    padding: 0 45px;
+}
+
+.slider-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    font-size: 1rem;
+}
+
+.slider-left { left: 0; }
+.slider-right { right: 0; }
+
+.rush-slider-track {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 10px 4px;
+}
+
+.rush-slider-track::-webkit-scrollbar {
+    display: none;
+}
+
+.rush-card {
+    flex: 0 0 285px;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e5e7eb;
+}
+
+.rush-card-img-container {
+    position: relative;
+    height: 190px;
+    background: #f3f4f6;
+}
+
+.rush-card-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rush-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.badge-featured {
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.badge-sale {
+    background: #1d4ed8;
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.rush-favorite-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.4);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    cursor: pointer;
+}
+
+.rush-img-count {
+    position: absolute;
+    bottom: 50px;
+    right: 10px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.rush-agent-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.85));
+    padding: 12px 10px 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rush-agent-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #ddd;
+}
+
+.rush-agent-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rush-agent-info {
+    color: #fff;
+    line-height: 1.1;
+}
+
+.rush-agent-name {
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.rush-agent-prc {
+    font-size: 0.6rem;
+    opacity: 0.8;
+}
+
+.rush-card-body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.rush-price {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 2px;
+}
+
+.rush-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rush-location {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.rush-divider {
+    border: none;
+    border-top: 1px solid #f3f4f6;
+    margin: 0 0 10px 0;
+}
+
+.rush-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #4b5563;
+    margin-bottom: 14px;
+}
+
+.rush-action {
+    margin-top: auto;
+}
+
+.rush-btn {
+    display: block;
+    text-align: center;
+    background: #2563eb;
+    color: #fff;
+    padding: 8px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.8rem;
+    transition: background 0.2s;
+}
+
+.rush-btn:hover {
+    background: #1d4ed8;
+}
+
+.rush-empty {
+    text-align: center;
+    color: #6b7280;
+    width: 100%;
+}
+
+.rush-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 20px;
+}
+
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.dot.active {
+    background: #2563eb;
+}

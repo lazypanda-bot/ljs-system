@@ -18,7 +18,7 @@ body {
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 1.5px;
-    color: #16a34a; /* Green accent color */
+    color: #16a34a; 
     margin-bottom: 8px;
     text-transform: uppercase;
 }
@@ -160,26 +160,63 @@ body {
 .map-pin-badge {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border-radius: 20px;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     background: #ffffff;
-    font-weight: 600;
-    font-size: 12px;
-    color: #1e293b;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: 2px solid #ffffff;
+    padding: 0;
     white-space: nowrap;
-    border: 1px solid rgba(0,0,0,0.05);
 }
 .map-pin-badge .pin-icon {
-    width: 22px;
-    height: 22px;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
-    font-size: 11px;
+    font-size: 14px;
+}
+.map-bubble-marker {
+    background: transparent;
+    border: none;
+}
+.map-bubble-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 31px;
+    height: 31px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    border: 2px solid #ffffff;
+    margin-top: -38px;
+    margin-left: -16px;
+    position: relative;
+}
+.map-bubble-badge::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px 6px 0;
+    border-style: solid;
+    border-color: #ffffff transparent;
+    display: block;
+    width: 0;
+}
+.map-bubble-badge .bubble-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .map-legend {
     display: flex;
@@ -207,7 +244,7 @@ body {
     background: #2bbf62;
 }
 .legend-dot.for-rent { 
-    background: #1f6cff; 
+    background: #1f6cff;
 }
 .legend-dot.sold { 
     background: #ef4444; 
@@ -217,6 +254,25 @@ body {
 }
 .legend-dot.unavailable {
     background: #525252;
+} 
+/*LOCATE ME BUTTON*/
+.custom-locate-control a {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    font-weight: 600;
+    font-size: 13px !important;
+    text-decoration: none;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px !important;
+    height: 38px !important;
+    width: auto !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+.custom-locate-control a:hover {
+    background-color: #f8fafc !important;
 }
 /* Teardrop Pin Bubble Styling */
 /* .map-bubble-marker {
@@ -261,66 +317,6 @@ body {
     justify-content: center;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 } */
-
-/*LOCATE ME BUTTON*/
-.custom-locate-control a {
-    background-color: #ffffff !important;
-    color: #1e293b !important;
-    font-weight: 600;
-    font-size: 13px !important;
-    text-decoration: none;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    padding: 0 12px !important;
-    height: 38px !important;
-    width: auto !important;
-    border-radius: 8px !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-}
-.custom-locate-control a:hover {
-    background-color: #f8fafc !important;
-}
-/* TEARDROP PIN BUBBLE */
-.map-bubble-marker {
-    background: transparent;
-    border: none;
-}
-.map-bubble-badge {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 12px 5px 6px;
-    background: #ffffff;
-    border-radius: 30px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
-    font-weight: 700;
-    font-size: 13px;
-    white-space: nowrap;
-    position: relative;
-    border: 1.5px solid rgba(0, 0, 0, 0.05);
-}
-.map-bubble-badge::after {
-    content: '';
-    position: absolute;
-    bottom: -7px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 7px 7px 0;
-    border-style: solid;
-    border-color: #ffffff transparent;
-    display: block;
-    width: 0;
-}
-.map-bubble-badge .bubble-dot {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
 /* NAVBAR */
 .logo-container {
     display: flex;
@@ -462,7 +458,7 @@ body {
 }
 /* FOOTER */
 .site-footer {
-    background-color: var(--color-bg-ex, #eaf4ff);
+    background-color: var(--color-bg-ex);
     padding: 60px 40px 40px;
     border-top: 1px solid rgba(0, 168, 255, 0.2);
     color: #111827;

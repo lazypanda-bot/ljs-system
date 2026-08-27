@@ -10,15 +10,23 @@ return new class extends Migration
     {
         Schema::create('property_listings', function (Blueprint $table) {
             $table->id('property_id');
-            $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade'); //change to assign_id
             $table->string('referral_code')->nullable();
             $table->string('property_name');
             $table->text('property_description')->nullable();
-            $table->string('property_type', 100);
-            $table->text('property_location');
-            $table->integer('price');
-            $table->enum('property_status', ['For Sale', 'Reserved', 'Sold', 'For Rent', 'Unavailable']);
-            $table->enum('approval_status', ['Pending', 'Approved', 'Rejected'])->default('Pending');
+            // $table->string('property_type', 100);
+            $table->enum('property_type', ['House', 'Condo', 'Townhouse', 'Lot'])->default('House');
+            // $table->text('property_location');
+            $table->string('house_number')->nullable(); 
+            $table->string('street');                   
+            $table->string('city');                  
+            $table->string('province');
+            // $table->integer('price');
+            $table->decimal('price', 12, 2);
+            // $table->enum('property_status', ['For Sale', 'Reserved', 'Sold', 'For Rent', 'Unavailable']);
+            $table->string('property_status')->default('Available');
+            $table->boolean('rush')->default(false);
+            $table->string('approval_status')->default('Approved');
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
             // $table->timestamp('update_at')->nullable();

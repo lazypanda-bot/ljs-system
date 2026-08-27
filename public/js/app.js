@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'Pending': '#f59e0b'
     };
 
+    // Pulling the properties mapped via window.propertyMapData from Blade
     const mapData = window.propertyMapData || [];
 
     if (mapData.length > 0) {
@@ -61,34 +62,35 @@ document.addEventListener('DOMContentLoaded', function () {
             const lng = parseFloat(property.lng);
 
             if (!isNaN(lat) && !isNaN(lng)) {
-                const marker = L.marker([lat, lng]).addTo(map);
                 const color = statusColors[property.status] || '#1f6cff';
                 const statusLabel = property.status || 'Available';
 
-                marker.bindPopup(`
-                    <div style="min-width:180px;">
-                        <strong>${property.name}</strong><br>
-                        <span>${property.type}</span><br>
-                        <small>${property.location}</small><br>
-                        <strong>₱ ${Number(property.price || 0).toLocaleString()}</strong>
-                    </div>
-                `);
-
-                // Teardrop bubble pin with exact matching white home SVG inside solid circle
-                marker.setIcon(L.divIcon({
+                // Create the custom divIcon directly
+                const customIcon = L.divIcon({
                     className: 'map-bubble-marker',
                     html: `
                         <div class="map-bubble-badge">
                             <span class="bubble-dot" style="background: ${color};">
                                 <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color: #ffffff;"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                             </span>
-                            <span class="bubble-text" style="color: ${color};">${statusLabel}</span>
                         </div>
                     `,
-                    iconSize: [130, 40],
-                    iconAnchor: [65, 40],
-                    popupAnchor: [0, -42]
-                }));
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 34],
+                    popupAnchor: [0, -30]
+                });
+
+                const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+
+                marker.bindPopup(`
+                    <div style="min-width:180px;">
+                        <strong>${property.name}</strong><br>
+                        <span>${property.type}</span><br>
+                        <small>${property.location}</small><br>
+                        <strong>₱ ${Number(property.price || 0).toLocaleString()}</strong><br>
+                        <a href="/properties" style="color: #1f6cff; text-decoration: underline; margin-top: 5px; display: inline-block;">View Details</a>
+                    </div>
+                `);
 
                 bounds.push([lat, lng]);
             }
@@ -99,3 +101,4 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 });
+

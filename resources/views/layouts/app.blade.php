@@ -10,6 +10,11 @@
     <link rel="stylesheet" href="{{ asset('css/global.css') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('css/login-modal.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/rush.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/about.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/properties.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/property-details.css') }}">
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body class="landing-page">
@@ -33,89 +38,7 @@
     </header>
 
     <main>
-        <!-- 1. Hero Section -->
-        <section class="hero-section">
-            <div class="hero-content">
-                <h1 class="hero-title">Find Your <span class="highlight">Dream</span> Property</h1>
-                <p class="hero-subtitle">
-                    At <strong>LJS Realty and Brokerage</strong>, finding your ideal home is easy.
-                    Explore a wide selection of properties tailored to your lifestyle, preferences, and budget.
-                </p>
-                <a href="{{ route('properties') }}" class="hero-btn">Explore Now</a>
-            </div>
-        </section>
-
-        <!-- 2. Map Section (Placed right after the hero, matching your target design) -->
-        <section class="map-search-section">
-            <div class="map-section-header">
-                <span class="map-section-tag">WHERE YOUR NEXT HOME BEGINS</span>
-                <h2>Find Your Perfect Property</h2>
-            </div>
-
-            <div class="map-shell">
-                <div class="map-toolbar">
-                    <div class="map-search-box">
-                        <span>⌕</span>
-                        <input type="text" placeholder="Search location, city, or area">
-                    </div>
-                    <button type="button" class="map-search-btn">Search</button>
-                </div>
-
-                <div class="map-container-wrapper" style="position: relative;">
-                    <button type="button" id="locateMeBtn" class="locate-me-btn">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #2563eb;">
-                            <circle cx="12" cy="12" r="7"></circle>
-                            <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
-                            <line x1="12" y1="2" x2="12" y2="5"></line>
-                            <line x1="12" y1="19" x2="12" y2="22"></line>
-                            <line x1="2" y1="12" x2="5" y2="12"></line>
-                            <line x1="19" y1="12" x2="22" y2="12"></line>
-                        </svg>
-                        Locate Me
-                    </button>
-                    <div id="propertyMap" class="property-map"></div>
-                </div>
-
-                <div class="map-legend">
-                    <span class="legend-item"><i class="legend-dot for-sale"></i> For Sale</span>
-                    <span class="legend-item"><i class="legend-dot for-rent"></i> For Rent</span>
-                    <span class="legend-item"><i class="legend-dot sold"></i> Sold</span>
-                    <span class="legend-item"><i class="legend-dot reserved"></i> Reserved</span>
-                    <span class="legend-item"><i class="legend-dot unavailable"></i> Unavailable</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- 3. Featured Properties Section -->
-        <section class="property-showcase">
-            <div class="section-header">
-                <h2>Featured Properties</h2>
-            </div>
-
-            <div class="property-grid">            
-                @forelse ($properties as $item)
-                    @php
-                        $firstImage = $item->images->first();
-                        $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/night.png');
-                    @endphp
-                    <article class="property-card">
-                        <img src="{{ $imageUrl }}" alt="{{ $item->property_name }}">
-                        <div class="property-card-body">
-                            <div class="property-card-top">
-                                <span class="property-type">{{ $item->property_type }}</span>
-                                <span class="property-status">{{ $item->property_status }}</span>
-                            </div>
-                            <h3>{{ $item->property_name }}</h3>
-                            <p class="property-location">{{ $item->property_location }}</p>
-                            <p class="property-price">₱ {{ number_format($item->price, 0, '.', ',') }}</p>
-                            <p class="property-description">{{ Str::limit($item->property_description ?? '', 100) }}</p>
-                        </div>
-                    </article>            
-                @empty
-                    <p class="no-properties">No properties available at the moment.</p>
-                @endforelse
-            </div>
-        </section>
+        @yield('content')
     </main>
 
     <footer class="site-footer">
@@ -208,6 +131,10 @@
 
     <script src="{{ asset('js/global.js') }}" defer></script>
     <script src="{{ asset('js/app.js') }}" defer></script>
+    <script src="{{ asset('js/rush.js') }}" defer></script>
+    <script src="{{ asset('js/about.js') }}" defer></script>
+    <script src="{{ asset('js/properties.js') }}" defer></script>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 </html>

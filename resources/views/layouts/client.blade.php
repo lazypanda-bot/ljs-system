@@ -12,6 +12,7 @@
         <link rel="stylesheet" href="{{ asset('css/navbar.css') }}">
         <link rel="stylesheet" href="{{ asset('css/login-modal.css') }}">
         <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/addproperty.css') }}">
         
     </head>
     <body>
@@ -29,6 +30,7 @@
 
         <script src="{{ asset('js/global.js') }}" defer></script>
         <script src="{{ asset('js/admin.js') }}" defer></script>
+        <script src="{{ asset('js/addproperty.js') }}" defer></script>
 
     </body>
 </html>

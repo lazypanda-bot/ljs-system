@@ -1,0 +1,413 @@
+.properties {
+    background-color: #f8fafc;
+    padding: 110px 20px 80px 20px;
+    font-family: system-ui, -apple-system, sans-serif;
+    min-height: 80vh;
+}
+
+.properties-container {
+    max-width: 1350px;
+    margin: 0 auto;
+}
+
+/* Filter & Search Bar */
+.filter-bar {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    margin-bottom: 35px;
+    border: 1px solid #e2e8f0;
+}
+
+.filter-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-group label,
+.search-group label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #4b5563;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-select {
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #fff;
+    font-size: 0.85rem;
+    color: #1f2937;
+    outline: none;
+    cursor: pointer;
+}
+
+.filter-select:focus {
+    border-color: #2563eb;
+}
+
+.search-group {
+    flex: 1.5;
+    min-width: 200px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    outline: none;
+    font-size: 0.85rem;
+}
+
+.search-box button {
+    background: transparent;
+    border: none;
+    padding: 0 14px;
+    color: #64748b;
+    cursor: pointer;
+}
+
+/* Lifestyle */
+.lifestyle {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    background: #f0f6ff;
+    /* border-radius: 16px; */
+    overflow: hidden;
+    margin-bottom: 24px;
+    width: 100%;
+
+    margin-top: -30px;
+    margin-left: -20px;  
+    margin-right: -20px; 
+    width: calc(100% + 40px); 
+}
+
+/* Left Side: Image with gradient fade effect */
+.media {
+    flex: 0 0 50% !important;
+    width: 50% !important;
+    height: 220px;
+    position: relative;
+    background: #e2e8f0;
+}
+
+.media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0) 100%);
+    mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0) 100%);
+}
+
+/* Right Side: Text and Action */
+.lifestyle-content {
+    flex: 0 0 50% !important;
+    width: 50% !important;
+    padding: 30px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.lifestyle-content h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.2;
+    margin: 0 0 8px 0;
+}
+
+.lifestyle-content h2 span {
+    color: #16a34a;
+}
+
+.lifestyle-content p {
+    font-size: 0.9rem;
+    color: #4b5563;
+    margin: 0 0 16px 0;
+}
+
+/* Lifestyle Button */
+.lifestyle-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border: none;
+    outline: none;
+    color: #141414;
+    background: linear-gradient(270deg, #8be1ac, #22c55e, #10b981, #8be1ac);
+    background-size: 800% 800%;
+    animation: gradientShift 8s ease infinite;
+    cursor: pointer;
+    position: relative;
+    z-index: 0;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    width: fit-content;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, padding-right 0.3s ease;
+    margin-top: 20px;
+}
+
+.lifestyle-action::after {
+    content: '→';
+    position: absolute;
+    right: 15px;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.lifestyle-action:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25);
+    color: #ffffff; 
+    padding-right: 40px; 
+}
+
+.lifestyle-action:hover::after {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.lifestyle-action:active {
+    transform: translateY(-1px);
+}
+
+/* Keyframes for internal button color shifting */
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* 4-Column Properties Grid */
+.properties-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+}
+
+/* Property Card */
+.property-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e2e8f0;
+}
+
+.property-card-img-container {
+    position: relative;
+    height: 190px;
+    background: #e2e8f0;
+}
+
+.property-card-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.property-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.badge-featured {
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.badge-sale {
+    background: #2563eb;
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.property-favorite-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.4);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    cursor: pointer;
+}
+
+.property-img-count {
+    position: absolute;
+    bottom: 50px;
+    right: 10px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.property-agent-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.85));
+    padding: 12px 10px 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.property-agent-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #ddd;
+}
+
+.property-agent-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.property-agent-info {
+    color: #fff;
+    line-height: 1.1;
+}
+
+.property-agent-name {
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.property-agent-prc {
+    font-size: 0.6rem;
+    opacity: 0.8;
+}
+
+.property-card-body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.property-price {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 2px;
+}
+
+.property-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.property-location {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0 0 4px 0;
+}
+
+.property-category-tag {
+    font-size: 0.7rem;
+    color: #4b5563;
+    margin-bottom: 10px;
+}
+
+.property-divider {
+    border: none;
+    border-top: 1px solid #f1f5f9;
+    margin: 0 0 10px 0;
+}
+
+.property-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #4b5563;
+    margin-bottom: 14px;
+}
+
+.property-action {
+    margin-top: auto;
+}
+
+.property-btn {
+    display: block;
+    text-align: center;
+    background: #2563eb;
+    color: #fff;
+    padding: 8px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.8rem;
+    transition: background 0.2s;
+}
+
+.property-btn:hover {
+    background: #1d4ed8;
+}
+
+.property-empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px;
+    color: #64748b;
+    font-size: 1rem;
+}

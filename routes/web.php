@@ -8,30 +8,55 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\PropertyController;
 
+// HOME / LANDING PAGE
 Route::get('/', function () {
-    $properties = Property::with('images')->latest()->get();
+    $properties = Property::with(['images', 'details'])
+        ->whereNotIn('property_status', ['Pending']) // Removed 'Unavailable' here
+        ->latest()
+        ->get();
 
-    return view('layouts.app', compact('properties'));
+    $collection = $properties; 
+
+    $rushProperties = Property::with('images')
+        ->where('rush', true)
+        ->latest()
+        ->get();
+
+    return view('customer.home', compact('properties', 'collection', 'rushProperties'));
 })->name('home');
 
+// PROPERTIES CATALOG
 Route::get('/properties', function () {
-    $properties = Property::with('images')->latest()->get();
-
-    return view('layouts.app', compact('properties'));
+    $properties = Property::with('images')->get();
+    return view('customer.properties', compact('properties'));
 })->name('properties');
 
+// AGENTS
 Route::get('/agents', function () {
     return view('layouts.app');
 })->name('agents');
 
+// ABOUT
 Route::get('/about', function () {
     return view('layouts.app');
 })->name('about');
 
+// ADMIN PROPERTY MANAGEMENT ACTIONS
 Route::post('/admin/properties', [PropertyController::class, 'store'])->name('admin.properties.store');
 
 Route::post('/admin/properties/{id}/generate-referral', [PropertyController::class, 'generateReferral'])
     ->name('agent.properties.generate-code');
+
+// LIFESTYLE
+Route::get('/lifestyle-match', function () {
+    return view('customer.lifestyle');
+})->name('lifestyle.match');
+
+// ADD PROPERTY
+Route::get('/admin/properties/create', [PropertyController::class, 'create'])->name('admin.subfiles.addproperty');
+
+// VIEW DETAILS
+Route::get('/properties/{id}', [PropertyController::class, 'show'])->name('properties.show');
 
 // TEMPORARY FOR TESTING
 Route::get('/temp-login', function () {
@@ -107,6 +132,7 @@ Route::post('/logout', function () {
     return redirect('/');
 })->name('logout');
 
+
 // Legacy role-specific routes were replaced with a single dynamic shared page route.
 // Keep this commented-out reference while we consolidate the UI.
 // Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
@@ -129,6 +155,9 @@ Route::post('/logout', function () {
 //     Route::get('/reports', fn () => view('agent.agent-report'))->name('reports');
 // });
 
+
+
+// SHARED DYNAMIC PAGE ROUTE
 Route::middleware('auth')->get('/app/{page}', function ($page) {
     $user = Auth::user();
     $role = 'guest';
@@ -141,9 +170,9 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
     }
 
     $rolePages = [
-        'admin' => ['dashboard', 'users', 'messages', 'property', 'appointments', 'review', 'report', 'settings'],
-        'broker' => ['dashboard', 'agents', 'messages', 'listings', 'appointments', 'review', 'report', 'settings'],
-        'agent' => ['dashboard', 'messages', 'listings', 'appointment', 'review', 'report', 'settings'],
+        'Admin' => ['dashboard', 'users', 'messages', 'property', 'appointments', 'review', 'report', 'settings'],
+        'Broker' => ['dashboard', 'agents', 'messages', 'listings', 'appointments', 'review', 'report', 'settings'],
+        'Agent' => ['dashboard', 'messages', 'listings', 'appointment', 'review', 'report', 'settings'],
     ];
 
     if (! isset($rolePages[$acting]) || ! in_array($page, $rolePages[$acting], true)) {
@@ -151,7 +180,9 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
     }
 
     $pageTitle = ucfirst(str_replace(['-', '_'], ' ', $page));
-    $properties = Property::with('images')->latest()->get();
+    
+    // FETCH PROPERTIES FOR THE TABLE
+    $properties = Property::with(['images', 'details'])->latest()->get();
 
     return view('shared.page', compact('acting', 'page', 'pageTitle', 'properties'));
 })->name('app.page');
@@ -167,39 +198,3 @@ Route::post('/lead/toggle', function () {
 
     return redirect()->back();
 })->name('lead.toggle')->middleware('auth');
-
-Route::get('/', function () {
-    $collection = Property::with('images')->latest()->get();
-    return view('layouts.app', compact('collection'));
-})->name('home');
-
-// please work
-// Route::get('/', function () {
-//     $properties = Property::with('images')
-//         ->whereNotIn('property_status', ['Pending', 'Unavailable']) 
-//         ->latest()
-//         ->get();
-
-//     $collection = $properties; 
-
-//     return view('layouts.app', compact('properties', 'collection'));
-// })->name('home');
-
-// MAP
-Route::get('/', function () {
-    $properties = Property::with('images')->latest()->get();
-    $collection = $properties; // Keep both if other parts of your page use $collection
-
-    return view('layouts.app', compact('properties', 'collection'));
-})->name('home');
-
-// pending properties do noy show
-Route::get('/', function () {
-    // Only fetch properties that are approved for public viewing
-    $properties = Property::with('images')
-        ->whereNotIn('property_status', ['Pending', 'Unavailable']) 
-        ->latest()
-        ->get();
-
-    return view('layouts.app', compact('properties'));
-})->name('home');
