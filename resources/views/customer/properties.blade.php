@@ -123,9 +123,9 @@
                         <hr class="property-divider">
 
                         <div class="property-meta">
-                            <span>🛏 {{ $item->details->bedroom ?? 0 }} beds</span>
-                            <span>🛁 {{ $item->details->bathroom ?? 0 }} baths</span>
-                            <span>📐 {{ $item->details->floor_area ?? 0 }} sqm</span>
+                            <span> {{ $item->details->bedroom ?? 0 }} beds</span>
+                            <span> {{ $item->details->bathroom ?? 0 }} baths</span>
+                            <span> {{ $item->details->floor_area ?? 0 }} sqm</span>
                         </div>
 
                         <div class="property-action">

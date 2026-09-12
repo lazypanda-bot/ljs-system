@@ -1,0 +1,582 @@
+/* Lifestyle Match quiz + results */
+
+.lifestyle-page {
+    background-color: #f8fafc;
+    padding: 110px 20px 80px 20px;
+    font-family: system-ui, -apple-system, sans-serif;
+    min-height: 90vh;
+}
+
+.lifestyle-page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.lifestyle-back {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: var(--color-primary, #1f6cff);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.lifestyle-back:hover {
+    text-decoration: underline;
+}
+
+/* ---------- Shared buttons ---------- */
+
+.lifestyle-btn-primary,
+.lifestyle-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.lifestyle-btn-primary {
+    background: var(--color-primary, #1f6cff);
+    color: #fff;
+}
+
+.lifestyle-btn-primary:hover {
+    opacity: 0.9;
+}
+
+.lifestyle-btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.lifestyle-btn-secondary {
+    background: #fff;
+    color: #1f2937;
+    border: 1px solid #d4d9e6;
+}
+
+.lifestyle-btn-secondary:hover {
+    background: #f4f7fc;
+}
+
+/* ---------- Quiz shell ---------- */
+
+.lifestyle-quiz-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.lifestyle-quiz-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    background: var(--color-primary-soft, #dfeaff);
+    color: var(--color-accent-green, #2bbf62);
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+}
+
+.lifestyle-quiz-header h1 {
+    font-size: 1.9rem;
+    margin: 0 0 8px;
+    color: var(--color-text, #0f172a);
+}
+
+.lifestyle-quiz-header p {
+    color: #64748b;
+    margin: 0;
+}
+
+.lifestyle-quiz-body {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+/* ---------- Progress rail ---------- */
+
+.lifestyle-progress {
+    flex: 0 0 280px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.lifestyle-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #4b5563;
+    margin-bottom: 16px;
+}
+
+.lifestyle-progress-header span:last-child {
+    color: var(--color-accent-green, #2bbf62);
+}
+
+.lifestyle-steps-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.lifestyle-step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.lifestyle-step-item.is-active {
+    background: var(--color-surface-soft, #ecf4ff);
+}
+
+.lifestyle-step-bubble {
+    flex: 0 0 26px;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.lifestyle-step-item.is-active .lifestyle-step-bubble {
+    background: var(--color-accent-green, #2bbf62);
+    color: #fff;
+}
+
+.lifestyle-step-item.is-complete .lifestyle-step-bubble {
+    background: var(--color-accent-green, #2bbf62);
+    color: #fff;
+}
+
+.lifestyle-step-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.lifestyle-step-text strong {
+    font-size: 0.85rem;
+    color: #1f2937;
+}
+
+.lifestyle-step-item.is-active .lifestyle-step-text strong {
+    color: var(--color-accent-green, #2bbf62);
+}
+
+.lifestyle-step-text small {
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+
+/* ---------- Question panel ---------- */
+
+.lifestyle-question-panel {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 28px;
+}
+
+.lifestyle-question-eyebrow {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-accent-green, #2bbf62);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+}
+
+.lifestyle-question-meta h2 {
+    margin: 0 0 6px;
+    font-size: 1.4rem;
+    color: var(--color-text, #0f172a);
+}
+
+.lifestyle-question-meta p {
+    margin: 0 0 24px;
+    color: #64748b;
+}
+
+.lifestyle-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.lifestyle-option-card {
+    position: relative;
+    text-align: left;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: inherit;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.lifestyle-option-card:hover {
+    border-color: var(--color-accent-green, #2bbf62);
+}
+
+.lifestyle-option-card.is-selected {
+    border-color: var(--color-accent-green, #2bbf62);
+    background: #f2fbf5;
+}
+
+.lifestyle-option-check {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    border: 1.5px solid #cbd5e1;
+    background: #fff;
+    color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+}
+
+.lifestyle-option-card.is-selected .lifestyle-option-check {
+    background: var(--color-accent-green, #2bbf62);
+    border-color: var(--color-accent-green, #2bbf62);
+    color: #fff;
+}
+
+.lifestyle-option-icon {
+    font-size: 1.6rem;
+}
+
+.lifestyle-option-label {
+    font-size: 0.95rem;
+    color: #1f2937;
+}
+
+.lifestyle-option-description {
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.lifestyle-summary-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.lifestyle-summary-list li {
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #1f2937;
+}
+
+.lifestyle-summary-list li strong {
+    margin-right: 6px;
+    color: #4b5563;
+}
+
+.lifestyle-question-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 28px;
+}
+
+/* ---------- Results ---------- */
+
+.lifestyle-results-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.lifestyle-results-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    background: var(--color-surface-soft, #ecf4ff);
+    color: var(--color-accent-green, #2bbf62);
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+}
+
+.lifestyle-results-header h1 {
+    font-size: 1.9rem;
+    margin: 0 0 8px;
+    color: var(--color-text, #0f172a);
+}
+
+.lifestyle-results-header p {
+    color: #64748b;
+    margin: 0;
+}
+
+.lifestyle-results-body {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.lifestyle-results-main {
+    flex: 1;
+    min-width: 0;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.lifestyle-results-main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.lifestyle-results-main-header h3 {
+    margin: 0 0 4px;
+    font-size: 1.2rem;
+}
+
+.lifestyle-results-main-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.lifestyle-matches-grid.properties-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.lifestyle-matches-grid.properties-grid .property-card {
+    flex: 1 1 300px;
+    max-width: 340px;
+}
+
+.lifestyle-badge-match {
+    background: var(--color-accent-green, #2bbf62) !important;
+}
+
+.lifestyle-why-matches {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--color-surface-soft, #ecf4ff);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 24px;
+}
+
+.lifestyle-why-icon {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-accent-green, #2bbf62);
+}
+
+.lifestyle-why-matches strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #1f2937;
+}
+
+.lifestyle-why-matches p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.lifestyle-explore-more {
+    text-align: center;
+    margin-top: 24px;
+}
+
+.lifestyle-results-sidebar {
+    flex: 0 0 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.lifestyle-score-card,
+.lifestyle-preferences-card,
+.lifestyle-retake-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.lifestyle-score-ring {
+    width: 110px;
+    height: 110px;
+    border-radius: 999px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: conic-gradient(var(--color-accent-green, #2bbf62) 0deg, #e5edf7 0deg);
+}
+
+.lifestyle-score-ring::before {
+    content: '';
+    position: absolute;
+}
+
+.lifestyle-score-ring span {
+    width: 86px;
+    height: 86px;
+    border-radius: 999px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-accent-green, #2bbf62);
+}
+
+.lifestyle-score-card strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #1f2937;
+}
+
+.lifestyle-score-card p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #64748b;
+}
+
+.lifestyle-preferences-card {
+    text-align: left;
+}
+
+.lifestyle-preferences-card h4 {
+    margin: 0 0 14px;
+    font-size: 1rem;
+    text-align: left;
+}
+
+.lifestyle-preferences-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.lifestyle-preferences-list li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.lifestyle-pref-icon {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--color-surface-soft, #ecf4ff);
+    color: var(--color-accent-green, #2bbf62);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+}
+
+.lifestyle-preferences-list strong {
+    display: block;
+    font-size: 0.82rem;
+    color: #1f2937;
+}
+
+.lifestyle-preferences-list small {
+    color: #64748b;
+    font-size: 0.78rem;
+}
+
+.lifestyle-retake-card p {
+    margin: 0 0 12px;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+    .lifestyle-quiz-body,
+    .lifestyle-results-body {
+        flex-direction: column;
+    }
+
+    .lifestyle-progress,
+    .lifestyle-results-sidebar {
+        flex-basis: auto;
+        width: 100%;
+    }
+
+    .lifestyle-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .lifestyle-matches-grid.properties-grid .property-card {
+        flex-basis: 100%;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 560px) {
+    .lifestyle-options {
+        grid-template-columns: 1fr;
+    }
+}

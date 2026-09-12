@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name', 'LJS'))</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net" />
@@ -14,21 +15,27 @@
     <link rel="stylesheet" href="{{ asset('css/about.css') }}">
     <link rel="stylesheet" href="{{ asset('css/properties.css') }}">
     <link rel="stylesheet" href="{{ asset('css/property-details.css') }}">
-    
+    <link rel="stylesheet" href="{{ asset('css/agents.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/lifestyle.css') }}">
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    @stack('styles')
 </head>
 <body class="landing-page">
-    <header class="landing-nav">
+    <header class="landing-nav {{ request()->routeIs(['home', 'about']) ? 'transparent-nav' : '' }}">
+    {{-- <header class="landing-nav {{ request()->routeIs('home') ? 'transparent-nav' : '' }}"> --}}
+    {{-- <header class="landing-nav"> --}}
         <div class="logo-container">
             <div class="left">
                 <img class="landing-img" src="{{ asset('images/ljs-logo.jpg') }}" alt="Logo" />
             </div>
             <div class="right">
                 <nav class="landing-nav-links">
-                    <a href="{{ route('home') }}" class="landing-nav-link">Home</a>
-                    <a href="{{ route('properties') }}" class="landing-nav-link">Properties</a>
-                    <a href="{{ route('agents') }}" class="landing-nav-link">Agents</a>
-                    <a href="{{ route('about') }}" class="landing-nav-link">About Us</a>
+                    <a href="{{ route('home') }}" class="landing-nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
+                    <a href="{{ route('properties') }}" class="landing-nav-link {{ request()->routeIs('properties*') ? 'active' : '' }}">Properties</a>
+                    <a href="{{ route('agents') }}" class="landing-nav-link {{ request()->routeIs('agents*') ? 'active' : '' }}">Agents</a>
+                    <a href="{{ route('about') }}" class="landing-nav-link {{ request()->routeIs('about') ? 'active' : '' }}">About Us</a>
                 </nav>
                 <div class="auth-action">
                     <button type="button" id="openLoginModal" class="login-btn" data-open-login-modal="true">Login</button>
@@ -81,19 +88,19 @@
         <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
             <button type="button" class="login-modal-close" aria-label="Close">×</button>
             <div class="login-modal-header" id="loginModalTitle">Please sign in</div>
-            <p class="login-modal-note">
+            {{-- <p class="login-modal-note">
                 TEMPORARY ACCOUNTS.<br>
-                admin@example.com / admin<br>
-                agent@example.com / agent<br>
-                leadbroker@example.com / lead<br>
-                broker@example.com / broker
-            </p>
+                admin@testing.com / admin<br>
+                agent@testing.com / agent<br>
+                leadbroker@testing.com / lead<br>
+                broker@testing.com / broker
+            </p> --}}
 
             @if(session('login_error'))
                 <div class="login-modal-error">{{ session('login_error') }}</div>
             @endif
 
-            <form method="POST" action="{{ route('temp.login') }}">
+            <form method="POST" action="{{ route('login') }}">
                 @csrf
 
                 <div class="form-group">
@@ -134,6 +141,8 @@
     <script src="{{ asset('js/rush.js') }}" defer></script>
     <script src="{{ asset('js/about.js') }}" defer></script>
     <script src="{{ asset('js/properties.js') }}" defer></script>
+    <script src="{{ asset('js/agents.js') }}" defer></script>
+    <script src="{{ asset('js/lifestyle.js') }}" defer></script>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>

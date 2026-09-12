@@ -3,7 +3,6 @@
 @section('title', 'LJS Realty and Brokerage - Find Your Dream Property')
 
 @section('content')
-    <!-- 1. Hero Section -->
     <section class="hero-section">
         <div class="hero-content">
             <h1 class="hero-title">Find Your <span class="highlight">Dream</span> Property</h1>
@@ -15,7 +14,6 @@
         </div>
     </section>
 
-    <!-- 2. Map Section -->
     <section class="map-search-section">
         <div class="map-section-header">
             <span class="map-section-tag">WHERE YOUR NEXT HOME BEGINS</span>
@@ -89,8 +87,6 @@
 
     <section class="rush-properties-section">
         <div class="rush-container">
-            
-            <!-- Header -->
             <div class="rush-header">
                 <span class="rush-tag">Featured Properties</span>
                 <h2>Rush Properties</h2>
@@ -156,16 +152,16 @@
                                 </h3>
                                 
                                 <p class="rush-location">
-                                    📍 {{ $item->property_location ?? 'Cebu City, Cebu, Philippines' }}
+                                     {{ $item->property_location ?? 'Cebu City, Cebu, Philippines' }}
                                 </p>
 
                                 <hr class="rush-divider">
 
                                 <!-- Property Meta Details -->
                                 <div class="rush-meta">
-                                    <span>🛏 2 beds</span>
-                                    <span>🛁 2 baths</span>
-                                    <span>📐 85 sqm</span>
+                                    <span> 2 beds</span>
+                                    <span> 2 baths</span>
+                                    <span> 85 sqm</span>
                                 </div>
 
                                 <!-- Action Button -->
@@ -195,21 +191,21 @@
         </div>
     </section>
 
-    <section class="about-banner-section">
-        <div class="about-banner-container">
-            <!-- Left Side: Group/Event Photo with Gradient Fade -->
-            <div class="about-banner-image-wrapper">
-                <img src="{{ asset('images/ljs-family.jpg') }}" alt="LJS Team and People" class="about-banner-img">
-                <div class="about-banner-fade"></div>
+    <section class="home-about-section">
+        <div class="home-about-container">
+            <!-- Left Side: Group Photo with Fade Overlay -->
+            <div class="home-about-image-wrapper">
+                <img src="{{ asset('images/ljs-family.jpg') }}" alt="LJS Team and People" class="home-about-img">
+                <div class="home-about-fade"></div>
             </div>
 
             <!-- Right Side: Content & Action -->
-            <div class="about-banner-content">
+            <div class="home-about-content">
                 <h2>We <span class="highlight-green">find places</span> that people love</h2>
                 <p>
-                    Example
+                    Praesent venenatis justo in ultrices tempor. Donec maximus, dolor a condimentum congue, tellus nisi dictum magna, uttere lorem ipsum viverra massa ex sit amet nulla. Duis lobortis nisl sed aliquam sollicitudin.
                 </p>
-                <a href="{{ route('about') }}" class="about-banner-btn">Learn More</a>
+                <a href="{{ route('about') }}" class="home-about-btn">Learn More</a>
             </div>
         </div>
     </section>

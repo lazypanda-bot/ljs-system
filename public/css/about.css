@@ -1,82 +1,328 @@
-.about-banner-section {
-    position: relative;
-    background-color: #f0f6ff;
-    padding: 60px 0;
-    font-family: system-ui, -apple-system, sans-serif;
-    overflow: hidden;
+body {
+    padding-top: 0 !important;
+    margin: 0;
 }
 
-.about-banner-container {
-    max-width: 100%;
-    margin: 0 auto;
+.about-hero-section {
+    position: relative;
+    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('../images/ljs-family.jpg') no-repeat center center / cover;
+    padding: 280px 20px 160px 20px;
+    color: #fff;
+    text-align: center;
+    z-index: 2;
+    opacity: 0;
+    /* transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out; */
+}
+
+.about-hero-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.about-hero-content .about-tag {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+}
+
+.about-hero-content h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 10px 0 25px 0;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.about-meta-info {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    font-size: 14px;
+    font-weight: 500;
+    flex-wrap: wrap;
+}
+
+.about-meta-info span {
     display: flex;
     align-items: center;
-    gap: 50px;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 16px;
+    border-radius: 30px;
+    backdrop-filter: blur(4px);
+}
+
+.about-offer-section {
+    padding: 80px 50px;
+    background-color: #f8fafc;
+}
+
+.about-offer-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 50px;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.about-offer-title-wrap h2 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.about-heading-line {
+    width: 50px;
+    height: 4px;
+    background-color: #16a34a;
+    margin-top: 10px;
+    border-radius: 2px;
+}
+
+.about-offer-description {
+    max-width: 550px;
+    color: #4b5563;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.about-offer-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+}
+
+.about-offer-card {
+    background: #ffffff;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #e5e7eb;
+}
+
+.about-offer-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.about-offer-icon-wrap {
+    width: 60px;
+    height: 60px;
+    background: #ecfdf5;
+    color: #16a34a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.about-offer-card h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 12px;
+}
+
+.about-offer-card p {
+    color: #6b7280;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.about-work-section {
+    padding: 80px 50px;
     background: #f0f6ff;
-    height:  auto;
 }
 
-/* Left Image Wrapper with Fading Blend Effect */
-.about-banner-image-wrapper {
-    flex: 1.1;
+.about-work-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 50px;
+    flex-wrap: wrap;
+}
+
+.about-work-text {
+    flex: 1;
+    min-width: 300px;
+}
+
+.about-work-text h2 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 15px;
+}
+
+.about-work-text p {
+    color: #4b5563;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.about-steps-flex {
+    flex: 1.2;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.about-step-item {
+    background: #ffffff;
+    padding: 25px 20px;
+    border-radius: 10px;
+    flex: 1;
+    min-width: 150px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    border: 1px solid #e5e7eb;
+}
+
+.about-step-icon {
+    width: 40px;
+    height: 40px;
+    background: #eff6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.about-step-item span {
+    font-size: 0.9rem;
+    color: #1f2937;
+}
+
+.about-cta-section {
+    padding: 80px 50px;
+    background: #ffffff;
+    text-align: center;
+}
+
+.about-cta-section p {
+    font-size: 1.1rem;
+    color: #374151;
+    max-width: 700px;
+    margin: 0 auto 25px auto;
+    line-height: 1.5;
+}
+
+.about-btn-explore {
+    display: inline-block;
+    background: #00C853;
+    color: #ffffff;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.about-btn-explore:hover {
+    background: #00b048;
+}
+.company-section {
+    padding: 80px 0;
+    background-color: #f0f6ff;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+}
+
+.company-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 60px;
+    flex-wrap: wrap;
+    padding-left: 0;
+    padding-right: 50px;
+}
+
+.company-image-wrapper {
     position: relative;
-    height: 440px;
-    overflow: hidden;
+    flex: 1.2;
+    min-width: 400px;
+    height: 400px;
+    margin-left: 0;
+    padding-left: 50px;
 }
 
-.about-banner-img {
+.image-card {
+    width: 100%;
+    height: 100%;
+    border-radius: 0 16px 16px 0;
+    overflow: hidden;
+    box-shadow: 10px 15px 30px rgba(0, 0, 0, 0.05);
+}
+
+.image-card img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    /* This CSS mask fades the right side and bottom of the image into the background */
-    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
-    mask-image: linear-gradient(to right, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
 }
 
 /* Right Content Area */
-.about-banner-content {
-    flex: 0.9;
-    padding: 10px;
+.company-content-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    min-width: 320px;
+    flex-wrap: wrap;
+    padding-right: 40px;
+}
+
+.company-text-side {
+    flex: 1;
+    min-width: 240px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    gap: 12px;
 }
 
-.about-banner-content h2 {
-    font-size: 2.75rem;
-    font-weight: 800;
-    color: #111827;
-    line-height: 1.15;
-    margin-bottom: 20px;
-}
-
-.highlight-green {
+.company-tag {
     color: #16a34a;
-}
-
-.about-banner-content p {
-    font-size: 0.95rem;
-    color: #4b5563;
-    line-height: 1.6;
-    margin-bottom: 30px;
-}
-
-.about-banner-btn {
+    font-weight: 700;
+    font-size: 1.1rem;
     display: inline-block;
-    background: #0066ff;
-    color: #fff;
-    padding: 12px 28px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.9rem;
-    width: fit-content;
-    box-shadow: 0 4px 10px rgba(0, 102, 255, 0.25);
-    transition: background 0.2s, transform 0.2s;
 }
 
-.about-banner-btn:hover {
-    background: #0052cc;
-    transform: translateY(-1px);
+.company-text-side p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #4b5563;
+    margin: 0;
+}
+
+.about-page-wrapper ~ header .landing-nav-links a,
+body:has(.about-page-wrapper) .landing-nav-links a {
+    color: #ffffff !important; 
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+body:has(.about-page-wrapper) .landing-nav-links a.active,
+body:has(.about-page-wrapper) .landing-nav-links a.current,
+body:has(.about-page-wrapper) .landing-nav-links a:hover,
+.about-page-wrapper ~ header .landing-nav-links a.active,
+.about-page-wrapper ~ header .landing-nav-links a.current,
+.about-page-wrapper ~ header .landing-nav-links a:hover {
+    color: #0084ff !important;
 }

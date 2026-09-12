@@ -7,6 +7,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\PropertyController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\TeamController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AgentController;
+use App\Http\Controllers\AboutController;
+use App\Http\Controllers\LifestyleController;
 
 // HOME / LANDING PAGE
 Route::get('/', function () {
@@ -31,14 +37,9 @@ Route::get('/properties', function () {
     return view('customer.properties', compact('properties'));
 })->name('properties');
 
-// AGENTS
-Route::get('/agents', function () {
-    return view('layouts.app');
-})->name('agents');
-
 // ABOUT
 Route::get('/about', function () {
-    return view('layouts.app');
+    return view('customer.about');
 })->name('about');
 
 // ADMIN PROPERTY MANAGEMENT ACTIONS
@@ -48,9 +49,8 @@ Route::post('/admin/properties/{id}/generate-referral', [PropertyController::cla
     ->name('agent.properties.generate-code');
 
 // LIFESTYLE
-Route::get('/lifestyle-match', function () {
-    return view('customer.lifestyle');
-})->name('lifestyle.match');
+Route::get('/lifestyle-match', [LifestyleController::class, 'index'])->name('lifestyle.match');
+Route::post('/lifestyle-match/results', [LifestyleController::class, 'results'])->name('lifestyle.match.results');
 
 // ADD PROPERTY
 Route::get('/admin/properties/create', [PropertyController::class, 'create'])->name('admin.subfiles.addproperty');
@@ -58,79 +58,25 @@ Route::get('/admin/properties/create', [PropertyController::class, 'create'])->n
 // VIEW DETAILS
 Route::get('/properties/{id}', [PropertyController::class, 'show'])->name('properties.show');
 
-// TEMPORARY FOR TESTING
-Route::get('/temp-login', function () {
-    return redirect('/')->with('login_error', 'Please sign in using the form below.');
+// ALL AGENTS
+Route::get('/agents', [AgentController::class, 'agents'])->name('agents');
+
+// USERS
+Route::get('/app/users', [UserController::class, 'index']);
+
+// AUTHENTICATION ROUTES
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
+Route::post('/login', [AuthController::class, 'login'])->middleware('guest');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+// AUTHENTICATED ROUTES
+Route::middleware('auth')->group(function () {
+    // Single dashboard implementation lives at /app/dashboard; this is just the
+    // well-known post-login landing URL.
+    Route::get('/dashboard', function () {
+        return redirect()->route('app.page', ['page' => 'dashboard']);
+    })->name('dashboard');
 });
-
-Route::post('/temp-login', function (Request $request) {
-    // Temporary hardcoded accounts for development/testing only.
-    $credentials = [
-        'admin@example.com' => ['password' => 'admin', 'role' => 'admin', 'name' => 'Temporary Admin'],
-        'agent@example.com' => ['password' => 'agent', 'role' => 'agent', 'name' => 'Temporary Agent'],
-        'broker@example.com' => ['password' => 'broker', 'role' => 'broker', 'name' => 'Temporary Broker'],
-        'leadbroker@example.com' => ['password' => 'lead', 'role' => 'lead_broker', 'name' => 'Temporary Lead Broker'],
-        'customer@example.com' => ['password' => 'customer', 'role' => 'customer', 'name' => 'Temporary Customer'],
-    ];
-
-    $email = $request->input('email');
-    $password = $request->input('password');
-
-    if (! isset($credentials[$email]) || $credentials[$email]['password'] !== $password) {
-        return redirect('/')->with('login_error', 'Invalid temporary credentials.');
-    }
-
-    $entry = $credentials[$email];
-    $roleId = DB::table('roles')->where('role_name', $entry['role'])->value('role_id');
-    if (! $roleId) {
-        $roleId = DB::table('roles')->insertGetId([
-            'role_name' => $entry['role'],
-        ]);
-    }
-
-    $user = DB::table('users')->where('email', $email)->first();
-    if (! $user) {
-        $userId = DB::table('users')->insertGetId([
-            'name' => $entry['name'],
-            'email' => $email,
-            'password' => Hash::make($password),
-            'role_id' => $roleId,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        $user = DB::table('users')->where('user_id', $userId)->first();
-    } else {
-        DB::table('users')->where('user_id', $user->user_id)->update([
-            'password' => Hash::make($password),
-            'role_id' => $roleId,
-            'updated_at' => now(),
-        ]);
-    }
-
-    Auth::loginUsingId($user->user_id);
-
-    $role = $entry['role'];
-
-    if ($role === 'customer') {
-        return redirect()->route('properties');
-    }
-
-    if ($role === 'lead_broker') {
-        session(['acting_as' => 'broker']);
-        return redirect()->route('app.page', ['page' => 'dashboard']);
-    }
-
-    if (in_array($role, ['admin', 'broker', 'agent'], true)) {
-        return redirect()->route('app.page', ['page' => 'dashboard']);
-    }
-
-    return redirect()->route('home');
-})->name('temp.login');
-
-Route::post('/logout', function () {
-    Auth::logout();
-    return redirect('/');
-})->name('logout');
 
 
 // Legacy role-specific routes were replaced with a single dynamic shared page route.
@@ -157,39 +103,63 @@ Route::post('/logout', function () {
 
 
 
-// SHARED DYNAMIC PAGE ROUTE
 Route::middleware('auth')->get('/app/{page}', function ($page) {
     $user = Auth::user();
-    $role = 'guest';
-    if (! empty($user?->role_id)) {
-        $role = DB::table('roles')->where('role_id', $user->role_id)->value('role_name') ?? 'guest';
-    }
-    $acting = $role;
-    if ($role === 'lead_broker') {
-        $acting = session('acting_as', 'broker');
-    }
+    $acting = $user->actingRole();
 
-    $rolePages = [
-        'Admin' => ['dashboard', 'users', 'messages', 'property', 'appointments', 'review', 'report', 'settings'],
-        'Broker' => ['dashboard', 'agents', 'messages', 'listings', 'appointments', 'review', 'report', 'settings'],
-        'Agent' => ['dashboard', 'messages', 'listings', 'appointment', 'review', 'report', 'settings'],
-    ];
+    $rolePages = config('roles.pages');
 
     if (! isset($rolePages[$acting]) || ! in_array($page, $rolePages[$acting], true)) {
         abort(403);
     }
 
     $pageTitle = ucfirst(str_replace(['-', '_'], ' ', $page));
-    
-    // FETCH PROPERTIES FOR THE TABLE
-    $properties = Property::with(['images', 'details'])->latest()->get();
+
+    if ($page === 'dashboard') {
+        $properties = Property::visibleTo($user)->with('details')->get();
+        $totalProperties = $properties->count();
+
+        $statusBuckets = $properties->groupBy(function (Property $property) {
+            return in_array($property->property_status, ['For Sale', 'Pending', 'Sold'], true)
+                ? $property->property_status
+                : 'Inactive';
+        });
+
+        $forSaleProperties = $statusBuckets->get('For Sale', collect())->count();
+        $pendingProperties = $statusBuckets->get('Pending', collect())->count();
+        $soldProperties = $statusBuckets->get('Sold', collect())->count();
+        $inactiveProperties = $statusBuckets->get('Inactive', collect())->count();
+
+        $dashboardMode = $acting === 'admin' ? 'org' : 'personal';
+        $totalBrokers = null;
+        $totalAgents = null;
+
+        if ($dashboardMode === 'org') {
+            $totalBrokers = \App\Models\User::where('role_name', 'Broker')
+                ->where('account_status', 'Active')
+                ->count();
+            $totalAgents = \App\Models\User::where('role_name', 'Agent')
+                ->where('account_status', 'Active')
+                ->count();
+        }
+
+        return view('dashboard', compact(
+            'totalProperties', 'totalBrokers', 'totalAgents', 'dashboardMode',
+            'forSaleProperties', 'pendingProperties', 'soldProperties', 'inactiveProperties',
+            'acting', 'pageTitle'
+        ));
+    }
+
+    $properties = Property::visibleTo($user)->with(['images', 'details'])->latest()->get();
 
     return view('shared.page', compact('acting', 'page', 'pageTitle', 'properties'));
 })->name('app.page');
 
 Route::post('/lead/toggle', function () {
-    if (! Auth::check()) {
-        return redirect('/');
+    $user = Auth::user();
+
+    if (! $user || $user->normalizedRole() !== 'lead_broker') {
+        return redirect()->back();
     }
 
     $current = session('acting_as', 'broker');
@@ -198,3 +168,9 @@ Route::post('/lead/toggle', function () {
 
     return redirect()->back();
 })->name('lead.toggle')->middleware('auth');
+
+// ADMIN USER MANAGEMENT
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('users', UserController::class);
+    Route::resource('teams', TeamController::class);
+});

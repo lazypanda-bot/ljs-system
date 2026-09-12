@@ -27,17 +27,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Satellite and Label layers
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    // STREET VIEW AND LABELS
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 22,
         maxNativeZoom: 19,
-        attribution: 'Tiles &copy; Esri'
-    }).addTo(map);
-
-    L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 22,
-        maxNativeZoom: 19,
-        pane: 'overlayPane' 
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
     const statusColors = {
@@ -100,5 +94,20 @@ document.addEventListener('DOMContentLoaded', function () {
             map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
         }
     }
-});
 
+    // SCOLL
+    const navbar = document.querySelector('.landing-nav.transparent-nav');
+
+    if (navbar) {
+        function handleScroll() {
+            if (window.scrollY > 20) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        }
+
+        window.addEventListener('scroll', handleScroll);
+        handleScroll(); 
+    }
+});

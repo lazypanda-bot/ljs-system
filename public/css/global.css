@@ -29,6 +29,12 @@
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+html, body {
+    height: auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
 body {
     background-color: var(--color-body);
     color: var(--color-text);
@@ -36,16 +42,28 @@ body {
 .dashboard-container {
     display: flex;
     min-height: 100vh;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
 }
 .main-content {
     flex: 1;
     display: flex;
     flex-direction: column;
     background: var(--color-body);
+    min-height: 0;
+    overflow: hidden;
 }
 .content-area {
     flex: 1;
-    padding: 30px;
-    min-height: calc(100vh - 84px);
+    padding: 18px 20px 12px;
+    min-height: 0;
+    height: calc(100vh - 84px);
+    overflow-y: auto;
+    overflow-x: hidden;
     background: var(--color-body);
+}
+.sidebar {
+    overflow-y: auto;
+    overflow-x: hidden;
 }

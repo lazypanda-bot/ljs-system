@@ -15,21 +15,26 @@
                     <p class="page-label-subtitle">Welcome back</p>
                 </div>
             </div>
+        {{-- @else
+            <nav class="navbar-links">
+                <a href="{{ url('/home') }}" class="{{ request()->is('/') ? 'active' : '' }}">Home</a>
+                <a href="{{ url('/properties*') }}" class="{{ request()->is('properties*') ? 'active' : '' }}">Properties</a>
+                <a href="{{ url('/agents*') }}" class="{{ request()->is('agents*') ? 'active' : '' }}">Agents</a>
+                <a href="{{ url('/about*') }}" class="{{ request()->is('about*') ? 'active' : '' }}">About Us</a>
+            </nav> --}}
         @endif
     </div>
 
-        <div class="header-right">
+    <div class="header-right">
         @hasSection('navbar-actions')
             @yield('navbar-actions')
         @else
             @auth
                 @if(!empty($roleToggle) && $roleToggle)
-                    <form method="POST" action="{{ route('lead.toggle') }}" style="display:inline-block;margin-right:12px;">
+                    <form method="POST" action="{{ route('lead.toggle') }}" class="role-toggle-form">
                         @csrf
-                        <button type="submit" class="notification-btn" aria-label="Toggle role">
-                            <span style="font-size:13px;font-weight:700;color:var(--color-text-dark);">
-                                {{ ucfirst($actingAs ?? 'broker') }} view
-                            </span>
+                        <button type="submit" class="role-toggle-btn" aria-label="Toggle role">
+                            {{ ucfirst($actingAs ?? 'broker') }} view
                         </button>
                     </form>
                 @endif
@@ -102,7 +107,7 @@
             <div class="login-modal-error">{{ session('login_error') }}</div>
         @endif
 
-        <form method="POST" action="{{ route('temp.login') }}">
+        <form method="POST" action="{{ route('login') }}">
             @csrf
 
             <div class="form-group">

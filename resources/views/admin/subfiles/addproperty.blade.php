@@ -3,13 +3,17 @@
 @section('title', 'Add New Property')
 
 @section('content')
+    <div class="back-btn">
+        <a href="{{ route('app.page', ['page' => 'property']) }}" class="back">
+            <i class="arrow"></i> Properties
+        </a>
+    </div>
     <div class="main-content-container">
         <div class="page-header-flex">
             <div>
                 <h2>Add New Property Listing</h2>
                 <p class="page-subtitle">Fill in the details below to publish a new property.</p>
             </div>
-            <a href="{{ route('admin.subfiles.addproperty') }}" class="btn-cancel text-decoration-none">Cancel</a>
         </div>
 
         <form action="{{ route('admin.properties.store') }}" method="POST" enctype="multipart/form-data" class="content-card-form">
@@ -48,21 +52,35 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="price" class="form-label">Price *</label>
+                        <input type="number" step="0.01" class="form-control" id="price" name="price" placeholder="e.g. 2500000" required>
+                    </div>
+
+                    <div class="form-group">
                         <label>Property Description *</label>
                         <textarea name="description" rows="3" required></textarea>
                     </div>
 
+                    <h3 class="form-section-title">Property Location</h3>
                     <div class="form-row-2">
                         <div class="form-group">
-                            <label>Complete Address *</label>
-                            <div class="input-with-icon">
-                                <input type="text" name="address" placeholder="e.g. Cebu City, Cebu, Philippines" required>
-                                <span class="input-icon">&#128205;</span>
-                            </div>
+                            <label>House Number</label>
+                            <input type="text" name="house_number" placeholder="e.g. Blk 4 Lot 2">
                         </div>
                         <div class="form-group">
-                            <label>Price (₱) *</label>
-                            <input type="text" name="price" required>
+                            <label>Street *</label>
+                            <input type="text" name="street" placeholder="e.g. V. Rama Ave, Guadalupe" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label>City *</label>
+                            <input type="text" name="city" placeholder="e.g. Cebu City" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Province *</label>
+                            <input type="text" name="province" placeholder="e.g. Cebu" required>
                         </div>
                     </div>
 
@@ -107,6 +125,33 @@
                     <div class="form-group amenities-group">
                         <label>Other Features / Amenities</label>
                         <input type="text" name="amenities" placeholder="Garden, Security System, Swimming Pool">
+                    </div>
+
+                    <h3 class="form-section-title">Lifestyle Match</h3>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label>Lifestyle Tag</label>
+                            <select name="lifestyle_tag">
+                                <option value="">Select Lifestyle</option>
+                                <option value="nature_lover">Nature Lover</option>
+                                <option value="city_explorer">City Explorer</option>
+                                <option value="family_oriented">Family Oriented</option>
+                                <option value="work_business">Work &amp; Business</option>
+                                <option value="beach_lover">Beach Lover</option>
+                                <option value="peace_seeker">Peace Seeker</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Location Preference</label>
+                            <select name="location_tag">
+                                <option value="">Select Location Preference</option>
+                                <option value="near_coast">Near the Coast</option>
+                                <option value="city_center">City Center</option>
+                                <option value="quiet_suburb">Quiet Suburb</option>
+                                <option value="business_district">Business District</option>
+                                <option value="countryside">Countryside</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 

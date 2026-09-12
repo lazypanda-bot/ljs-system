@@ -1,6 +1,6 @@
 .sidebar {
     width: 260px;
-    height: 100vh;         
+    height: 100vh;
     position: sticky;
     top: 0;
     background: var(--color-bg-ex);
@@ -8,7 +8,8 @@
     flex-direction: column;
     justify-content: flex-start;
     gap: 30px;
-    overflow-y: auto;     
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 .sidebar-top {
     display: flex;

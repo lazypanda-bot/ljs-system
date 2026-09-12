@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('street');                   
             $table->string('city');                  
             $table->string('province');
+            $table->string('lot_number')->nullable(); 
+
             // $table->integer('price');
             $table->decimal('price', 12, 2);
             // $table->enum('property_status', ['For Sale', 'Reserved', 'Sold', 'For Rent', 'Unavailable']);

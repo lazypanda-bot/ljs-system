@@ -9,20 +9,13 @@
 
     <nav class="nav-menu">
         @php
-            $rolePages = [
-                'admin' => ['dashboard', 'users', 'messages', 'property', 'appointments', 'review', 'report', 'settings'],
-                'broker' => ['dashboard', 'agents', 'messages', 'listings', 'appointments', 'review', 'report', 'settings'],
-                'agent' => ['dashboard', 'messages', 'listings', 'appointment', 'review', 'report', 'settings'],
-            ];
+            $rolePages = config('roles.pages');
 
             $user = Auth::user();
-            $role = 'guest';
-            if (!empty($user?->role_id)) {
-                $role = DB::table('roles')->where('role_id', $user->role_id)->value('role_name') ?? 'guest';
-            }
-            $acting = ($role === 'lead_broker') ? session('acting_as', 'broker') : strtolower($role);
-            
-            $pages = $rolePages[$acting] ?? [];
+            $acting = $user?->actingRole();
+
+            // Guests (e.g. viewing the login page) get no role-based nav at all.
+            $pages = $acting ? ($rolePages[$acting] ?? $rolePages['admin']) : [];
             
             // Build the links array dynamically for your existing loop
             $sidebarLinks = [];

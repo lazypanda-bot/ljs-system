@@ -1,7 +1,12 @@
 @extends('layouts.app')
 
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+@endpush
+
 @section('content')
-<div class="container py-4">
+<div class="property-details-page">
     <!-- Breadcrumb -->
     <nav class="mb-4 text-muted small">
         <a href="{{ route('home') }}" class="text-decoration-none text-muted">Properties</a> 
@@ -73,7 +78,7 @@
             <div class="panel">
                 <h4 class="fw-bold mb-4">Features & amenities</h4>
                 <div class="amenities">
-                    @if($property->details && $property->details->amenities->isNotEmpty())
+                    @if($property->details?->amenities?->isNotEmpty())
                         @foreach($property->details->amenities as $amenity)
                             <div class="d-flex align-items-center gap-2 text-secondary">
                                 <i class="fas fa-check-circle text-primary"></i> {{ $amenity->amenity_name }}

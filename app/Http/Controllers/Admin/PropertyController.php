@@ -17,20 +17,25 @@ class PropertyController extends Controller
     public function store(Request $request)
     {
         try {
-            // 1. Validate the form inputs to match what is coming from Blade
+            // 1. Validate the form inputs to match the new granular location fields
             $validated = $request->validate([
-                'property_name' => 'required|string|max:255',
-                'property_type' => 'required|string',
-                'description'   => 'required|string',
-                // 'location'      => 'required|string',
-                'price'         => 'required|numeric',
-                'address'       => 'required|string',
-                'lot_area'      => 'required|numeric',
-                'floor_area'    => 'required|numeric',
-                'bedrooms'      => 'required|integer',
-                'bathrooms'     => 'required|integer',
+                'property_name'  => 'required|string|max:255',
+                'property_type'  => 'required|string',
+                'description'    => 'required|string',
+                'house_number'   => 'nullable|string',
+                'street'         => 'required|string',
+                'city'           => 'required|string',
+                'province'       => 'required|string',
+                'price'          => 'required|numeric',
+                'lot_area'       => 'required|numeric',
+                'floor_area'     => 'required|numeric',
+                'bedrooms'       => 'required|integer',
+                'bathrooms'      => 'required|integer',
                 'property_status'=> 'required|string',
-                'images.*'      => 'nullable|image|mimes:jpeg,png,webp|max:2048',
+                'lifestyle_tag'  => 'nullable|string',
+                'location_tag'   => 'nullable|string',
+                'amenities'      => 'nullable|string',
+                'images.*'       => 'nullable|image|mimes:jpeg,png,webp|max:2048',
             ]);
 
             $userId = Auth::id() ?? $this->ensureFallbackUser();
@@ -41,7 +46,13 @@ class PropertyController extends Controller
 
             // 3. Try fetching coordinates safely via OpenStreetMap API with a 3-second timeout
             try {
-                $queryAddress = $validated['address'];
+                // Dynamically build the full address string for the map API
+                $queryAddress = collect([
+                    $validated['house_number'] ?? '',
+                    $validated['street'],
+                    $validated['city'],
+                    $validated['province']
+                ])->filter()->implode(', ');
 
                 $response = Http::timeout(3)->withHeaders([
                     'User-Agent' => 'LJSRealtyApp/1.0 (ljsrealty@gmail.com)' 
@@ -70,7 +81,13 @@ class PropertyController extends Controller
                 'property_name'        => $validated['property_name'],
                 'property_description' => $validated['description'],
                 'property_type'        => $validated['property_type'],
-                'property_location'    => $validated['address'],
+                'lifestyle_tag'        => $validated['lifestyle_tag'] ?? null,
+                'location_tag'         => $validated['location_tag'] ?? null,
+                // Map the new location fields to the database columns
+                'house_number'         => $validated['house_number'] ?? null,
+                'street'               => $validated['street'],
+                'city'                 => $validated['city'],
+                'province'             => $validated['province'],
                 'price'                => (int) $validated['price'],
                 'property_status'      => $this->normalizeStatus($validated['property_status']),
                 'approval_status'      => 'Approved',
@@ -80,15 +97,31 @@ class PropertyController extends Controller
             ]);
 
             // 5. Insert Property Details
-            DB::table('property_details')->insert([
-                'property_id' => $property->property_id,
+            $detailsId = DB::table('property_details')->insertGetId([
+                'property_id' => $property->property_id, // ensure your DB primary key matches
                 'lot_area'    => $validated['lot_area'],
                 'floor_area'  => $validated['floor_area'],
                 'bedroom'     => $validated['bedrooms'],
                 'bathroom'    => $validated['bathrooms'],
                 'created_at'  => now(),
                 'updated_at'  => now(),
-            ]);
+            ], 'details_id');
+
+            // 5b. Save Amenities / Other Features
+            if (! empty($validated['amenities'])) {
+                foreach (explode(',', $validated['amenities']) as $amenityName) {
+                    $amenityName = trim($amenityName);
+
+                    if ($amenityName === '') {
+                        continue;
+                    }
+
+                    DB::table('property_amenities')->insert([
+                        'details_id'   => $detailsId,
+                        'amenity_name' => $amenityName,
+                    ]);
+                }
+            }
 
             // 6. Save Images
             if ($request->hasFile('images')) {

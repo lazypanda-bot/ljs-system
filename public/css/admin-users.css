@@ -1,0 +1,356 @@
+/* Page Card Container */
+.au-page-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+/* Tabs */
+.au-tabs-container {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid #edf2f7;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.au-tab-btn {
+    background: transparent;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+    color: #718096;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.au-tab-btn:hover {
+    color: #2d3748;
+    background-color: #f7fafc;
+}
+
+.au-tab-btn.active {
+    color: #38a169;
+    background-color: #f0fff4;
+    font-weight: 600;
+}
+
+/* Tab Content */
+.au-tab-content {
+    display: none;
+    animation: fadeIn 0.25s ease-in-out;
+}
+
+.au-tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Section Header Layout (replaces inline d-flex classes) */
+.au-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Add User / Add Team Modals */
+.au-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 16px;
+    overflow-y: auto;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+}
+
+.au-modal-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.au-modal-overlay .au-form-card {
+    width: min(720px, 100%);
+    margin-bottom: 0;
+}
+
+.au-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.au-modal-close:hover {
+    background: #e2e8f0;
+}
+
+/* Form Card */
+.au-form-card {
+    background: #fdfdfe;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    position: relative;
+}
+
+.au-form-card h3 {
+    margin-bottom: 1.25rem;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: #1a202c;
+}
+
+.au-form-card h5 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+    margin-top: 1.5rem;
+}
+
+.au-form-card h5:first-child {
+    margin-top: 0;
+}
+
+/* Form Layout (hand-rolled, no Bootstrap on this page) */
+.au-form-card .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.5rem;
+}
+
+.au-form-card .col-md-6 {
+    flex: 1 1 260px;
+    min-width: 240px;
+}
+
+.au-form-card .mb-3 {
+    margin-bottom: 1.1rem;
+}
+
+.au-form-card .mb-0 {
+    margin-bottom: 0;
+}
+
+.au-form-card .form-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #334155;
+}
+
+.au-form-card .form-control,
+.au-form-card .form-select {
+    display: block;
+    width: 100%;
+}
+
+@media (max-width: 640px) {
+    .au-form-card .col-md-6 {
+        flex-basis: 100%;
+    }
+}
+
+.au-form-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+/* Form Controls */
+.form-control,
+.form-select {
+    border-radius: 8px;
+    border: 1px solid #cbd5e0;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.95rem;
+    color: #2d3748;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #68d391;
+    box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.15);
+}
+
+.au-search-wrapper {
+    margin-bottom: 1rem;
+}
+
+.au-search-input {
+    max-width: 320px;
+    background-color: #f8fafc;
+}
+
+/* Base Pill Button Layout */
+.au-adduser-toggle-btn,
+.au-addteam-toggle-btn,
+.au-saveuser-btn,
+.au-saveteam-btn,
+.au-canceluser-btn,
+.au-cancelteam-btn,
+.au-edituser-btn,
+.au-deleteuser-btn,
+.au-editteam-btn,
+.au-deleteteam-btn {
+    border-radius: 50rem !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+/* Main Toggle & Save Action Buttons */
+.au-adduser-toggle-btn,
+.au-addteam-toggle-btn,
+.au-saveuser-btn,
+.au-saveteam-btn {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+    padding: 0.5rem 1.25rem;
+}
+
+.au-adduser-toggle-btn:hover,
+.au-addteam-toggle-btn:hover,
+.au-saveuser-btn:hover,
+.au-saveteam-btn:hover {
+    background-color: #059669 !important;
+}
+
+/* Secondary & Cancel Buttons */
+.au-canceluser-btn,
+.au-cancelteam-btn {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    padding: 0.5rem 1.25rem;
+}
+
+.au-canceluser-btn:hover,
+.au-cancelteam-btn:hover {
+    background-color: #e2e8f0 !important;
+}
+
+/* Action Icon Buttons & Layout wrappers */
+.au-action-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.25rem;
+}
+
+.au-user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.au-edituser-btn,
+.au-deleteuser-btn,
+.au-editteam-btn,
+.au-deleteteam-btn {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+}
+
+.au-edituser-btn:hover,
+.au-deleteuser-btn:hover,
+.au-editteam-btn:hover,
+.au-deleteteam-btn:hover {
+    background-color: #e2e8f0 !important;
+}
+
+/* Table Design */
+.au-table-container {
+    margin-top: 1.5rem;
+}
+
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table thead th {
+    background: #f7fafc;
+    border-bottom: 1px solid #edf2f7;
+    border-top: 1px solid #edf2f7;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #4a5568;
+    padding: 0.875rem 1rem;
+}
+
+.table thead th:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.table thead th:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.table tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: #2d3748;
+    font-size: 0.95rem;
+}
+
+.table tbody tr:hover {
+    background-color: #fcfdfe;
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.au-pagination {
+    margin-top: 1.5rem;
+}
+
+/* Headings */
+.au-page-card h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+}
