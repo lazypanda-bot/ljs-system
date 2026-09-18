@@ -1,0 +1,211 @@
+.settings-page-wrapper {
+    max-width: 1200px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+    font-family: system-ui, -apple-system, sans-serif;
+    color: #1f2937;
+}
+
+/* Top Horizontal Tab Bar */
+.settings-tab-bar {
+    display: flex;
+    gap: 1.5rem;
+    background: #ffffff;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+    border: 1px solid #f3f4f6;
+}
+
+.settings-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.settings-tab-btn:hover {
+    color: #111827;
+    background-color: #f9fafb;
+}
+
+.settings-tab-btn.active {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+/* Main Card Wrapper */
+.settings-main-card {
+    background: #ffffff;
+    border-radius: 0.5rem;
+    border: 1px solid #f3f4f6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+}
+
+.settings-panel {
+    display: none;
+}
+
+.settings-panel.active {
+    display: block;
+}
+
+.section-header-row {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 1rem;
+}
+
+.section-header-row h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.section-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* Form Styles */
+.settings-form {
+    max-width: 600px;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+.password-input-wrapper {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #9ca3af;
+}
+
+/* Password Requirements Box */
+.password-requirements-box {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.req-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #065f46;
+    margin-bottom: 0.5rem;
+}
+
+.password-requirements-box ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    font-size: 0.8rem;
+    color: #047857;
+}
+
+.password-requirements-box li {
+    margin-bottom: 0.25rem;
+}
+
+/* Actions & Buttons */
+.form-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 1.5rem;
+}
+
+.btn-green {
+    background-color: #059669;
+    color: white;
+    padding: 0.5rem 1.25rem;
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-green:hover {
+    background-color: #047857;
+}
+
+/* Danger Zone */
+.danger-zone-box {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #fee2e2;
+}
+
+.danger-zone-box h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #991b1b;
+    margin-bottom: 0.25rem;
+}
+
+.btn-danger-outline {
+    background-color: #ffffff;
+    color: #b91c1c;
+    border: 1px solid #f87171;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.2s;
+}
+
+.btn-danger-outline:hover {
+    background-color: #fef2f2;
+}

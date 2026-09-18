@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::create('professional_profiles', function (Blueprint $table) {
             $table->id('profile_id');
-            $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
+            // $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
+            $table->foreignId('user_id')->unique()->constrained('users', 'user_id')->onDelete('cascade');
             $table->string('license_number', 100)->nullable();
             $table->string('document_file', 255)->nullable();
             $table->unsignedTinyInteger('years_experience')->nullable();

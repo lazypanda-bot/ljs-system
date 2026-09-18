@@ -15,6 +15,7 @@ return new class extends Migration
             $table->enum('status', ['Pending', 'Approved', 'Rejected'])->default('Pending');
             $table->timestamp('requested_at')->nullable();
             $table->timestamp('approved_at')->nullable();
+            $table->unique(['team_id', 'user_id']);
             $table->timestamps();
         });
     }

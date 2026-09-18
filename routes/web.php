@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Property;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -23,12 +24,12 @@ Route::get('/', function () {
 
     $collection = $properties; 
 
-    $rushProperties = Property::with('images')
-        ->where('rush', true)
+    $featuredProperties = Property::with('images')
+        ->where('featured', true)
         ->latest()
         ->get();
 
-    return view('customer.home', compact('properties', 'collection', 'rushProperties'));
+    return view('customer.home', compact('properties', 'collection', 'featuredProperties'));
 })->name('home');
 
 // PROPERTIES CATALOG
@@ -105,6 +106,11 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->get('/app/{page}', function ($page) {
     $user = Auth::user();
+
+    if (! ($user instanceof User)) {
+        abort(403);
+    }
+
     $acting = $user->actingRole();
 
     $rolePages = config('roles.pages');
@@ -143,7 +149,7 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
                 ->count();
         }
 
-        return view('dashboard', compact(
+        return view('pages.dashboard', compact(
             'totalProperties', 'totalBrokers', 'totalAgents', 'dashboardMode',
             'forSaleProperties', 'pendingProperties', 'soldProperties', 'inactiveProperties',
             'acting', 'pageTitle'
@@ -151,14 +157,23 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
     }
 
     $properties = Property::visibleTo($user)->with(['images', 'details'])->latest()->get();
+    $sharedPageViews = [
+        'messages' => 'pages.messages',
+        'listings' => 'pages.listings',
+        'review' => 'pages.reviews',
+        'settings' => 'pages.settings',
+    ];
+    $pageView = $sharedPageViews[$page] ?? $acting . '.' . $acting . '-' . str_replace('_', '-', $page);
 
-    return view('shared.page', compact('acting', 'page', 'pageTitle', 'properties'));
+    abort_unless(view()->exists($pageView), 404);
+
+    return view($pageView, compact('acting', 'page', 'pageTitle', 'properties'));
 })->name('app.page');
 
 Route::post('/lead/toggle', function () {
     $user = Auth::user();
 
-    if (! $user || $user->normalizedRole() !== 'lead_broker') {
+    if (! ($user instanceof User) || $user->normalizedRole() !== 'lead_broker') {
         return redirect()->back();
     }
 

@@ -1,0 +1,244 @@
+.messaging-container {
+    display: flex;
+    height: calc(100vh - 140px);
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+}
+
+/* Left Thread List */
+.thread-list {
+    width: 320px;
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.thread-list-header {
+    padding: 20px;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #111827;
+}
+
+.threads-container {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.thread-item {
+    display: flex;
+    padding: 16px;
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-items: center;
+    gap: 12px;
+}
+
+.thread-item:hover {
+    background: #f9fafb;
+}
+
+.thread-item.active {
+    background: #f3f4f6;
+    border-left: 4px solid #3b82f6;
+}
+
+.avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #3b82f6;
+    flex-shrink: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #fff;
+    font-size: 14px;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.thread-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.thread-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+}
+
+.thread-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.thread-time {
+    font-size: 11px;
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+.thread-snippet {
+    font-size: 13px;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Right Chat View */
+.chat-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #f9fafb;
+    min-width: 0;
+}
+
+.chat-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    gap: 12px;
+}
+
+.chat-header-info h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.chat-header-info span {
+    font-size: 12px;
+    color: #10b981;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.message-bubble {
+    max-width: 70%;
+    padding: 10px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.message-received {
+    background: #fff;
+    color: #1f2937;
+    align-self: flex-start;
+    border: 1px solid #e5e7eb;
+    border-bottom-left-radius: 4px;
+}
+
+.message-sent {
+    background: #3b82f6;
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+.message-meta {
+    font-size: 10px;
+    margin-top: 4px;
+    color: #6b7280;
+}
+
+.message-sent .message-meta {
+    color: rgba(255, 255, 255, 0.8);
+    text-align: right;
+}
+
+/* Reply Box */
+.reply-box {
+    padding: 16px 20px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    background: #fff;
+}
+
+.reply-input-wrapper {
+    flex: 1;
+    background: #f3f4f6;
+    border-radius: 24px;
+    padding: 10px 16px;
+    border: 1px solid transparent;
+}
+
+.reply-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    outline: none;
+    resize: none;
+    max-height: 120px;
+    font-family: inherit;
+    font-size: 14px;
+    color: #1f2937;
+    padding: 0;
+}
+
+.reply-actions {
+    display: flex;
+    gap: 4px;
+    padding-bottom: 2px;
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    color: #6b7280;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    background: #f3f4f6;
+    color: #3b82f6;
+}
+
+.btn-send {
+    color: #3b82f6;
+}
+
+

@@ -89,7 +89,7 @@
         <div class="rush-container">
             <div class="rush-header">
                 <span class="rush-tag">Featured Properties</span>
-                <h2>Rush Properties</h2>
+                <h2>Featured Properties</h2>
             </div>
 
             <!-- Slider Wrapper -->
@@ -102,7 +102,7 @@
 
                 <!-- Scrollable Track / Grid -->
                 <div id="rushSliderTrack" class="rush-slider-track">
-                    @forelse ($properties as $item)
+                    @forelse ($featuredProperties as $item)
                         @php
                             $firstImage = $item->images->first();
                             $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/night.png');
@@ -171,7 +171,7 @@
                             </div>
                         </article>            
                     @empty
-                        <p class="rush-empty">No rush properties available at the moment.</p>
+                        <p class="rush-empty">No featured properties available at the moment.</p>
                     @endforelse
                 </div>
 

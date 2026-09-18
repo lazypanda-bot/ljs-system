@@ -124,6 +124,16 @@ class User extends Authenticatable
         return $this->hasMany(Review::class, 'user_id', 'user_id');
     }
 
+    public function writtenReviews()
+    {
+        return $this->hasMany(Review::class, 'reviewer_id', 'user_id');
+    }
+
+    public function receivedReviews()
+    {
+        return $this->hasMany(Review::class, 'reviewed_user_id', 'user_id');
+    }
+
     /**
      * Get the messages sent by this user.
      */
@@ -145,7 +155,14 @@ class User extends Authenticatable
      */
     public function appointments()
     {
-        return $this->hasMany(Appointment::class, 'user_id', 'user_id');
+        return $this->hasManyThrough(
+            Appointment::class,
+            PropertyAssign::class,
+            'user_id',
+            'assign_id',
+            'user_id',
+            'assign_id'
+        );
     }
 
     /**

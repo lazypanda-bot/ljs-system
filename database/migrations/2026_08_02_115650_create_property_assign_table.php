@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
             $table->foreignId('property_id')->constrained('property_listings', 'property_id')->onDelete('cascade');
             $table->date('assigned_date');
+            $table->unique(['user_id', 'property_id']);
             // $table->timestamp('update_at')->nullable();
             $table->timestamps();
         });

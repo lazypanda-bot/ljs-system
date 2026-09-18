@@ -175,6 +175,10 @@
                         <small class="help-text reference-help">Unique identifier code.</small>
                     </div>
 
+                    <div class="form-group">
+                        <label><input type="checkbox" name="featured" value="1"> Feature this listing on the home page</label>
+                    </div>
+
                     <div class="form-actions-sidebar">
                         <button type="submit" class="btn-save">Save Property</button>
                         <a href="{{ route('admin.subfiles.addproperty') }}" class="btn-cancel text-decoration-none text-center">Cancel</a>

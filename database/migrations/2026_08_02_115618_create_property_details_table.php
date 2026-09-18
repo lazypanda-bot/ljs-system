@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::create('property_details', function (Blueprint $table) {
             $table->id('details_id');
-            $table->foreignId('property_id')->constrained('property_listings', 'property_id')->onDelete('cascade');
+            // $table->foreignId('property_id')->constrained('property_listings', 'property_id')->onDelete('cascade');
+            $table->foreignId('property_id')->unique()->constrained('property_listings', 'property_id')->onDelete('cascade');
             $table->decimal('lot_area', 10, 2)->nullable();
             $table->decimal('floor_area', 10, 2)->nullable();
             $table->integer('bedroom')->default(0);

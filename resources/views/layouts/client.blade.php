@@ -17,6 +17,7 @@
         <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
         <link rel="stylesheet" href="{{ asset('css/addproperty.css') }}">
         
+        @stack('styles')
     </head>
     <body>
         <div class="dashboard-container">
@@ -36,5 +37,6 @@
         <script src="{{ asset('js/admin.js') }}" defer></script>
         <script src="{{ asset('js/addproperty.js') }}" defer></script>
 
+        @stack('scripts')
     </body>
 </html>

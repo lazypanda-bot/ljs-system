@@ -35,6 +35,7 @@ class PropertyController extends Controller
                 'lifestyle_tag'  => 'nullable|string',
                 'location_tag'   => 'nullable|string',
                 'amenities'      => 'nullable|string',
+                'featured'       => 'nullable|boolean',
                 'images.*'       => 'nullable|image|mimes:jpeg,png,webp|max:2048',
             ]);
 
@@ -93,7 +94,7 @@ class PropertyController extends Controller
                 'approval_status'      => 'Approved',
                 'latitude'             => $latitude,
                 'longitude'            => $longitude,
-                'rush'                 => $request->has('rush') ? true : false,
+                'featured'             => $request->boolean('featured'),
             ]);
 
             // 5. Insert Property Details
@@ -224,7 +225,7 @@ class PropertyController extends Controller
 
     public function create()
     {
-        return view('admin.subfiles.addproperty'); 
+        return view('pages.properties.create');
     }
 
     // VIEW DETAILS
