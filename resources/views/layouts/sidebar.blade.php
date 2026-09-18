@@ -28,18 +28,18 @@
                 ];
             }
 
-            $currentRoute = \Illuminate\Support\Facades\Route::currentRouteName();
-            $currentUrl = url()->current();
+            $currentPage = request()->route('page');
+            if (request()->is('app/users') || request()->routeIs('admin.users.*')) {
+                $currentPage = 'users';
+            }
+            if (request()->routeIs('app.messages') || request()->routeIs('messages.inbox')) {
+                $currentPage = 'messages';
+            }
         @endphp
 
         @foreach($sidebarLinks as $link)
             @php
-                $isActive = false;
-                if (! empty($link['route']) && $currentRoute === $link['route'] && request()->route('page') === basename($link['url'])) {
-                    $isActive = true;
-                } elseif (! empty($link['url']) && $link['url'] !== '#' && url($link['url']) === $currentUrl) {
-                    $isActive = true;
-                }
+                $isActive = $currentPage === $link['icon'];
             @endphp
             <a href="{{ $link['url'] }}" class="nav-link {{ $isActive ? 'active' : '' }}">
                 <span class="nav-icon" aria-hidden="true">

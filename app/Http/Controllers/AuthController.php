@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -26,7 +28,7 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (! Auth::attempt($credentials)) {
+        if (! Auth::attempt([...$credentials, 'account_status' => 'Active'], $request->boolean('remember'))) {
             throw ValidationException::withMessages([
                 'email' => __('Invalid credentials'),
             ]);
@@ -34,7 +36,37 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        $user = Auth::user();
+        if ($user instanceof User && $user->normalizedRole() === 'client') {
+            return redirect()->route('home');
+        }
+
+        return redirect()->route('dashboard');
+    }
+
+    /**
+     * Register a public end-user account and start its session.
+     */
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'confirmed', 'min:8'],
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'account_status' => 'Active',
+            'role_name' => 'Client',
+        ]);
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('home');
     }
 
     /**

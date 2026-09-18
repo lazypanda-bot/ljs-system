@@ -219,6 +219,15 @@
                             </div>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="teamMembers" class="form-label">Team Members</label>
+                            <select class="form-select" id="teamMembers" name="member_ids[]" multiple size="5">
+                                @foreach($allUsers as $user)
+                                    <option value="{{ $user->user_id }}">{{ $user->name }} ({{ $user->role_name }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <div class="au-form-actions">
                             <button type="submit" class="au-saveteam-btn">Create Team</button>
                             <button type="button" class="au-cancelteam-btn" id="cancelAddTeamForm">Cancel</button>

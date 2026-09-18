@@ -8,14 +8,15 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net" />
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/global.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/login-modal.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/auth-modal.css') }}">
     <link rel="stylesheet" href="{{ asset('css/rush.css') }}">
     <link rel="stylesheet" href="{{ asset('css/about.css') }}">
     <link rel="stylesheet" href="{{ asset('css/properties.css') }}">
     <link rel="stylesheet" href="{{ asset('css/property-details.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/agents.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/agents.css') }}?v={{ filemtime(public_path('css/agents.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/lifestyle.css') }}">
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -38,7 +39,27 @@
                     <a href="{{ route('about') }}" class="landing-nav-link {{ request()->routeIs('about') ? 'active' : '' }}">About Us</a>
                 </nav>
                 <div class="auth-action">
-                    <button type="button" id="openLoginModal" class="login-btn" data-open-login-modal="true">Login</button>
+                    @auth
+                        <div class="public-account-actions">
+                            <div class="public-profile-wrap">
+                                <button class="public-account-pill" type="button" id="publicProfileButton" aria-expanded="false"><span>{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>{{ Auth::user()->name }}<small>{{ Auth::user()->role_name }}</small><i class="fas fa-chevron-down"></i></button>
+                                <div class="public-profile-menu" id="publicProfileMenu" aria-hidden="true">
+                                    <a href="{{ route('messages.inbox') }}" class="public-profile-item"><i class="fas fa-paper-plane"></i> Messages</a>
+                                    <button class="public-profile-item" type="button" data-notification-count-url="{{ route('notifications.count') }}" id="notificationMenuButton" aria-expanded="false"><i class="fas fa-bell"></i> Notifications @if(($unreadNotificationCount ?? 0) > 0)<span class="public-notification-badge" data-notification-count>{{ $unreadNotificationCount }}</span>@endif</button>
+                                    <div class="public-notification-list" id="notificationMenu" aria-hidden="true">
+                                        @forelse ($recentNotifications ?? [] as $notification)
+                                            <a href="{{ route('notifications.open', $notification) }}" class="public-notification-item"><strong>{{ $notification->title }}</strong><small>{{ $notification->body }}</small><time>{{ $notification->created_at->diffForHumans() }}</time></a>
+                                        @empty
+                                            <p>No new notifications.</p>
+                                        @endforelse
+                                    </div>
+                                    <form method="POST" action="{{ route('logout') }}">@csrf<button class="public-profile-item public-logout" type="submit"><i class="fas fa-right-from-bracket"></i> Logout</button></form>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <button type="button" id="openLoginModal" class="login-btn">Login</button>
+                    @endauth
                 </div>
             </div>
         </div>
@@ -84,39 +105,7 @@
         </div>
     </footer>
 
-    <div id="loginModalOverlay" class="login-modal-overlay" aria-hidden="true" data-open-if-error="{{ session()->has('login_error') ? 'true' : 'false' }}">
-        <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
-            <button type="button" class="login-modal-close" aria-label="Close">×</button>
-            <div class="login-modal-header" id="loginModalTitle">Please sign in</div>
-            {{-- <p class="login-modal-note">
-                TEMPORARY ACCOUNTS.<br>
-                admin@testing.com / admin<br>
-                agent@testing.com / agent<br>
-                leadbroker@testing.com / lead<br>
-                broker@testing.com / broker
-            </p> --}}
-
-            @if(session('login_error'))
-                <div class="login-modal-error">{{ session('login_error') }}</div>
-            @endif
-
-            <form method="POST" action="{{ route('login') }}">
-                @csrf
-
-                <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input id="loginEmail" name="email" type="email" placeholder="Enter email" required />
-                </div>
-
-                <div class="form-group">
-                    <label for="loginPassword">Password</label>
-                    <input id="loginPassword" name="password" type="password" placeholder="Enter password" required />
-                </div>
-
-                <button type="submit" class="login-submit-btn">Login</button>
-            </form>
-        </div>
-    </div>
+    @include('components.auth-modal')
 
     @php
         $mapProperties = ($properties ?? collect())->map(function ($property) {

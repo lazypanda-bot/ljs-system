@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\AppNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class TeamController extends Controller
 {
@@ -14,6 +17,8 @@ class TeamController extends Controller
      */
     public function index()
     {
+        $this->authorizeAdmin();
+
         $teams = Team::with('user', 'members')->paginate(10);
         $users = User::where('account_status', 'Active')->get();
         
@@ -25,6 +30,8 @@ class TeamController extends Controller
      */
     public function create()
     {
+        $this->authorizeAdmin();
+
         $users = User::where('account_status', 'Active')->get();
         return view('admin.admin-users', compact('users'));
     }
@@ -34,12 +41,38 @@ class TeamController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorizeAdmin();
+
         $validated = $request->validate([
             'user_id' => 'required|exists:users,user_id',
             'team_name' => 'nullable|string|max:255',
+            'member_ids' => 'array',
+            'member_ids.*' => 'exists:users,user_id',
         ]);
 
-        Team::create($validated);
+        DB::transaction(function () use ($validated) {
+            $memberIds = collect($validated['member_ids'] ?? [])
+                ->reject(fn ($userId) => (int) $userId === (int) $validated['user_id'])
+                ->unique();
+
+            $team = Team::create(collect($validated)->except('member_ids')->all());
+
+            foreach ($memberIds as $userId) {
+                $team->members()->create([
+                    'user_id' => $userId,
+                    'status' => 'Approved',
+                    'requested_at' => now(),
+                    'approved_at' => now(),
+                ]);
+                AppNotification::create([
+                    'user_id' => $userId,
+                    'type' => 'team',
+                    'title' => 'You were added to ' . ($team->team_name ?: 'a team'),
+                    'body' => 'Open Messages to access the team conversation.',
+                    'url' => route('messages.inbox'),
+                ]);
+            }
+        });
 
         return redirect()->route('admin.teams.index')->with('success', 'Team created successfully.');
     }
@@ -49,6 +82,8 @@ class TeamController extends Controller
      */
     public function show(Team $team)
     {
+        $this->authorizeAdmin();
+
         $team->load('user', 'members');
         return view('admin.admin-users', compact('team'));
     }
@@ -58,6 +93,8 @@ class TeamController extends Controller
      */
     public function edit(Team $team)
     {
+        $this->authorizeAdmin();
+
         $team->load('user', 'members');
         $users = User::where('account_status', 'Active')->get();
         return view('admin.admin-users', compact('team', 'users'));
@@ -68,6 +105,8 @@ class TeamController extends Controller
      */
     public function update(Request $request, Team $team)
     {
+        $this->authorizeAdmin();
+
         $validated = $request->validate([
             'user_id' => 'sometimes|required|exists:users,user_id',
             'team_name' => 'nullable|string|max:255',
@@ -83,8 +122,17 @@ class TeamController extends Controller
      */
     public function destroy(Team $team)
     {
+        $this->authorizeAdmin();
+
         $team->delete();
 
         return response()->json(['success' => true, 'message' => 'Team deleted successfully.']);
+    }
+
+    private function authorizeAdmin(): void
+    {
+        $user = Auth::user();
+
+        abort_unless($user instanceof User && $user->actingRole() === 'admin', 403);
     }
 }

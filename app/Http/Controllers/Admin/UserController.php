@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Team;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -15,9 +16,11 @@ class UserController extends Controller
      */
     public function index()
     {
+        $this->authorizeAdmin();
+
         return view('admin.admin-users', [
-            'users' => User::paginate(10),
-            'allUsers' => User::all(),
+            'users' => User::where('role_name', '!=', 'Client')->paginate(10),
+            'allUsers' => User::where('role_name', '!=', 'Client')->get(),
             'teams' => Team::with(['user', 'members'])->latest()->get(),
         ]);
     }
@@ -27,6 +30,8 @@ class UserController extends Controller
      */
     public function create()
     {
+        $this->authorizeAdmin();
+
         return view('admin.admin-users');
     }
 
@@ -35,6 +40,8 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorizeAdmin();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
@@ -56,6 +63,8 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
+        $this->authorizeAdmin();
+
         return view('admin.admin-users', compact('user'));
     }
 
@@ -64,6 +73,8 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        $this->authorizeAdmin();
+
         return view('admin.admin-users', compact('user'));
     }
 
@@ -72,6 +83,8 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        $this->authorizeAdmin();
+
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|unique:users,email,' . $user->user_id . ',user_id',
@@ -95,8 +108,17 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        $this->authorizeAdmin();
+
         $user->delete();
 
         return response()->json(['success' => true, 'message' => 'User deleted successfully.']);
+    }
+
+    private function authorizeAdmin(): void
+    {
+        $user = Auth::user();
+
+        abort_unless($user instanceof User && $user->actingRole() === 'admin', 403);
     }
 }

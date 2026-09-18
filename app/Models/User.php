@@ -150,6 +150,11 @@ class User extends Authenticatable
         return $this->hasMany(Message::class, 'receiver_id', 'user_id');
     }
 
+    public function conversationParticipants()
+    {
+        return $this->hasMany(ConversationParticipant::class, 'user_id', 'user_id');
+    }
+
     /**
      * Get the appointments for this user.
      */

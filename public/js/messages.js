@@ -1,11 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const threadItems = document.querySelectorAll('.thread-item');
+    const composeModal = document.getElementById('composeMessageModal');
+    const closeCompose = () => composeModal?.classList.remove('open');
+    document.getElementById('openComposeMessage')?.addEventListener('click', () => composeModal?.classList.add('open'));
+    document.querySelector('.compose-close')?.addEventListener('click', closeCompose);
+    document.querySelector('.compose-cancel')?.addEventListener('click', closeCompose);
+    composeModal?.addEventListener('click', (event) => { if (event.target === composeModal) closeCompose(); });
     const chatMessages = document.querySelector('.chat-messages');
     const replyInput = document.querySelector('.reply-input');
-    const sendBtn = document.querySelector('.btn-send');
-    const attachBtn = document.querySelector('.btn-attach');
 
-    // Auto-expand textarea
     if (replyInput) {
         replyInput.addEventListener('input', function() {
             this.style.height = 'auto';
@@ -13,74 +15,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Handle thread selection
-    threadItems.forEach(item => {
-        item.addEventListener('click', function() {
-            threadItems.forEach(i => i.classList.remove('active'));
-            this.classList.add('active');
-            
-            // In a real app, you would load messages here
-            console.log('Loading thread for: ' + this.querySelector('.thread-name').innerText);
-        });
-    });
+    if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Handle send message
-    function sendMessage() {
-        if (!replyInput || !chatMessages) return;
-        
-        const text = replyInput.value.trim();
-        if (text) {
-            const now = new Date();
-            const timeStr = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
-            
-            const messageHtml = `
-                <div class="message-bubble message-sent">
-                    <div class="message-text">${escapeHtml(text)}</div>
-                    <div class="message-meta">${timeStr}</div>
-                </div>
-            `;
-            
-            chatMessages.insertAdjacentHTML('beforeend', messageHtml);
-            replyInput.value = '';
-            replyInput.style.height = 'auto';
-            
-            // Scroll to bottom
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+        const updatesUrl = document.querySelector('.chat-view')?.dataset.updatesUrl;
+        const currentUserId = Number(chatMessages.dataset.currentUserId);
+
+        if (updatesUrl) {
+            window.setInterval(async function () {
+                const lastMessageId = chatMessages.dataset.lastMessageId || '0';
+                const response = await fetch(`${updatesUrl}?after=${lastMessageId}`, {
+                    headers: { Accept: 'application/json' },
+                });
+
+                if (!response.ok) return;
+
+                const { messages } = await response.json();
+                messages.forEach(function (message) {
+                    const sent = message.sender_id === currentUserId;
+                    const row = document.createElement('div');
+                    row.className = `message-row ${sent ? 'message-row-sent' : 'message-row-received'}`;
+                    row.innerHTML = `<span class="message-avatar role-${message.sender_role}"></span><div class="message-bubble role-${message.sender_role} ${sent ? 'message-sent' : 'message-received'}"><div class="message-author"></div><div class="message-text"></div><div class="message-meta"></div></div>`;
+                    const bubble = row.querySelector('.message-bubble');
+                    row.querySelector('.message-avatar').textContent = message.sender_name.charAt(0).toUpperCase();
+                    bubble.querySelector('.message-author').textContent = message.sender_name;
+                    bubble.querySelector('.message-text').textContent = message.body;
+                    bubble.querySelector('.message-meta').textContent = message.sent_at;
+                    chatMessages.appendChild(row);
+                    chatMessages.dataset.lastMessageId = message.id;
+                });
+
+                if (messages.length) chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 5000);
         }
-    }
-
-    if (sendBtn) {
-        sendBtn.addEventListener('click', sendMessage);
-    }
-
-    if (replyInput) {
-        replyInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-    }
-
-    // Handle attach button
-    if (attachBtn) {
-        attachBtn.addEventListener('click', function() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.onchange = e => {
-                const file = e.target.files[0];
-                if (file) {
-                    console.log('File selected:', file.name);
-                    // Handle file upload
-                }
-            };
-            input.click();
-        });
-    }
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
     }
 });

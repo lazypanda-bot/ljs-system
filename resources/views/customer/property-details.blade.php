@@ -115,9 +115,16 @@
                 <button class="actionbutton outlinebutton">
                     <i class="far fa-calendar-alt me-2"></i> Book Appointment
                 </button>
-                <button class="actionbutton primarybutton">
-                    <i class="far fa-paper-plane me-2"></i> Send Message
-                </button>
+                @auth
+                    @if (auth()->user()?->normalizedRole() === 'client' && in_array($property->user?->role_name, ['Broker', 'Agent'], true))
+                        <form method="POST" action="{{ route('properties.message', $property) }}">
+                            @csrf
+                            <button class="actionbutton primarybutton" type="submit"><i class="far fa-paper-plane me-2"></i> Send Message</button>
+                        </form>
+                    @endif
+                @else
+                    <button class="actionbutton primarybutton" type="button" id="openLoginModal"><i class="far fa-paper-plane me-2"></i> Sign in to send a message</button>
+                @endauth
             </div>
         </div>
     </div>

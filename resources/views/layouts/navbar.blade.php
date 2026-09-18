@@ -39,13 +39,28 @@
                     </form>
                 @endif
 
-                <button class="notification-btn" aria-label="Notifications">
-                    <span class="notification-count">{{ 0 }}</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M15 17h5l-1.4-1.4A7.94 7.94 0 0 0 18 10V8a6 6 0 1 0-12 0v2c0 1.3-.3 2.6-.9 3.7L4 17h5" />
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                    </svg>
-                </button>
+                <div class="notification-menu-wrap">
+                    <button class="notification-btn" type="button" data-notification-count-url="{{ route('notifications.count') }}" id="notificationMenuButton" aria-label="Notifications" aria-expanded="false">
+                        @if (($unreadNotificationCount ?? 0) > 0)
+                            <span class="notification-count" data-notification-count>{{ $unreadNotificationCount }}</span>
+                        @endif
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M15 17h5l-1.4-1.4A7.94 7.94 0 0 0 18 10V8a6 6 0 1 0-12 0v2c0 1.3-.3 2.6-.9 3.7L4 17h5" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                    </button>
+                    <div class="notification-menu" id="notificationMenu" aria-hidden="true">
+                        <div class="notification-menu-title">Notifications <span>{{ $unreadNotificationCount ?? 0 }} new</span></div>
+                        @forelse ($recentNotifications ?? [] as $notification)
+                            <a href="{{ route('notifications.open', $notification) }}" class="notification-item notification-{{ $notification->type }}">
+                                <span class="notification-item-icon">{{ $notification->type === 'message' ? 'M' : ($notification->type === 'team' ? 'T' : 'L') }}</span>
+                                <span><strong>{{ $notification->title }}</strong><small>{{ $notification->body }}</small><time>{{ $notification->created_at->diffForHumans() }}</time></span>
+                            </a>
+                        @empty
+                            <p class="notification-empty">No new notifications.</p>
+                        @endforelse
+                    </div>
+                </div>
 
                 <div class="profile-menu-wrap">
                     <button id="profileMenuButton" class="user-profile-nav" type="button" aria-expanded="false" aria-haspopup="true">
@@ -91,36 +106,3 @@
 </header>
 
 
-        {{-- TEMPORARY --}}
-<div id="loginModalOverlay" class="login-modal-overlay" aria-hidden="true" data-open-if-error="{{ session()->has('login_error') ? 'true' : 'false' }}">
-    <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
-        <button type="button" class="login-modal-close" aria-label="Close">×</button>
-        <div class="login-modal-header" id="loginModalTitle">Please sign in</div>
-        <p class="login-modal-note">TEMPORARY ACCOUNTS. <br> 
-            admin@example.com / admin <br> 
-            agent@example.com / agent <br> 
-            leadbroker@example.com / lead <br>
-            broker@example.com / broker
-        </p>
-
-        @if(session('login_error'))
-            <div class="login-modal-error">{{ session('login_error') }}</div>
-        @endif
-
-        <form method="POST" action="{{ route('login') }}">
-            @csrf
-
-            <div class="form-group">
-                <label for="loginEmail">Email</label>
-                <input id="loginEmail" name="email" type="email" placeholder="Enter email" required />
-            </div>
-
-            <div class="form-group">
-                <label for="loginPassword">Password</label>
-                <input id="loginPassword" name="password" type="password" placeholder="Enter password" required />
-            </div>
-
-            <button type="submit" class="login-submit-btn">Login</button>
-        </form>
-    </div>
-</div>

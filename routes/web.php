@@ -14,6 +14,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\LifestyleController;
+use App\Http\Controllers\MessageController;
 
 // HOME / LANDING PAGE
 Route::get('/', function () {
@@ -61,13 +62,26 @@ Route::get('/properties/{id}', [PropertyController::class, 'show'])->name('prope
 
 // ALL AGENTS
 Route::get('/agents', [AgentController::class, 'agents'])->name('agents');
+Route::get('/agents/{professional}', [AgentController::class, 'show'])->name('agents.show');
+Route::get('/messages', [MessageController::class, 'index'])->middleware('auth')->name('messages.inbox');
+Route::get('/messages/direct/{recipient}', [MessageController::class, 'direct'])->middleware('auth')->name('messages.direct');
+Route::post('/messages/compose', [MessageController::class, 'compose'])->middleware('auth')->name('messages.compose');
+Route::post('/properties/{property}/message', [MessageController::class, 'propertyDirect'])->middleware('auth')->name('properties.message');
+Route::post('/messages/{conversation}', [MessageController::class, 'store'])->middleware('auth')->name('messages.store');
+Route::get('/messages/{conversation}/updates', [MessageController::class, 'updates'])->middleware('auth')->name('messages.updates');
+Route::get('/notifications/count', [MessageController::class, 'notificationCount'])->middleware('auth')->name('notifications.count');
+Route::get('/notifications/{notification}', [MessageController::class, 'openNotification'])->middleware('auth')->name('notifications.open');
+Route::post('/agents/{professional}/reviews', [AgentController::class, 'storeReview'])
+    ->middleware('auth')
+    ->name('agents.reviews.store');
 
 // USERS
-Route::get('/app/users', [UserController::class, 'index']);
+Route::get('/app/users', [UserController::class, 'index'])->middleware('auth');
 
 // AUTHENTICATION ROUTES
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
-Route::post('/login', [AuthController::class, 'login'])->middleware('guest');
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // AUTHENTICATED ROUTES
@@ -103,6 +117,8 @@ Route::middleware('auth')->group(function () {
 // });
 
 
+
+Route::middleware('auth')->get('/app/messages', [MessageController::class, 'index'])->name('app.messages');
 
 Route::middleware('auth')->get('/app/{page}', function ($page) {
     $user = Auth::user();

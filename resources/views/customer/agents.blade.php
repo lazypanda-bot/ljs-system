@@ -6,40 +6,33 @@
     <section class="top-agents-section">
         <div class="top-agents-container">
             <div class="top-agents-header">
-                <span class="top-agents-tag">MEET OUR TOP-PERFORMING AGENTS</span>
+                <span class="top-agents-tag">MEET OUR TOP-PERFORMING PROFESSIONALS</span>
                 <h2>Most <span class="highlight-green">Reviewed</span> Brokers & Agents</h2>
             </div>
 
             <div class="top-agents-slider-wrapper">
                 <div id="agentSliderTrack" class="top-agents-track">
-                    @forelse ($topAgents as $agent)
+                    @forelse ($topProfessionals as $professional)
                         @php
-                            $agentImage = ($agent->user && $agent->user->profile_photo) ? asset('storage/' . $agent->user->profile_photo) : asset('images/ljs-logo.jpg');
+                            $agentImage = $professional->profile_photo ? asset('storage/' . $professional->profile_photo) : asset('images/ljs-logo.jpg');
+                            $rating = $professional->received_reviews_avg_rating ? number_format($professional->received_reviews_avg_rating, 1) : 'New';
                         @endphp
                         <article class="agent-highlight-card">
-                            <button type="button" class="agent-fav-btn" aria-label="Favorite">☆</button>
-                            
                             <div class="agent-avatar-container">
-                                <img src="{{ $agentImage }}" alt="{{ $agent->user->name ?? 'Agent' }}" onerror="this.src='{{ asset('images/ljs-logo.jpg') }}'">
+                                <img src="{{ $agentImage }}" alt="{{ $professional->name }}" onerror="this.src='{{ asset('images/ljs-logo.jpg') }}'">
                             </div>
-
                             <div class="agent-card-info">
-                                <h3>{{ $agent->user->name ?? 'Unnamed Professional' }}</h3>
-                                <p class="agent-role">{{ $agent->professional_bio ?? 'Real Estate Professional' }}</p>
-                                
+                                <h3>{{ $professional->name }}</h3>
+                                <p class="agent-role">{{ $professional->role_name }}</p>
                                 <div class="agent-rating">
                                     <span class="stars">★★★★★</span>
-                                    <span class="rating-score">5.0</span>
-                                    <span class="review-count">(0 reviews)</span>
+                                    <span class="rating-score">{{ $rating }}</span>
+                                    <span class="review-count">({{ $professional->received_reviews_count }} reviews)</span>
                                 </div>
-
                                 <div class="agent-sold-stat">
-                                    {{ $agent->years_experience ?? 0 }} Years Experience
+                                    {{ $professional->professionalProfile?->years_experience ?? 0 }} Years Experience
                                 </div>
-
-                                <div class="agent-phone-link">
-                                    <a href="tel:{{ $agent->user->contact_number ?? '#' }}">{{ $agent->user->contact_number ?? 'No phone provided' }}</a>
-                                </div>
+                                <a href="{{ route('agents.show', $professional) }}" class="agent-view-btn">View details</a>
                             </div>
                         </article>
                     @empty
@@ -71,32 +64,31 @@
             </form>
 
             <div class="agents-grid">
-                @forelse ($allAgents as $agent)
+                @forelse ($allProfessionals as $professional)
                     @php
-                        $directoryImage = ($agent->user && $agent->user->profile_photo) ? asset('storage/' . $agent->user->profile_photo) : asset('images/ljs-logo.jpg');
+                        $directoryImage = $professional->profile_photo ? asset('storage/' . $professional->profile_photo) : asset('images/ljs-logo.jpg');
+                        $rating = $professional->received_reviews_avg_rating ? number_format($professional->received_reviews_avg_rating, 1) : 'New';
                     @endphp
                     <article class="agent-highlight-card">
                         <div class="agent-avatar-container">
-                            <img src="{{ $directoryImage }}" alt="{{ $agent->user->name ?? 'Agent' }}" onerror="this.src='{{ asset('images/ljs-logo.jpg') }}'">
+                            <img src="{{ $directoryImage }}" alt="{{ $professional->name }}" onerror="this.src='{{ asset('images/ljs-logo.jpg') }}'">
                         </div>
 
                         <div class="agent-card-info">
-                            <h3>{{ $agent->user->name ?? 'Unnamed Professional' }}</h3>
-                            <p class="agent-role">{{ $agent->professional_bio ?? 'Real Estate Professional' }}</p>
+                            <h3>{{ $professional->name }}</h3>
+                            <p class="agent-role">{{ $professional->role_name }}</p>
                             
                             <div class="agent-rating">
                                 <span class="stars">★★★★★</span>
-                                <span class="rating-score">5.0</span>
-                                <span class="review-count">(0 reviews)</span>
+                                <span class="rating-score">{{ $rating }}</span>
+                                <span class="review-count">({{ $professional->received_reviews_count }} reviews)</span>
                             </div>
 
                             <div class="agent-sold-stat">
-                                {{ $agent->years_experience ?? 0 }} Years Experience
+                                {{ $professional->professionalProfile?->years_experience ?? 0 }} Years Experience
                             </div>
 
-                            <div class="agent-phone-link">
-                                <a href="tel:{{ $agent->user->contact_number ?? '#' }}">{{ $agent->user->contact_number ?? 'No phone provided' }}</a>
-                            </div>
+                            <a href="{{ route('agents.show', $professional) }}" class="agent-view-btn">View details</a>
                         </div>
                     </article>
                 @empty

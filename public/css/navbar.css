@@ -32,11 +32,11 @@
 .page-label-title {
     font-size: 18px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--color-text);
 }
 .page-label-subtitle {
     font-size: 13px;
-    color: #64748b;
+    color: var(--color-text-muted);
 }
 .notification-btn {
     width: 38px;
@@ -48,7 +48,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #334155;
+    color: var(--color-text-dark);
     position: relative;
 }
 .notification-btn:hover {
@@ -94,6 +94,22 @@
     font-size: 11px;
     font-weight: 700;
 }
+.notification-menu-wrap { position: relative; }
+.notification-menu { position: absolute; top: calc(100% + 10px); right: 0; z-index: 20; display: none; width: 340px; max-height: 420px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16); }
+.notification-menu.open { display: block; }
+.notification-menu-title { display: flex; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--color-border); color: var(--color-text); font-size: 14px; font-weight: 800; }
+.notification-menu-title span { color: var(--color-primary); font-size: 12px; }
+.notification-item { display: grid; grid-template-columns: 30px 1fr; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--color-border); color: var(--color-text); text-decoration: none; }
+.notification-item:hover { background: var(--color-surface-soft); }
+.notification-item-icon { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 8px; color: #ffffff; font-size: 12px; font-weight: 800; }
+.notification-message .notification-item-icon { background: var(--color-primary); }
+.notification-team .notification-item-icon { background: var(--color-accent-green); }
+.notification-listing .notification-item-icon { background: var(--color-accent-orange); }
+.notification-item strong, .notification-item small, .notification-item time { display: block; }
+.notification-item strong { font-size: 13px; }
+.notification-item small, .notification-item time, .notification-empty { color: var(--color-text-muted); font-size: 12px; }
+.notification-item time { margin-top: 3px; }
+.notification-empty { padding: 18px; text-align: center; }
 .signin-btn {
     display: inline-flex;
     align-items: center;
@@ -126,7 +142,7 @@
 .user-profile-nav .avatar {
     width: 42px;
     height: 42px;
-    background: #1f6cff;
+    background: var(--color-primary);
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -144,11 +160,11 @@
 .user-name {
     font-size: 14px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--color-text);
 }
 .user-email {
     font-size: 12px;
-    color: #475569;
+    color: var(--color-text-muted);
 }
 .profile-arrow {
     color: #475569;
@@ -185,11 +201,11 @@
 .profile-menu-title {
     font-size: 14px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--color-text);
 }
 .profile-menu-subtitle {
     font-size: 12px;
-    color: #475569;
+    color: var(--color-text-muted);
 }
 .profile-menu-item {
     display: inline-flex;
@@ -202,7 +218,7 @@
     background: transparent;
     border: none;
     text-decoration: none;
-    color: #0f172a;
+    color: var(--color-text);
     font-weight: 600;
     cursor: pointer;
 }

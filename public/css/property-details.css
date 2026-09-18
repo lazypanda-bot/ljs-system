@@ -127,6 +127,25 @@
     background-color: #0d6efd;
     color: #fff;
 }
+.property-message-fab {
+    position: fixed;
+    right: 28px;
+    bottom: 28px;
+    z-index: 20;
+    display: grid;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-primary);
+    box-shadow: 0 12px 24px var(--color-primary-shadow);
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 20px;
+}
+.property-message-fab:hover { transform: translateY(-2px); }
+@media (max-width: 600px) { .property-message-fab { right: 18px; bottom: 18px; } }
 .outlinebutton {
     background-color: transparent;
     border-color: #0d6efd;

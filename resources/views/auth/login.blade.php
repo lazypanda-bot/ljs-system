@@ -1,4 +1,4 @@
-@extends('layouts.client')
+@extends('layouts.auth')
 
 @section('title', 'Login')
 
@@ -6,8 +6,14 @@
 <div class="login-container">
     <div class="login-card">
         <div class="login-header">
-            <h1>LJS Reality</h1>
-            <p>Property Management System</p>
+            <img src="{{ asset('images/ljs-logo.jpg') }}" alt="LJS Realty" class="login-logo">
+            <h1>LJS Realty</h1>
+            <p>Find a place to call home.</p>
+        </div>
+
+        <div class="auth-tabs" role="tablist">
+            <button class="auth-tab active" type="button" data-auth-panel="login-panel" role="tab" aria-selected="true">Login</button>
+            <button class="auth-tab" type="button" data-auth-panel="register-panel" role="tab" aria-selected="false">Register</button>
         </div>
 
         <!-- Error Messages -->
@@ -21,34 +27,20 @@
             </div>
         @endif
 
-        <!-- Test Credentials Info -->
-        <div class="test-credentials-info">
+        <div class="test-credentials-info" id="loginCredentials">
             <div class="alert alert-info">
                 <strong> Test Credentials (For Testing)</strong>
                 <hr>
                 <div class="credentials-list">
                     <div class="credential-item">
-                        <span class="badge bg-primary">Lead Broker</span>
-                        <code>leadbroker@testing.com</code> / <code>password</code>
-                    </div>
-                    <div class="credential-item">
                         <span class="badge bg-danger">Admin</span>
-                        <code>admin@testing.com</code> / <code>password</code>
-                    </div>
-                    <div class="credential-item">
-                        <span class="badge bg-success">Broker</span>
-                        <code>broker@testing.com</code> / <code>password</code>
-                    </div>
-                    <div class="credential-item">
-                        <span class="badge bg-warning">Agent</span>
-                        <code>agent@testing.com</code> / <code>password</code>
+                        <code>admin@testing.com</code> / <code>admin</code>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Login Form -->
-        <form method="POST" action="{{ route('login') }}" class="login-form">
+        <form method="POST" action="{{ route('login') }}" class="login-form auth-panel active" id="login-panel">
             @csrf
 
             <div class="form-group">
@@ -96,6 +88,29 @@
             </button>
         </form>
 
+        <form method="POST" action="{{ route('register') }}" class="login-form auth-panel" id="register-panel" hidden>
+            @csrf
+            <div class="form-group">
+                <label for="registerName" class="form-label">Full Name</label>
+                <input type="text" class="form-control @error('name') is-invalid @enderror" id="registerName" name="name" value="{{ old('name') }}" placeholder="Enter your full name" required autocomplete="name">
+                @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="form-group">
+                <label for="registerEmail" class="form-label">Email Address</label>
+                <input type="email" class="form-control @error('email') is-invalid @enderror" id="registerEmail" name="email" value="{{ old('email') }}" placeholder="Enter your email" required autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="registerPassword" class="form-label">Password</label>
+                <div class="input-group"><input type="password" class="form-control @error('password') is-invalid @enderror" id="registerPassword" name="password" placeholder="At least 8 characters" required autocomplete="new-password"><button class="btn btn-outline-secondary password-toggle" type="button" data-password-target="registerPassword" aria-label="Show password"><i class="fas fa-eye"></i></button></div>
+            </div>
+            <div class="form-group">
+                <label for="passwordConfirmation" class="form-label">Confirm Password</label>
+                <div class="input-group"><input type="password" class="form-control" id="passwordConfirmation" name="password_confirmation" placeholder="Repeat your password" required autocomplete="new-password"><button class="btn btn-outline-secondary password-toggle" type="button" data-password-target="passwordConfirmation" aria-label="Show password"><i class="fas fa-eye"></i></button></div>
+                @error('password')<div class="invalid-feedback" style="display: block;">{{ $message }}</div>@enderror
+            </div>
+            <button type="submit" class="btn btn-primary btn-login"><i class="fas fa-user-plus"></i> Create Account</button>
+        </form>
+
         <div class="login-footer">
             <p class="text-muted text-center">© 2026 LJS Reality. All rights reserved.</p>
         </div>
@@ -140,6 +155,40 @@
     .login-header {
         text-align: center;
         margin-bottom: 30px;
+    }
+
+    .login-logo {
+        width: 92px;
+        height: 92px;
+        object-fit: contain;
+        border-radius: 12px;
+        margin-bottom: 14px;
+    }
+
+    .auth-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4px;
+        padding: 4px;
+        background: #edf2f7;
+        border-radius: 8px;
+        margin-bottom: 22px;
+    }
+
+    .auth-tab {
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: #52616b;
+        cursor: pointer;
+        font-weight: 700;
+        padding: 10px;
+    }
+
+    .auth-tab.active {
+        background: #ffffff;
+        color: #2563eb;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
     }
 
     .login-header h1 {
@@ -345,12 +394,33 @@
 </style>
 
 <script>
-    document.getElementById('togglePassword').addEventListener('click', function () {
-        const passwordInput = document.getElementById('password');
-        const type = passwordInput.type === 'password' ? 'text' : 'password';
-        passwordInput.type = type;
-        this.querySelector('i').classList.toggle('fa-eye');
-        this.querySelector('i').classList.toggle('fa-eye-slash');
+    document.querySelectorAll('.password-toggle, #togglePassword').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const passwordInput = document.getElementById(this.dataset.passwordTarget || 'password');
+            passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
     });
+
+    document.querySelectorAll('.auth-tab').forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            const panelId = this.dataset.authPanel;
+            document.querySelectorAll('.auth-tab').forEach(function (item) {
+                item.classList.toggle('active', item === tab);
+                item.setAttribute('aria-selected', item === tab ? 'true' : 'false');
+            });
+            document.querySelectorAll('.auth-panel').forEach(function (panel) {
+                const active = panel.id === panelId;
+                panel.classList.toggle('active', active);
+                panel.hidden = !active;
+            });
+            document.getElementById('loginCredentials').hidden = panelId !== 'login-panel';
+        });
+    });
+
+    @if ($errors->has('name'))
+        document.querySelector('[data-auth-panel="register-panel"]').click();
+    @endif
 </script>
 @endsection

@@ -1,0 +1,55 @@
+<div id="loginModalOverlay" class="login-modal-overlay" aria-hidden="true" data-open-if-error="{{ $errors->any() ? 'true' : 'false' }}">
+    <section class="login-modal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
+        <button type="button" class="login-modal-close" aria-label="Close">&times;</button>
+
+        <div class="auth-modal-brand">
+            <img src="{{ asset('images/ljs-logo.jpg') }}" alt="LJS Realty" class="auth-panel-logo">
+            <div class="auth-modal-copy">
+                <h2 id="loginModalTitle">Login</h2>
+                <p id="authModalSubtitle">Access your LJS Realty account.</p>
+            </div>
+        </div>
+
+        <div class="auth-tabs" role="tablist">
+            <button class="auth-tab active" type="button" data-auth-panel="modal-login-panel" data-auth-title="Login" data-auth-subtitle="Access your LJS Realty account." role="tab" aria-selected="true">Login</button>
+            <button class="auth-tab" type="button" data-auth-panel="modal-register-panel" data-auth-title="Register" data-auth-subtitle="Create your client account to get started." role="tab" aria-selected="false">Register</button>
+        </div>
+
+        <form method="POST" action="{{ route('login') }}" class="auth-panel active" id="modal-login-panel">
+            @csrf
+            <div class="form-group">
+                <label for="modalLoginEmail">Email Address</label>
+                <input id="modalLoginEmail" name="email" type="email" value="{{ old('email') }}" placeholder="Enter your email" required autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="modalLoginPassword">Password</label>
+                <div class="password-field"><input id="modalLoginPassword" name="password" type="password" placeholder="Enter your password" required autocomplete="current-password"><button type="button" class="password-toggle" data-password-target="modalLoginPassword" aria-label="Show password">Show</button></div>
+            </div>
+            <div class="auth-form-options"><label class="remember-me"><input type="checkbox" name="remember" value="1"> Remember me</label><a href="mailto:ljsrealty@gmail.com?subject=Password%20reset%20request" class="forgot-password-link">Forgot password?</a></div>
+            <button type="submit" class="login-submit-btn">Login</button>
+        </form>
+
+        <form method="POST" action="{{ route('register') }}" class="auth-panel" id="modal-register-panel" hidden>
+            @csrf
+            <div class="form-group">
+                <label for="modalRegisterName">Full Name</label>
+                <input id="modalRegisterName" name="name" type="text" value="{{ old('name') }}" placeholder="Enter your full name" required autocomplete="name">
+                @error('name')<span class="auth-input-error">{{ $message }}</span>@enderror
+            </div>
+            <div class="form-group">
+                <label for="modalRegisterEmail">Email Address</label>
+                <input id="modalRegisterEmail" name="email" type="email" value="{{ old('email') }}" placeholder="Enter your email" required autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="modalRegisterPassword">Password</label>
+                <div class="password-field"><input id="modalRegisterPassword" name="password" type="password" placeholder="At least 8 characters" required autocomplete="new-password"><button type="button" class="password-toggle" data-password-target="modalRegisterPassword" aria-label="Show password">Show</button></div>
+            </div>
+            <div class="form-group">
+                <label for="modalRegisterPasswordConfirmation">Confirm Password</label>
+                <div class="password-field"><input id="modalRegisterPasswordConfirmation" name="password_confirmation" type="password" placeholder="Repeat your password" required autocomplete="new-password"><button type="button" class="password-toggle" data-password-target="modalRegisterPasswordConfirmation" aria-label="Show password">Show</button></div>
+                @error('password')<span class="auth-input-error">{{ $message }}</span>@enderror
+            </div>
+            <button type="submit" class="login-submit-btn">Create Account</button>
+        </form>
+    </section>
+</div>

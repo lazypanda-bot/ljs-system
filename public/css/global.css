@@ -1,18 +1,28 @@
 :root {
+    /* Shared application color tokens */
     --color-bg-main: #d7e8fb;
+    --color-bg: #d7e8fb;
     --color-body: #f7fafc;
     --color-surface: #ffffff;
     --color-surface-soft: #ecf4ff;
     --color-border: #d4d9e6;
+    --color-border-soft: #e2e8f0;
     --color-text: #0f172a;
     --color-text-dark: #0f406f;
+    --color-text-muted: #64748b;
     --color-primary: #1f6cff;
     --color-primary-soft: #dfeaff;
     --color-primary-shadow: rgba(31, 108, 255, 0.18);
+
+    /* Semantic accents */
     --color-accent-orange: #ff7a00;
     --color-accent-green: #2bbf62;
     --color-accent-cyan: #00a8ff;
-
+    --color-success: #16a34a;
+    --color-warning: #f59e0b;
+    --color-danger: #ef4444;
+    --color-info: #0284c7;
+    /* Background */
     --color-bg-ex: linear-gradient(190deg, #d7e8fb 45%, #afd5ff 65%, #96bdff 85%, #00a8ff 100%);
     /* --color-bg-marble: linear-gradient(#0f172a 0%, #0f406f 25%, #1f6cff 50%, #00a8ff 75%, #f8fafc 100%); */
     /* --color-bg-marble: linear-gradient(#ffff 0%, #00a8ff 50%, #7aa8fe 75%, #63b1ff 100%); */

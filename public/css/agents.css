@@ -1,8 +1,8 @@
 .top-agents-section {
     width: 100%;
-    padding: 20px 20px 10px 20px;
+    padding: 100px 20px 10px;
     background: #f8fafc;
-    margin-top: 90px;
+    margin-top: 0;
 }
 .top-agents-container {
     max-width: 1400px;
@@ -44,7 +44,7 @@
     width: 100%;
     overflow-x: hidden;
 }
-.agent-highlight-card {
+.top-agents-track .agent-highlight-card {
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
@@ -220,12 +220,152 @@
 }
 .agents-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 15px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.agents-grid .agent-highlight-card {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-surface);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
 }
 .no-agents, .no-agents-text {
     grid-column: 1 / -1;
     text-align: center;
     color: #6b7280;
     padding: 20px;
+}
+
+.agent-view-btn {
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 4px;
+    padding: 9px 12px;
+    border: 1px solid var(--color-primary);
+    border-radius: 7px;
+    color: var(--color-primary);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.agent-view-btn:hover {
+    background: var(--color-primary);
+    color: #ffffff;
+}
+
+.professional-profile-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 112px 24px 56px;
+}
+
+.profile-back-link {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: var(--color-primary);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.professional-profile-layout {
+    display: grid;
+    grid-template-columns: 270px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.professional-summary,
+.profile-content-section {
+    border: 1px solid var(--color-border-soft);
+    border-radius: 10px;
+    background: var(--color-surface);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.professional-summary {
+    padding: 24px;
+    text-align: center;
+}
+
+.professional-profile-photo {
+    width: 92px;
+    height: 92px;
+    margin-bottom: 12px;
+    border: 3px solid var(--color-primary-soft);
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.professional-summary h1 {
+    color: var(--color-text);
+    font-size: 20px;
+}
+
+.professional-role,
+.professional-bio,
+.professional-details dt,
+.professional-details dd {
+    color: var(--color-text-muted);
+    font-size: 13px;
+}
+
+.professional-role { margin: 4px 0 12px; }
+.professional-score { color: var(--color-warning); font-weight: 800; }
+.professional-score small { color: var(--color-text-muted); font-weight: 400; }
+.professional-details { margin: 22px 0; text-align: left; }
+.professional-details div { padding: 10px 0; border-bottom: 1px solid var(--color-border-soft); }
+.professional-details dt { font-weight: 700; }
+.professional-details dd { margin: 3px 0 0; color: var(--color-text); }
+.professional-bio { text-align: left; line-height: 1.5; }
+
+.professional-content { display: grid; gap: 20px; }
+.profile-content-section { padding: 22px; }
+.profile-section-heading { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 18px; }
+.profile-section-heading h2 { color: var(--color-text); font-size: 20px; }
+.profile-section-heading span { color: var(--color-text-muted); font-size: 13px; }
+.profile-listings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.profile-listing-card { overflow: hidden; border: 1px solid var(--color-border-soft); border-radius: 8px; background: var(--color-surface); }
+.profile-listing-card > img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.profile-listing-card > div { padding: 12px; }
+.profile-listing-card span { color: var(--color-success); font-size: 12px; font-weight: 700; }
+.profile-listing-card h3 { margin: 5px 0; color: var(--color-text); font-size: 15px; }
+.profile-listing-card p { margin: 0 0 10px; color: var(--color-primary); font-size: 14px; font-weight: 800; }
+.profile-listing-card a { color: var(--color-primary); font-size: 13px; font-weight: 700; text-decoration: none; }
+.profile-empty-state { color: var(--color-text-muted); font-size: 14px; }
+.profile-success { margin-bottom: 16px; color: var(--color-success); font-weight: 700; }
+
+.client-review-form { display: grid; gap: 8px; margin-bottom: 20px; padding: 16px; border: 1px solid var(--color-primary-soft); border-radius: 8px; background: var(--color-surface-soft); }
+.client-review-form label { color: var(--color-text-dark); font-size: 13px; font-weight: 700; }
+.client-review-form select, .client-review-form textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-text); }
+.client-review-form button { justify-self: start; border: 0; border-radius: 6px; padding: 10px 14px; background: var(--color-primary); color: #ffffff; cursor: pointer; font-weight: 700; }
+.profile-reviews-list { display: grid; gap: 12px; }
+.profile-review { padding: 14px; border-bottom: 1px solid var(--color-border-soft); }
+.profile-review > div { display: flex; justify-content: space-between; gap: 12px; color: var(--color-warning); }
+.profile-review strong { color: var(--color-text); }
+.profile-review p { margin: 8px 0; color: var(--color-text-dark); font-size: 14px; line-height: 1.5; }
+.profile-review small { color: var(--color-text-muted); }
+
+@media (max-width: 800px) {
+    .agents-grid { grid-template-columns: repeat(2, 1fr); }
+    .top-agents-track { justify-content: flex-start; overflow-x: auto; }
+    .top-agents-track .agent-highlight-card { min-width: 230px; }
+    .professional-profile-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+    .professional-profile-page { padding: 96px 16px 40px; }
+    .agents-grid { grid-template-columns: 1fr; }
+    .agent-search-toolbar { align-items: stretch; flex-direction: column; }
+    .agent-search-btn { width: 100%; }
 }

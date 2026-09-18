@@ -21,6 +21,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Session\TokenMismatchException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -29,10 +31,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->redirectGuestsTo(fn () => route('home'));
+
         $middleware->validateCsrfTokens(except: [
             'temp-login',
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions) {
-        //
+    ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (TokenMismatchException $exception, Request $request) {
+            return redirect()->route('home')
+                ->with('error', 'Your session expired. Please sign in again.');
+        });
     })->create();

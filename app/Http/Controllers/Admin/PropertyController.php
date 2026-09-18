@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
+use App\Models\AppNotification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +18,8 @@ class PropertyController extends Controller
 {
     public function store(Request $request)
     {
+        $this->authorizeAdmin();
+
         try {
             // 1. Validate the form inputs to match the new granular location fields
             $validated = $request->validate([
@@ -138,16 +142,15 @@ class PropertyController extends Controller
                 }
             }
 
-            // 7. Send notification to all users about the new listing and random code
+            // 7. Notify users about the new listing.
             $allUsers = DB::table('users')->get();
             foreach ($allUsers as $user) {
-                DB::table('email_notifications')->insert([
+                AppNotification::create([
                     'user_id'    => $user->user_id,
-                    'subject'    => 'New Property Listing Added',
-                    'type'       => 'listing',
-                    'status'     => 'unread',
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'type' => 'listing',
+                    'title' => 'New property listing',
+                    'body' => $property->property_name . ' is now available.',
+                    'url' => route('properties.show', $property),
                 ]);
             }
 
@@ -225,7 +228,16 @@ class PropertyController extends Controller
 
     public function create()
     {
+        $this->authorizeAdmin();
+
         return view('pages.properties.create');
+    }
+
+    private function authorizeAdmin(): void
+    {
+        $user = Auth::user();
+
+        abort_unless($user instanceof User && $user->actingRole() === 'admin', 403);
     }
 
     // VIEW DETAILS
