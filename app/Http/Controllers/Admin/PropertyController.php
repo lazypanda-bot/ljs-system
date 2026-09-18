@@ -143,14 +143,16 @@ class PropertyController extends Controller
             }
 
             // 7. Notify users about the new listing.
-            $allUsers = DB::table('users')->get();
+            $allUsers = User::query()->where('account_status', 'Active')->get();
             foreach ($allUsers as $user) {
                 AppNotification::create([
                     'user_id'    => $user->user_id,
                     'type' => 'listing',
                     'title' => 'New property listing',
                     'body' => $property->property_name . ' is now available.',
-                    'url' => route('properties.show', $property),
+                    'url' => in_array($user->actingRole(), ['admin', 'broker', 'agent'], true)
+                        ? route('staff.properties.show', $property)
+                        : route('properties.show', $property),
                 ]);
             }
 

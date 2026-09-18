@@ -15,6 +15,7 @@ use App\Http\Controllers\AgentController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\LifestyleController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\StaffPropertyController;
 
 // HOME / LANDING PAGE
 Route::get('/', function () {
@@ -59,6 +60,7 @@ Route::get('/admin/properties/create', [PropertyController::class, 'create'])->n
 
 // VIEW DETAILS
 Route::get('/properties/{id}', [PropertyController::class, 'show'])->name('properties.show');
+Route::get('/app/listings/{property}', [StaffPropertyController::class, 'show'])->middleware('auth')->name('staff.properties.show');
 
 // ALL AGENTS
 Route::get('/agents', [AgentController::class, 'agents'])->name('agents');
@@ -173,6 +175,12 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
     }
 
     $properties = Property::visibleTo($user)->with(['images', 'details'])->latest()->get();
+    $openProperties = $page === 'listings'
+        ? Property::with(['images', 'details'])
+            ->whereIn('property_status', ['For Sale', 'For Rent'])
+            ->latest()
+            ->get()
+        : collect();
     $sharedPageViews = [
         'messages' => 'pages.messages',
         'listings' => 'pages.listings',
@@ -183,7 +191,7 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
 
     abort_unless(view()->exists($pageView), 404);
 
-    return view($pageView, compact('acting', 'page', 'pageTitle', 'properties'));
+    return view($pageView, compact('acting', 'page', 'pageTitle', 'properties', 'openProperties'));
 })->name('app.page');
 
 Route::post('/lead/toggle', function () {

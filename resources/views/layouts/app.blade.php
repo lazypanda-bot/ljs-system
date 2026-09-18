@@ -42,7 +42,7 @@
                     @auth
                         <div class="public-account-actions">
                             <div class="public-profile-wrap">
-                                <button class="public-account-pill" type="button" id="publicProfileButton" aria-expanded="false"><span>{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>{{ Auth::user()->name }}<small>{{ Auth::user()->role_name }}</small><i class="fas fa-chevron-down"></i></button>
+                                <button class="public-account-pill" type="button" id="publicProfileButton" aria-expanded="false"><span>{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>{{ Auth::user()->name }}<i class="fas fa-chevron-down"></i></button>
                                 <div class="public-profile-menu" id="publicProfileMenu" aria-hidden="true">
                                     <a href="{{ route('messages.inbox') }}" class="public-profile-item"><i class="fas fa-paper-plane"></i> Messages</a>
                                     <button class="public-profile-item" type="button" data-notification-count-url="{{ route('notifications.count') }}" id="notificationMenuButton" aria-expanded="false"><i class="fas fa-bell"></i> Notifications @if(($unreadNotificationCount ?? 0) > 0)<span class="public-notification-badge" data-notification-count>{{ $unreadNotificationCount }}</span>@endif</button>

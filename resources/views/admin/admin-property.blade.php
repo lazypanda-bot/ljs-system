@@ -52,7 +52,7 @@
 
                         <div class="card-footer-actions">
                             <div class="action-buttons">
-                                <button title="View" class="btn-action view">&#128065;</button>
+                                <a href="{{ route('staff.properties.show', $property) }}" title="View" class="btn-action view">&#128065;</a>
                                 <button title="Edit" class="btn-action edit">&#9998;</button>
                                 <button title="Delete" class="btn-action delete">&#128465;</button>
                             </div>
