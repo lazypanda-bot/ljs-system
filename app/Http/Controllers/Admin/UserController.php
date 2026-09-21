@@ -65,7 +65,12 @@ class UserController extends Controller
     {
         $this->authorizeAdmin();
 
-        return view('admin.admin-users', compact('user'));
+        return view('admin.admin-users', [
+            'users' => User::where('role_name', '!=', 'Client')->paginate(10),
+            'allUsers' => User::where('role_name', '!=', 'Client')->get(),
+            'teams' => Team::with(['user', 'members'])->latest()->get(),
+            'editUser' => $user,
+        ]);
     }
 
     /**

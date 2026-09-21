@@ -59,6 +59,7 @@
                         @empty
                             <p class="notification-empty">No new notifications.</p>
                         @endforelse
+                        <a href="{{ route('notifications.index') }}" class="notification-view-all">View all notifications</a>
                     </div>
                 </div>
 
@@ -81,7 +82,7 @@
                             </div>
                         </div>
 
-                        <a href="#" class="profile-menu-item">Settings</a>
+                        <a href="{{ route('app.page', ['page' => 'settings']) }}" class="profile-menu-item">Settings</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="profile-menu-item profile-menu-logout">Logout</button>

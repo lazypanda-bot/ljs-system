@@ -7,6 +7,8 @@ use App\Models\AppNotification;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
+//for ngrok URL handling
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        //FOR NGROK
+        if (str_contains(config('app.url'), 'ngrok-free.dev')) {
+            URL::forceScheme('https');
+        }
+
         // Runs on every render of the sidebar/navbar so the "acting as" state and
         // page header are always correct, regardless of which route rendered the
         // page. sidebar.blade.php builds its own link list from config('roles.pages'),

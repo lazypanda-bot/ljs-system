@@ -82,7 +82,7 @@
 
         <!-- PROPERTIES GRID -->
         <div class="properties-grid">
-            @forelse ($properties as $item)
+            @forelse ($properties->where('approval_status', 'Approved') as $item)
                 @php
                     $firstImage = $item->images->first();
                     $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/night.png');

@@ -1,0 +1,6 @@
+@extends('layouts.client')
+@section('title', 'Reports')
+@section('content')
+<div class="live-report-page"><div class="live-page-header"><span>ACCOUNT REPORTING</span><h1>Reports</h1><p>Export the data visible to your current account.</p></div><div class="report-stat-grid"><div><strong>{{ $properties->count() }}</strong><span>Properties</span></div><div><strong>{{ $appointments->count() }}</strong><span>Appointments</span></div><div><strong>{{ $properties->where('property_status', 'Sold')->count() }}</strong><span>Sold</span></div></div><a class="report-export-btn" href="{{ route('reports.export') }}"><i class="fas fa-file-csv"></i> Export properties CSV</a></div>
+@endsection
+@push('styles')<style>.report-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0}.report-stat-grid div{padding:20px;border:1px solid var(--color-border);border-radius:10px;background:var(--color-surface)}.report-stat-grid strong,.report-stat-grid span{display:block}.report-stat-grid strong{color:var(--color-primary);font-size:28px}.report-stat-grid span{color:var(--color-text-muted)}.report-export-btn{display:inline-flex;gap:8px;padding:11px 15px;border-radius:7px;background:var(--color-primary);color:#fff;font-weight:700;text-decoration:none}@media(max-width:600px){.report-stat-grid{grid-template-columns:1fr}}</style>@endpush

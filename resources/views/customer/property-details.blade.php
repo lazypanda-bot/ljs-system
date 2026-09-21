@@ -112,9 +112,9 @@
 
                 <hr class="text-muted opacity-25 my-4">
 
-                <button class="actionbutton outlinebutton">
+                <a class="actionbutton outlinebutton text-decoration-none text-center" href="{{ route('appointments.create', $property) }}">
                     <i class="far fa-calendar-alt me-2"></i> Book Appointment
-                </button>
+                </a>
                 @auth
                     @if (auth()->user()?->normalizedRole() === 'client' && in_array($property->user?->role_name, ['Broker', 'Agent'], true))
                         <form method="POST" action="{{ route('properties.message', $property) }}">

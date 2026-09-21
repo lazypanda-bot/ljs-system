@@ -206,6 +206,24 @@
             const fileInput = document.getElementById('propertyImages');
             const dropzone = document.getElementById('dropzoneTrigger');
             const addMore = document.getElementById('addMoreTrigger');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+
+            if (fileInput && previewContainer) {
+                fileInput.addEventListener('change', function() {
+                    previewContainer.querySelectorAll('.image-preview').forEach((preview) => preview.remove());
+                    Array.from(fileInput.files).forEach((file) => {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            const image = document.createElement('img');
+                            image.className = 'image-preview';
+                            image.src = event.target.result;
+                            image.alt = file.name;
+                            previewContainer.insertBefore(image, addMore);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                });
+            }
 
             if (dropzone && fileInput) {
                 dropzone.addEventListener('click', () => fileInput.click());

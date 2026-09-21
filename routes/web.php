@@ -16,11 +16,15 @@ use App\Http\Controllers\AboutController;
 use App\Http\Controllers\LifestyleController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\StaffPropertyController;
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ReportController;
 
 // HOME / LANDING PAGE
 Route::get('/', function () {
     $properties = Property::with(['images', 'details'])
-        ->whereNotIn('property_status', ['Pending']) // Removed 'Unavailable' here
+        ->where('approval_status', 'Approved')
+        ->whereNotIn('property_status', ['Pending'])
         ->latest()
         ->get();
 
@@ -35,8 +39,27 @@ Route::get('/', function () {
 })->name('home');
 
 // PROPERTIES CATALOG
-Route::get('/properties', function () {
-    $properties = Property::with('images')->get();
+Route::get('/properties', function (Request $request) {
+    $properties = Property::with(['images', 'details'])
+        ->when($request->filled('type'), fn ($query) => $query->where('property_type', $request->string('type')))
+        ->when($request->filled('location'), fn ($query) => $query->where(function ($query) use ($request) {
+            $location = $request->string('location');
+            $query->where('city', $location)->orWhere('province', $location);
+        }))
+        ->when($request->filled('search'), fn ($query) => $query->where(function ($query) use ($request) {
+            $search = $request->string('search');
+            $query->where('property_name', 'like', "%{$search}%")
+                ->orWhere('city', 'like', "%{$search}%")
+                ->orWhere('province', 'like', "%{$search}%");
+        }))
+        ->when($request->price_range === '0-5m', fn ($query) => $query->whereBetween('price', [0, 5000000]))
+        ->when($request->price_range === '5m-10m', fn ($query) => $query->whereBetween('price', [5000000, 10000000]))
+        ->when($request->price_range === '10m+', fn ($query) => $query->where('price', '>=', 10000000))
+        ->when($request->sort === 'price_low', fn ($query) => $query->orderBy('price'))
+        ->when($request->sort === 'price_high', fn ($query) => $query->orderByDesc('price'))
+        ->when($request->sort === 'latest', fn ($query) => $query->latest())
+        ->when($request->sort === 'featured' || ! $request->filled('sort'), fn ($query) => $query->orderByDesc('featured')->latest())
+        ->get();
     return view('customer.properties', compact('properties'));
 })->name('properties');
 
@@ -47,6 +70,13 @@ Route::get('/about', function () {
 
 // ADMIN PROPERTY MANAGEMENT ACTIONS
 Route::post('/admin/properties', [PropertyController::class, 'store'])->name('admin.properties.store');
+Route::post('/admin/properties/{property}/assign', [PropertyController::class, 'assign'])->name('admin.properties.assign');
+Route::post('/admin/property-assignments/{assignment}/review', [PropertyController::class, 'reviewAssignment'])->name('admin.property-assignments.review');
+Route::post('/admin/properties/{property}/review', [PropertyController::class, 'reviewListing'])->name('admin.properties.review');
+Route::delete('/admin/properties/{property}', [PropertyController::class, 'destroy'])->name('admin.properties.destroy');
+Route::get('/admin/properties/{property}/edit', [PropertyController::class, 'edit'])->name('admin.properties.edit');
+Route::put('/admin/properties/{property}', [PropertyController::class, 'update'])->name('admin.properties.update');
+Route::post('/app/listings/{property}/request', [PropertyController::class, 'requestAssignment'])->middleware('auth')->name('staff.properties.request');
 
 Route::post('/admin/properties/{id}/generate-referral', [PropertyController::class, 'generateReferral'])
     ->name('agent.properties.generate-code');
@@ -65,6 +95,12 @@ Route::get('/app/listings/{property}', [StaffPropertyController::class, 'show'])
 // ALL AGENTS
 Route::get('/agents', [AgentController::class, 'agents'])->name('agents');
 Route::get('/agents/{professional}', [AgentController::class, 'show'])->name('agents.show');
+Route::get('/app/appointments', [AppointmentController::class, 'index'])->middleware('auth')->name('appointments.index');
+Route::patch('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->middleware('auth')->name('appointments.status');
+Route::post('/appointments/block-date', [AppointmentController::class, 'blockDate'])->middleware('auth')->name('appointments.block-date');
+Route::get('/properties/{property}/appointments/create', [AppointmentController::class, 'create'])->name('appointments.create');
+Route::post('/properties/{property}/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
+Route::get('/app/reports/export', [ReportController::class, 'export'])->middleware('auth')->name('reports.export');
 Route::get('/messages', [MessageController::class, 'index'])->middleware('auth')->name('messages.inbox');
 Route::get('/messages/direct/{recipient}', [MessageController::class, 'direct'])->middleware('auth')->name('messages.direct');
 Route::post('/messages/compose', [MessageController::class, 'compose'])->middleware('auth')->name('messages.compose');
@@ -72,6 +108,7 @@ Route::post('/properties/{property}/message', [MessageController::class, 'proper
 Route::post('/messages/{conversation}', [MessageController::class, 'store'])->middleware('auth')->name('messages.store');
 Route::get('/messages/{conversation}/updates', [MessageController::class, 'updates'])->middleware('auth')->name('messages.updates');
 Route::get('/notifications/count', [MessageController::class, 'notificationCount'])->middleware('auth')->name('notifications.count');
+Route::get('/notifications', [MessageController::class, 'notifications'])->middleware('auth')->name('notifications.index');
 Route::get('/notifications/{notification}', [MessageController::class, 'openNotification'])->middleware('auth')->name('notifications.open');
 Route::post('/agents/{professional}/reviews', [AgentController::class, 'storeReview'])
     ->middleware('auth')
@@ -139,6 +176,12 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
 
     $pageTitle = ucfirst(str_replace(['-', '_'], ' ', $page));
 
+    if ($page === 'appointments') {
+        return app(AppointmentController::class)->index();
+    }
+    if ($page === 'review') return app(ReviewController::class)->index();
+    if ($page === 'report') return app(ReportController::class)->index();
+
     if ($page === 'dashboard') {
         $properties = Property::visibleTo($user)->with('details')->get();
         $totalProperties = $properties->count();
@@ -174,16 +217,29 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
         ));
     }
 
-    $properties = Property::visibleTo($user)->with(['images', 'details'])->latest()->get();
+    $assignableUsers = $page === 'property'
+        ? User::where('account_status', 'Active')->whereIn('role_name', ['Broker', 'Agent'])->orderBy('name')->get()
+        : collect();
+
+    $properties = Property::visibleTo($user)->with(['images', 'details', 'assignments'])->latest()->get();
     $openProperties = $page === 'listings'
-        ? Property::with(['images', 'details'])
+        ? Property::with(['images', 'details', 'assignments.user'])
+            ->whereHas('user', fn ($query) => $query->where('role_name', 'Admin'))
+            ->whereDoesntHave('assignments', fn ($query) => $query->where('user_id', $user->user_id)->where('status', 'Approved'))
             ->whereIn('property_status', ['For Sale', 'For Rent'])
             ->latest()
             ->get()
         : collect();
+    $myProperties = $page === 'listings'
+        ? $properties->filter(fn ($property) => $property->user_id === $user->user_id || $property->assignments->contains(fn ($assignment) => $assignment->user_id === $user->user_id && $assignment->status === 'Approved'))->values()
+        : collect();
+    $teamProperties = $page === 'listings' && $acting === 'broker'
+        ? $properties
+        : collect();
     $sharedPageViews = [
         'messages' => 'pages.messages',
         'listings' => 'pages.listings',
+        'appointments' => 'pages.appointments',
         'review' => 'pages.reviews',
         'settings' => 'pages.settings',
     ];
@@ -191,7 +247,7 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
 
     abort_unless(view()->exists($pageView), 404);
 
-    return view($pageView, compact('acting', 'page', 'pageTitle', 'properties', 'openProperties'));
+    return view($pageView, compact('acting', 'page', 'pageTitle', 'properties', 'openProperties', 'myProperties', 'teamProperties', 'assignableUsers'));
 })->name('app.page');
 
 Route::post('/lead/toggle', function () {

@@ -6,14 +6,27 @@
 	<div class="listings-management-container">
 		<div class="listings-header">
 			<div>
-				<h1>{{ $acting === 'agent' ? 'My Listings' : ($acting === 'broker' ? 'Team Listings' : 'All Listings') }}</h1>
-				<p>{{ $acting === 'agent' ? "Properties you've listed." : ($acting === 'broker' ? 'Properties listed by you and your team.' : 'Properties managed by your organization.') }}</p>
+				<h1>{{ $acting === 'agent' ? 'My Listings' : ($acting === 'broker' ? 'Listings' : 'All Listings') }}</h1>
+				<p>{{ $acting === 'agent' ? "Properties you've listed." : ($acting === 'broker' ? 'Manage your listings and view your team inventory.' : 'Properties managed by your organization.') }}</p>
 			</div>
 		</div>
-		<div class="staff-listing-tabs" role="tablist"><button class="staff-listing-tab active" type="button" data-listing-panel="scoped-listings">{{ $acting === 'agent' ? 'My Listings' : ($acting === 'broker' ? 'Team Listings' : 'All Listings') }}</button><button class="staff-listing-tab" type="button" data-listing-panel="open-listings">Open Listings</button></div>
+		<div class="staff-listing-tabs" role="tablist">
+			@if ($acting === 'broker')
+				<button class="staff-listing-tab active" type="button" data-listing-panel="my-listings">My Listings</button>
+				<button class="staff-listing-tab" type="button" data-listing-panel="team-listings">Team Listings</button>
+			@else
+				<button class="staff-listing-tab active" type="button" data-listing-panel="scoped-listings">{{ $acting === 'agent' ? 'My Listings' : 'All Listings' }}</button>
+			@endif
+			<button class="staff-listing-tab" type="button" data-listing-panel="open-listings">Open Listings</button>
+		</div>
 
-		@foreach (['scoped-listings' => $properties, 'open-listings' => $openProperties] as $panelId => $listingCollection)
-		<div class="property-cards-grid staff-listing-panel {{ $panelId === 'scoped-listings' ? 'active' : '' }}" id="{{ $panelId }}" @if($panelId !== 'scoped-listings') hidden @endif>
+		@php
+			$listingPanels = $acting === 'broker'
+				? ['my-listings' => $myProperties, 'team-listings' => $teamProperties, 'open-listings' => $openProperties]
+				: ['scoped-listings' => $properties, 'open-listings' => $openProperties];
+		@endphp
+		@foreach ($listingPanels as $panelId => $listingCollection)
+		<div class="property-cards-grid staff-listing-panel {{ $loop->first ? 'active' : '' }}" id="{{ $panelId }}" @if(!$loop->first) hidden @endif>
 			@forelse ($listingCollection as $property)
 				@php
 					$firstImage = $property->images->first();
@@ -32,7 +45,7 @@
 						</div>
 						<h3 class="property-title">{{ $property->property_name }}</h3>
 						<p class="property-price">PHP {{ number_format($property->price, 0, '.', ',') }}</p>
-						<div class="card-footer-actions"><div class="action-buttons"><a href="{{ route('staff.properties.show', $property) }}" title="View" class="btn-action view" aria-label="View {{ $property->property_name }}"><i class="fas fa-eye"></i></a></div></div>
+						<div class="card-footer-actions"><div class="action-buttons"><a href="{{ route('staff.properties.show', $property) }}" title="View" class="btn-action view" aria-label="View {{ $property->property_name }}"><i class="fas fa-eye"></i></a>@if($property->user_id === auth()->id())<span class="listing-owner-badge">Your listing</span><button type="button" class="btn-action edit" title="Edit your listing"><i class="fas fa-pen"></i></button>@elseif($property->user?->normalizedRole() === 'admin' && $panelId === 'open-listings')<form method="POST" action="{{ route('staff.properties.request', $property) }}">@csrf<button type="submit" class="btn-request-listing">Request to sell</button></form>@endif</div></div>
 					</div>
 				</div>
 			@empty

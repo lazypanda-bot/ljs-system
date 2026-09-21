@@ -4,6 +4,17 @@
 
 @section('content')
     <div class="au-page-card">
+        @if(isset($editUser))
+            <div class="au-edit-panel">
+                <h3>Edit {{ $editUser->name }}</h3>
+                <form method="POST" action="{{ route('admin.users.update', $editUser->user_id) }}">
+                    @csrf @method('PUT')
+                    <div class="row"><div class="col-md-6"><label>Name</label><input class="form-control" name="name" value="{{ $editUser->name }}" required></div><div class="col-md-6"><label>Email</label><input class="form-control" type="email" name="email" value="{{ $editUser->email }}" required></div></div>
+                    <div class="row"><div class="col-md-6"><label>Role</label><select class="form-select" name="role_name"><option {{ $editUser->role_name === 'Admin' ? 'selected' : '' }}>Admin</option><option {{ $editUser->role_name === 'Broker' ? 'selected' : '' }}>Broker</option><option {{ $editUser->role_name === 'Agent' ? 'selected' : '' }}>Agent</option><option {{ $editUser->role_name === 'Lead Broker' ? 'selected' : '' }}>Lead Broker</option></select></div><div class="col-md-6"><label>Status</label><select class="form-select" name="account_status"><option {{ $editUser->account_status === 'Active' ? 'selected' : '' }}>Active</option><option {{ $editUser->account_status === 'Inactive' ? 'selected' : '' }}>Inactive</option><option {{ $editUser->account_status === 'Suspended' ? 'selected' : '' }}>Suspended</option></select></div></div>
+                    <button class="au-saveuser-btn" type="submit">Save Changes</button><a class="au-canceluser-btn" href="{{ route('admin.users.index') }}">Cancel</a>
+                </form>
+            </div>
+        @endif
         <!-- Toggle Tabs -->
         <div class="au-tabs-container">
             <button class="au-tab-btn active" data-tab="all-users">
@@ -111,7 +122,6 @@
                                 <th>USER</th>
                                 <th>EMAIL</th>
                                 <th>CONTACT NUMBER</th>
-                                <th>PASSWORD</th>
                                 <th>CREDENTIALS</th>
                                 <th>ROLE</th>
                                 <th>STATUS</th>
@@ -131,7 +141,6 @@
                                         </td>
                                         <td class="text-muted">{{ $user->email }}</td>
                                         <td>{{ $user->contact_number }}</td>
-                                        <td><i class="fas fa-lock text-muted"></i></td>
                                         <td>
                                             @if($user->agent)
                                                 <a href="#" class="badge bg-light text-primary border px-2 py-1">
@@ -161,12 +170,12 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted py-5">No users found</td>
+                                        <td colspan="8" class="text-center text-muted py-5">No users found</td>
                                     </tr>
                                 @endforelse
                             @else
                                 <tr>
-                                    <td colspan="9" class="text-center text-muted py-5">No users found</td>
+                                    <td colspan="8" class="text-center text-muted py-5">No users found</td>
                                 </tr>
                             @endif
                         </tbody>

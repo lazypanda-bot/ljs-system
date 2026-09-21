@@ -37,7 +37,7 @@
                     <div class="stat-card stat-properties">
                         <div class="stat-header">
                             <span class="stat-label">Total Properties</span>
-                            <a href="#" class="stat-link" aria-label="View all properties"><i class="fas fa-arrow-right"></i></a>
+                            <a href="{{ route('app.page', ['page' => 'property']) }}" class="stat-link" aria-label="View all properties"><i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="stat-body">
                             <h3 class="stat-value">{{ $propertyCount }}</h3>
@@ -75,7 +75,7 @@
                         <div class="stat-card stat-brokers">
                             <div class="stat-header">
                                 <span class="stat-label">Total Brokers</span>
-                                <a href="#" class="stat-link" aria-label="View all brokers"><i class="fas fa-arrow-right"></i></a>
+                                <a href="{{ route('app.page', ['page' => 'users']) }}" class="stat-link" aria-label="View all brokers"><i class="fas fa-arrow-right"></i></a>
                             </div>
                             <div class="stat-body">
                                 <h3 class="stat-value">{{ $brokerCount }}</h3>
@@ -88,7 +88,7 @@
                         <div class="stat-card stat-agents">
                             <div class="stat-header">
                                 <span class="stat-label">Total Agents</span>
-                                <a href="#" class="stat-link" aria-label="View all agents"><i class="fas fa-arrow-right"></i></a>
+                                <a href="{{ route('app.page', ['page' => 'users']) }}" class="stat-link" aria-label="View all agents"><i class="fas fa-arrow-right"></i></a>
                             </div>
                             <div class="stat-body">
                                 <h3 class="stat-value">{{ $agentCount }}</h3>

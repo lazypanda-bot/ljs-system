@@ -6,6 +6,7 @@ use App\Models\Conversation;
 use App\Models\ConversationMessage;
 use App\Models\AppNotification;
 use App\Models\Property;
+use App\Models\PropertyAssign;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -191,6 +192,14 @@ class MessageController extends Controller
         return response()->json([
             'count' => AppNotification::where('user_id', $user->user_id)->whereNull('read_at')->count(),
         ]);
+    }
+
+    public function notifications()
+    {
+        $user = $this->user();
+        $notifications = AppNotification::where('user_id', $user->user_id)->latest()->paginate(15);
+
+        return view('pages.notifications', compact('notifications'));
     }
 
     public function openNotification(AppNotification $notification)

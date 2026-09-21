@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
+use App\Models\PropertyAssign;
 use App\Models\AppNotification;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -18,7 +19,7 @@ class PropertyController extends Controller
 {
     public function store(Request $request)
     {
-        $this->authorizeAdmin();
+        $this->authorizeLister();
 
         try {
             // 1. Validate the form inputs to match the new granular location fields
@@ -44,6 +45,8 @@ class PropertyController extends Controller
             ]);
 
             $userId = Auth::id() ?? $this->ensureFallbackUser();
+            $authenticatedUser = Auth::user();
+            $actingRole = $authenticatedUser instanceof User ? $authenticatedUser->actingRole() : 'admin';
 
             // 2. Set Default coordinates (Centered on Cebu)
             $latitude = 10.3157;
@@ -95,7 +98,7 @@ class PropertyController extends Controller
                 'province'             => $validated['province'],
                 'price'                => (int) $validated['price'],
                 'property_status'      => $this->normalizeStatus($validated['property_status']),
-                'approval_status'      => 'Approved',
+                'approval_status'      => in_array($actingRole, ['broker', 'agent'], true) ? 'Pending' : 'Approved',
                 'latitude'             => $latitude,
                 'longitude'            => $longitude,
                 'featured'             => $request->boolean('featured'),
@@ -142,14 +145,17 @@ class PropertyController extends Controller
                 }
             }
 
-            // 7. Notify users about the new listing.
-            $allUsers = User::query()->where('account_status', 'Active')->get();
+            // 7. Notify Admins about pending submissions; approved Admin listings notify everyone.
+            $allUsers = User::query()
+                ->where('account_status', 'Active')
+                ->when($property->approval_status === 'Pending', fn ($query) => $query->where('role_name', 'Admin'))
+                ->get();
             foreach ($allUsers as $user) {
                 AppNotification::create([
                     'user_id'    => $user->user_id,
                     'type' => 'listing',
-                    'title' => 'New property listing',
-                    'body' => $property->property_name . ' is now available.',
+                    'title' => $property->approval_status === 'Pending' ? 'Listing awaiting approval' : 'New property listing',
+                    'body' => $property->property_name . ($property->approval_status === 'Pending' ? ' needs review.' : ' is now available.'),
                     'url' => in_array($user->actingRole(), ['admin', 'broker', 'agent'], true)
                         ? route('staff.properties.show', $property)
                         : route('properties.show', $property),
@@ -157,7 +163,8 @@ class PropertyController extends Controller
             }
 
             // 8. Redirect on Success
-            return redirect()->route('app.page', ['page' => 'property'])->with('success', 'Property added and notifications sent successfully!');
+            $destination = $actingRole === 'admin' ? 'property' : 'listings';
+            return redirect()->route('app.page', ['page' => $destination])->with('success', 'Property submitted successfully.');
 
         } catch (\Exception $e) {
             // Displays the exact database or code error directly on the screen for troubleshooting
@@ -230,9 +237,138 @@ class PropertyController extends Controller
 
     public function create()
     {
-        $this->authorizeAdmin();
+        $this->authorizeLister();
 
         return view('pages.properties.create');
+    }
+
+    public function assign(Request $request, Property $property)
+    {
+        $this->authorizeAdmin();
+
+        $validated = $request->validate([
+            'user_ids' => ['required', 'array', 'min:1'],
+            'user_ids.*' => ['integer', 'exists:users,user_id'],
+        ]);
+
+        $users = User::whereIn('user_id', $validated['user_ids'])
+            ->where('account_status', 'Active')
+            ->whereIn('role_name', ['Broker', 'Agent'])
+            ->get();
+
+        foreach ($users as $user) {
+            DB::table('property_assign')->insertOrIgnore([
+                'user_id' => $user->user_id,
+                'property_id' => $property->property_id,
+                'assigned_date' => now()->toDateString(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Property assignments updated.');
+    }
+
+    public function reviewAssignment(Request $request, PropertyAssign $assignment)
+    {
+        $this->authorizeAdmin();
+
+        $validated = $request->validate(['status' => ['required', 'in:Approved,Rejected']]);
+        $assignment->update([
+            'status' => $validated['status'],
+            'reviewed_by' => Auth::id(),
+            'reviewed_at' => now(),
+        ]);
+
+        AppNotification::create([
+            'user_id' => $assignment->user_id,
+            'type' => 'team',
+            'title' => 'Selling request ' . strtolower($validated['status']),
+            'body' => $assignment->property?->property_name ?? 'Property assignment',
+            'url' => route('app.page', ['page' => 'listings']),
+        ]);
+
+        return redirect()->back()->with('success', 'Assignment request reviewed.');
+    }
+
+    public function reviewListing(Request $request, Property $property)
+    {
+        $this->authorizeAdmin();
+        $validated = $request->validate(['approval_status' => ['required', 'in:Approved,Rejected']]);
+        $property->update(['approval_status' => $validated['approval_status']]);
+
+        AppNotification::create([
+            'user_id' => $property->user_id,
+            'type' => 'listing',
+            'title' => 'Listing ' . strtolower($validated['approval_status']),
+            'body' => $property->property_name,
+            'url' => route('staff.properties.show', $property),
+        ]);
+
+        return redirect()->back()->with('success', 'Listing approval updated.');
+    }
+
+    public function destroy(Property $property)
+    {
+        $this->authorizeAdmin();
+        $property->delete();
+
+        return redirect()->back()->with('success', 'Property deleted.');
+    }
+
+    public function edit(Property $property)
+    {
+        $this->authorizeAdmin();
+
+        return view('pages.properties.edit', compact('property'));
+    }
+
+    public function update(Request $request, Property $property)
+    {
+        $this->authorizeAdmin();
+
+        $validated = $request->validate([
+            'property_name' => ['required', 'string', 'max:255'],
+            'property_description' => ['nullable', 'string'],
+            'price' => ['required', 'numeric'],
+            'property_status' => ['required', 'string', 'max:50'],
+            'street' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'province' => ['required', 'string', 'max:255'],
+        ]);
+
+        $property->update($validated);
+
+        return redirect()->route('app.page', ['page' => 'property'])->with('success', 'Property updated.');
+    }
+
+    public function requestAssignment(Property $property)
+    {
+        $user = Auth::user();
+        abort_unless($user instanceof User && in_array($user->actingRole(), ['broker', 'agent'], true), 403);
+        abort_unless($property->user?->normalizedRole() === 'admin', 403);
+
+        $assignment = PropertyAssign::firstOrCreate(
+            ['user_id' => $user->user_id, 'property_id' => $property->property_id],
+            ['assigned_date' => now()->toDateString(), 'status' => 'Pending', 'requested_by' => $user->user_id, 'requested_at' => now()]
+        );
+
+        if ($assignment->status === 'Rejected') {
+            $assignment->update(['status' => 'Pending', 'requested_by' => $user->user_id, 'requested_at' => now(), 'reviewed_by' => null, 'reviewed_at' => null]);
+        }
+
+        $admins = User::where('role_name', 'Admin')->where('account_status', 'Active')->get();
+        foreach ($admins as $admin) {
+            AppNotification::create([
+                'user_id' => $admin->user_id,
+                'type' => 'team',
+                'title' => 'New selling request',
+                'body' => $user->name . ' requested ' . $property->property_name,
+                'url' => route('app.page', ['page' => 'property']),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Selling request sent for Admin approval.');
     }
 
     private function authorizeAdmin(): void
@@ -242,11 +378,27 @@ class PropertyController extends Controller
         abort_unless($user instanceof User && $user->actingRole() === 'admin', 403);
     }
 
+    private function authorizeLister(): void
+    {
+        $user = Auth::user();
+
+        abort_unless($user instanceof User && in_array($user->actingRole(), ['admin', 'broker', 'agent'], true), 403);
+    }
+
     // VIEW DETAILS
     public function show($id)
     {
         // Fetch the property with its related images, details, and user/agent
         $property = Property::with(['images', 'details', 'user'])->findOrFail($id);
+
+        if ($property->approval_status !== 'Approved') {
+            $viewer = Auth::user();
+            abort_unless(
+                $viewer instanceof User
+                    && ($viewer->actingRole() === 'admin' || $property->user_id === $viewer->user_id),
+                404
+            );
+        }
 
         return view('customer.property-details', compact('property'));
     }

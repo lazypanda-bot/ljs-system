@@ -16,6 +16,11 @@ class PropertyAssign extends Model
         'user_id',
         'property_id',
         'assigned_date',
+        'status',
+        'requested_by',
+        'reviewed_by',
+        'requested_at',
+        'reviewed_at',
     ];
 
     protected $dates = [

@@ -15,9 +15,16 @@
         <div class="listings-toolbar">
             <div class="search-box">
                 <span class="search-icon">&#128269;</span>
-                <input type="text" placeholder="Search by property name">
+                <input id="propertySearch" type="search" placeholder="Search by property name">
             </div>
-            <button type="button" class="btn-filter">&#128268; Filter</button>
+            <select id="propertyStatusFilter" class="btn-filter" aria-label="Filter properties by status">
+                <option value="">All statuses</option>
+                <option value="For Sale">For Sale</option>
+                <option value="For Rent">For Rent</option>
+                <option value="Pending">Pending</option>
+                <option value="Sold">Sold</option>
+                <option value="Unavailable">Unavailable</option>
+            </select>
         </div>
 
         <div class="property-cards-grid">
@@ -27,7 +34,7 @@
                     $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/night.png');
                     $status = $property->property_status ?? 'Available';
                 @endphp
-                <div class="property-card-item">
+                <div class="property-card-item" data-property-card data-property-name="{{ strtolower($property->property_name) }}" data-property-status="{{ $status }}">
                     <div class="card-img-wrapper">
                         <img src="{{ $imageUrl }}" alt="{{ $property->property_name }}">
                         <span class="badge status-{{ strtolower(str_replace(' ', '-', $status)) }} floating-badge">{{ $status }}</span>
@@ -50,11 +57,39 @@
                             </select>
                         </div>
 
+                        @if (($property->approval_status ?? 'Approved') === 'Pending')
+                            <form method="POST" action="{{ route('admin.properties.review', $property) }}" class="property-approval-form">
+                                @csrf
+                                <span>Awaiting verification</span>
+                                <button name="approval_status" value="Approved" type="submit">Approve</button>
+                                <button name="approval_status" value="Rejected" type="submit">Reject</button>
+                            </form>
+                        @endif
+
+                        <form method="POST" action="{{ route('admin.properties.assign', $property) }}" class="property-assign-form">
+                            @csrf
+                            <label for="assign-{{ $property->property_id }}">Assign selling rights</label>
+                            <select id="assign-{{ $property->property_id }}" name="user_ids[]" multiple size="3">
+                                @foreach ($assignableUsers ?? [] as $assignableUser)
+                                    <option value="{{ $assignableUser->user_id }}">{{ $assignableUser->name }} ({{ $assignableUser->role_name }})</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="btn-assign-property">Assign selected</button>
+                        </form>
+
+                        @foreach ($property->assignments()->where('status', 'Pending')->with('user')->get() as $assignment)
+                            <div class="assignment-request-row">
+                                <span>{{ $assignment->user->name }} requested to sell</span>
+                                <form method="POST" action="{{ route('admin.property-assignments.review', $assignment) }}"><input type="hidden" name="status" value="Approved">@csrf<button type="submit">Approve</button></form>
+                                <form method="POST" action="{{ route('admin.property-assignments.review', $assignment) }}"><input type="hidden" name="status" value="Rejected">@csrf<button type="submit">Reject</button></form>
+                            </div>
+                        @endforeach
+
                         <div class="card-footer-actions">
                             <div class="action-buttons">
                                 <a href="{{ route('staff.properties.show', $property) }}" title="View" class="btn-action view">&#128065;</a>
-                                <button title="Edit" class="btn-action edit">&#9998;</button>
-                                <button title="Delete" class="btn-action delete">&#128465;</button>
+                                <a href="{{ route('admin.properties.edit', $property) }}" title="Edit" class="btn-action edit">&#9998;</a>
+                                <form method="POST" action="{{ route('admin.properties.destroy', $property) }}" onsubmit="return confirm('Delete this property?')" style="display:inline">@csrf @method('DELETE')<button title="Delete" class="btn-action delete" type="submit">&#128465;</button></form>
                             </div>
                         </div>
                     </div>

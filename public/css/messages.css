@@ -29,7 +29,8 @@
     align-items: center;
     justify-content: space-between;
 }
-.compose-message-btn { border: 0; border-radius: 6px; background: var(--color-primary); color: #ffffff; cursor: pointer; font-size: 12px; font-weight: 700; padding: 8px 10px; }
+.compose-floating-btn { position: fixed; right: 28px; bottom: 28px; z-index: 100; display: grid; width: 56px; height: 56px; place-items: center; border: 0; border-radius: 50%; background: var(--color-primary); box-shadow: 0 12px 24px var(--color-primary-shadow); color: #fff; cursor: pointer; font-size: 20px; }
+.compose-floating-btn:hover { transform: translateY(-2px); }
 
 .threads-container {
     flex: 1;

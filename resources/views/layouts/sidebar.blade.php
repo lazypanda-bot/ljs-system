@@ -20,6 +20,9 @@
             // Build the links array dynamically for your existing loop
             $sidebarLinks = [];
             foreach ($pages as $p) {
+                if ($p === 'settings') {
+                    continue;
+                }
                 $sidebarLinks[] = [
                     'label' => ucfirst(str_replace(['-', '_'], ' ', $p)),
                     'route' => 'app.page',

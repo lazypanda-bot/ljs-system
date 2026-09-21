@@ -58,7 +58,10 @@ class Property extends Model
         $acting = $user->actingRole();
 
         if ($acting === 'agent') {
-            return $query->where('user_id', $user->user_id);
+            return $query->where(function ($query) use ($user) {
+                $query->where('user_id', $user->user_id)
+                    ->orWhereHas('assignments', fn ($query) => $query->where('user_id', $user->user_id)->where('status', 'Approved'));
+            });
         }
 
         if ($acting === 'broker') {
@@ -69,7 +72,12 @@ class Property extends Model
                 ->pluck('user_id')
                 ->push($user->user_id);
 
-            return $query->whereIn('user_id', $memberIds);
+            return $query->where(function ($query) use ($memberIds, $teamIds) {
+                $query->whereIn('user_id', $memberIds)
+                    ->orWhereHas('assignments', function ($query) use ($teamIds) {
+                        $query->whereIn('user_id', TeamMember::whereIn('team_id', $teamIds)->where('status', 'Approved')->pluck('user_id'))->where('status', 'Approved');
+                    });
+            });
         }
 
         return $query;

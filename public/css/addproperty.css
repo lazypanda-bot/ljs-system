@@ -1,3 +1,5 @@
+.image-preview-slots { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.image-preview { width: 60px; height: 90px; border-radius: 6px; object-fit: cover; border: 1px solid #cbd5e1; }
 .main-content-container { 
     background: #fff; 
     padding: 30px; 
