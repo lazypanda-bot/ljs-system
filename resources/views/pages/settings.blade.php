@@ -15,9 +15,11 @@
 		<div class="settings-main-card">
 			<section id="profile-section" class="settings-panel active">
 				<div class="section-header-row"><div><h2>Profile Settings</h2><p class="section-subtitle">Update your account's profile information and email address.</p></div></div>
-				<form id="profile-form" class="settings-form">
+				<form id="profile-form" class="settings-form" method="POST" action="{{ route('settings.profile.update') }}">
+					@csrf
 					<div class="form-group"><label for="name">Name</label><input type="text" id="name" name="name" value="{{ auth()->user()?->name }}" required></div>
 					<div class="form-group"><label for="email">Email Address</label><input type="email" id="email" name="email" value="{{ auth()->user()?->email }}" required></div>
+					<div class="form-group"><label for="contact_number">Contact Number</label><input type="tel" id="contact_number" name="contact_number" value="{{ auth()->user()?->contact_number }}" maxlength="20" placeholder="Add your contact number"></div>
 					<div class="form-actions"><button type="submit" class="btn-green">Save Changes</button></div>
 				</form>
 				<div class="danger-zone-box"><h3>Delete Account</h3><p class="section-subtitle">Once your account is deleted, all of its resources and data will be permanently deleted.</p><button type="button" class="btn-danger-outline">Delete Account</button></div>

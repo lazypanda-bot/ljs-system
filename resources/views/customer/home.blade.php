@@ -23,15 +23,15 @@
         <div class="map-shell">
             <div class="map-toolbar">
                 <div class="map-search-box">
-                    <span>⌕</span>
-                    <input type="text" placeholder="Search location, city, or area">
+                    <span><i class="fas fa-magnifying-glass" aria-hidden="true"></i></span>
+                                <input id="mapSearchInput" type="search" placeholder="Search location, city, or area">
                 </div>
-                <button type="button" class="map-search-btn">Search</button>
+                            <button type="button" id="mapSearchButton" class="map-search-btn">Search</button>
             </div>
 
-            <div class="map-container-wrapper" style="position: relative;">
+            <div class="map-container-wrapper">
                 <button type="button" id="locateMeBtn" class="locate-me-btn">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #2563eb;">
+                    <svg class="locate-me-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="7"></circle>
                         <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
                         <line x1="12" y1="2" x2="12" y2="5"></line>
@@ -64,7 +64,7 @@
             @forelse ($properties as $item)
                 @php
                     $firstImage = $item->images->first();
-                    $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/night.png');
+                    $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
                 @endphp
                 <article class="property-card">
                     <img src="{{ $imageUrl }}" alt="{{ $item->property_name }}">
@@ -105,7 +105,7 @@
                     @forelse ($featuredProperties as $item)
                         @php
                             $firstImage = $item->images->first();
-                            $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/night.png');
+                            $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
                         @endphp
                         
                         <article class="rush-card">
@@ -132,7 +132,7 @@
                                 <!-- Agent Banner Overlay -->
                                 <div class="rush-agent-overlay">
                                     <div class="rush-agent-avatar">
-                                        <img src="{{ asset('images/ljs-logo.jpg') }}" alt="Agent" onerror="this.style.display='none'">
+                                        <img src="{{ asset('images/ljs-logo.jpg') }}" alt="Agent">
                                     </div>
                                     <div class="rush-agent-info">
                                         <div class="rush-agent-name">Maria Santos</div>

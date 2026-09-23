@@ -82,7 +82,7 @@
     height: 48px;
     border-radius: 999px;
     background: var(--color-primary-soft, #dfeaff);
-    color: var(--color-accent-green, #2bbf62);
+    color: var(--color-success);
     font-size: 1.4rem;
     margin-bottom: 12px;
 }
@@ -125,7 +125,7 @@
 }
 
 .lifestyle-progress-header span:last-child {
-    color: var(--color-accent-green, #2bbf62);
+    color: var(--color-success);
 }
 
 .lifestyle-steps-list {
@@ -146,7 +146,7 @@
 }
 
 .lifestyle-step-item.is-active {
-    background: var(--color-surface-soft, #ecf4ff);
+    background: var(--color-primary-soft, #dfeaff);
 }
 
 .lifestyle-step-bubble {
@@ -164,12 +164,12 @@
 }
 
 .lifestyle-step-item.is-active .lifestyle-step-bubble {
-    background: var(--color-accent-green, #2bbf62);
+    background: var(--color-success);
     color: #fff;
 }
 
 .lifestyle-step-item.is-complete .lifestyle-step-bubble {
-    background: var(--color-accent-green, #2bbf62);
+    background: var(--color-success);
     color: #fff;
 }
 
@@ -184,7 +184,7 @@
 }
 
 .lifestyle-step-item.is-active .lifestyle-step-text strong {
-    color: var(--color-accent-green, #2bbf62);
+    color: var(--color-success);
 }
 
 .lifestyle-step-text small {
@@ -206,7 +206,7 @@
     display: block;
     font-size: 0.78rem;
     font-weight: 700;
-    color: var(--color-accent-green, #2bbf62);
+    color: var(--color-success);
     text-transform: uppercase;
     letter-spacing: 0.4px;
     margin-bottom: 8px;
@@ -245,11 +245,11 @@
 }
 
 .lifestyle-option-card:hover {
-    border-color: var(--color-accent-green, #2bbf62);
+    border-color: var(--color-success);
 }
 
 .lifestyle-option-card.is-selected {
-    border-color: var(--color-accent-green, #2bbf62);
+    border-color: var(--color-success);
     background: #f2fbf5;
 }
 
@@ -270,8 +270,8 @@
 }
 
 .lifestyle-option-card.is-selected .lifestyle-option-check {
-    background: var(--color-accent-green, #2bbf62);
-    border-color: var(--color-accent-green, #2bbf62);
+    background: var(--color-success);
+    border-color: var(--color-success);
     color: #fff;
 }
 
@@ -332,8 +332,8 @@
     width: 48px;
     height: 48px;
     border-radius: 999px;
-    background: var(--color-surface-soft, #ecf4ff);
-    color: var(--color-accent-green, #2bbf62);
+    background: var(--color-primary-soft, #dfeaff);
+    color: var(--color-success);
     font-size: 1.4rem;
     margin-bottom: 12px;
 }
@@ -396,14 +396,14 @@
 }
 
 .lifestyle-badge-match {
-    background: var(--color-accent-green, #2bbf62) !important;
+    background: var(--color-success) !important;
 }
 
 .lifestyle-why-matches {
     display: flex;
     gap: 14px;
     align-items: flex-start;
-    background: var(--color-surface-soft, #ecf4ff);
+    background: var(--color-primary-soft, #dfeaff);
     border-radius: 10px;
     padding: 16px;
     margin-top: 24px;
@@ -418,7 +418,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--color-accent-green, #2bbf62);
+    color: var(--color-success);
 }
 
 .lifestyle-why-matches strong {
@@ -463,7 +463,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: conic-gradient(var(--color-accent-green, #2bbf62) 0deg, #e5edf7 0deg);
+    background: conic-gradient(var(--color-success) 0deg, #e5edf7 0deg);
 }
 
 .lifestyle-score-ring::before {
@@ -481,7 +481,7 @@
     justify-content: center;
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--color-accent-green, #2bbf62);
+    color: var(--color-success);
 }
 
 .lifestyle-score-card strong {
@@ -526,8 +526,8 @@
     width: 22px;
     height: 22px;
     border-radius: 999px;
-    background: var(--color-surface-soft, #ecf4ff);
-    color: var(--color-accent-green, #2bbf62);
+    background: var(--color-primary-soft, #dfeaff);
+    color: var(--color-success);
     display: flex;
     align-items: center;
     justify-content: center;

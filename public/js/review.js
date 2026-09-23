@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-delete-review]').forEach((button) => {
+        button.addEventListener('click', () => deleteReview(button.dataset.deleteReview));
+    });
+
     // Pagination button interactions
     const pageButtons = document.querySelectorAll('.page-btn');
 
@@ -17,8 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
  * Handles deleting a review entry from the list
  * @param {number} reviewId 
  */
-function deleteReview(reviewId) {
-    if (confirm('Are you sure you want to delete this review?')) {
+async function deleteReview(reviewId) {
+    if (await window.appConfirm('Are you sure you want to delete this review? This action cannot be undone.')) {
         const reviewItem = document.querySelector(`.review-item[data-id="${reviewId}"]`);
         
         if (reviewItem) {

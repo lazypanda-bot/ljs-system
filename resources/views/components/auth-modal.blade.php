@@ -1,4 +1,4 @@
-<div id="loginModalOverlay" class="login-modal-overlay" aria-hidden="true" data-open-if-error="{{ $errors->any() ? 'true' : 'false' }}">
+<div id="loginModalOverlay" class="login-modal-overlay" aria-hidden="true" data-open-if-error="{{ session('auth_modal_error') ? 'true' : 'false' }}">
     <section class="login-modal" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
         <button type="button" class="login-modal-close" aria-label="Close">&times;</button>
 
@@ -10,7 +10,7 @@
             </div>
         </div>
 
-        <div class="auth-tabs" role="tablist">
+        <div class="auth-tabs" role="tablist" data-auth-tabs>
             <button class="auth-tab active" type="button" data-auth-panel="modal-login-panel" data-auth-title="Login" data-auth-subtitle="Access your LJS Realty account." role="tab" aria-selected="true">Login</button>
             <button class="auth-tab" type="button" data-auth-panel="modal-register-panel" data-auth-title="Register" data-auth-subtitle="Create your client account to get started." role="tab" aria-selected="false">Register</button>
         </div>
@@ -26,6 +26,7 @@
                 <div class="password-field"><input id="modalLoginPassword" name="password" type="password" placeholder="Enter your password" required autocomplete="current-password"><button type="button" class="password-toggle" data-password-target="modalLoginPassword" aria-label="Show password">Show</button></div>
             </div>
             <div class="auth-form-options"><label class="remember-me"><input type="checkbox" name="remember" value="1"> Remember me</label><a href="mailto:ljsrealty@gmail.com?subject=Password%20reset%20request" class="forgot-password-link">Forgot password?</a></div>
+            <div class="auth-login-status" id="authLoginStatus" role="alert" aria-live="polite"></div>
             <button type="submit" class="login-submit-btn">Login</button>
         </form>
 
@@ -50,6 +51,18 @@
                 @error('password')<span class="auth-input-error">{{ $message }}</span>@enderror
             </div>
             <button type="submit" class="login-submit-btn">Create Account</button>
+        </form>
+
+        <form method="POST" action="{{ route('login.otp.verify') }}" class="auth-panel" id="modal-otp-panel" hidden>
+            @csrf
+            <div class="form-group">
+                <label for="modalOtpCode">Verification code</label>
+                <input id="modalOtpCode" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="Enter the 6-digit code" required autocomplete="one-time-code">
+            </div>
+            <div class="auth-otp-status" id="authOtpStatus" role="status" aria-live="polite"></div>
+            <button type="submit" class="login-submit-btn">Verify and continue</button>
+            <button type="button" class="auth-otp-resend" id="authOtpResend">Resend code</button>
+            <button type="button" class="auth-otp-back" id="authOtpBack">Back to login</button>
         </form>
     </section>
 </div>

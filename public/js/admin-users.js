@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-delete-user]').forEach((button) => {
+        button.addEventListener('click', () => window.deleteUser(button.dataset.deleteUser));
+    });
+    document.querySelectorAll('[data-delete-team]').forEach((button) => {
+        button.addEventListener('click', () => window.deleteTeam(button.dataset.deleteTeam));
+    });
+
     // Tab switching
     const tabBtns = document.querySelectorAll('.au-tab-btn');
     const tabContents = document.querySelectorAll('.au-tab-content');
@@ -100,8 +107,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Delete User
-    window.deleteUser = function(userId) {
-        if (confirm('Are you sure you want to delete this user?')) {
+    window.deleteUser = async function(userId) {
+        if (await window.appConfirm('Are you sure you want to delete this user? This action cannot be undone.')) {
             fetch(`/admin/users/${userId}`, {
                 method: 'DELETE',
                 headers: {
@@ -120,8 +127,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Delete Team
-    window.deleteTeam = function(teamId) {
-        if (confirm('Are you sure you want to delete this team?')) {
+    window.deleteTeam = async function(teamId) {
+        if (await window.appConfirm('Are you sure you want to delete this team? This action cannot be undone.')) {
             fetch(`/admin/teams/${teamId}`, {
                 method: 'DELETE',
                 headers: {

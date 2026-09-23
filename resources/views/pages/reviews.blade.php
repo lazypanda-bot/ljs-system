@@ -18,7 +18,7 @@
 		$ratingCounts = collect($reviews)->countBy('rating');
 	@endphp
 
-	<div class="reviews-wrapper">
+	<div class="reviews-wrapper page-card">
 		<div class="reviews-header"><h1>Review Summary</h1><p>View feedback and ratings given by clients.</p></div>
 		<div class="metrics-grid">
 			<div class="metric-card card-blue"><span class="card-title">Total Reviews</span><div class="metric-value-container"><span class="metric-number">{{ count($reviews) }}</span></div><span class="card-subtitle">Reviews received</span></div>
@@ -26,7 +26,7 @@
 			<div class="metric-card card-breakdown">
 				@for ($rating = 5; $rating >= 1; $rating--)
 					@php $count = $ratingCounts->get($rating, 0); $percentage = count($reviews) ? ($count / count($reviews)) * 100 : 0; @endphp
-					<div class="rating-bar-row"><span class="star-label">{{ $rating }} {{ $rating === 1 ? 'Star' : 'Stars' }}</span><div class="bar-track"><div class="bar-fill bar-{{ $rating }}star" style="width: {{ $percentage }}%;"></div></div><span class="star-count">{{ $count }}</span></div>
+					<div class="rating-bar-row"><span class="star-label">{{ $rating }} {{ $rating === 1 ? 'Star' : 'Stars' }}</span><div class="bar-track"><div class="bar-fill bar-{{ $rating }}star" data-width="{{ $percentage }}"></div></div><span class="star-count">{{ $count }}</span></div>
 				@endfor
 			</div>
 		</div>
@@ -39,7 +39,7 @@
 							<div class="review-item-header"><div class="user-info"><h3 class="user-name">{{ $review['name'] }}</h3><p class="purchased-text">Purchased: <span>{{ $review['property'] }}</span></p></div><div class="rating-meta"><div class="stars">@for ($star = 1; $star <= 5; $star++)<i class="fa-{{ $star <= $review['rating'] ? 'solid' : 'regular' }} fa-star"></i>@endfor</div><span class="review-date">{{ $review['date'] }}</span></div></div>
 							<p class="review-comment">{{ $review['comment'] }}</p>
 						</div>
-						@if ($acting === 'admin')<button class="btn-delete" title="Delete review" type="button" onclick="deleteReview({{ $index + 1 }})"><i class="fa-regular fa-trash-can"></i></button>@endif
+						@if ($acting === 'admin')<button class="btn-delete" title="Delete review" type="button" data-delete-review="{{ $index + 1 }}"><i class="fa-regular fa-trash-can"></i></button>@endif
 					</div>
 				@endforeach
 			</div>
@@ -49,5 +49,5 @@
 @endsection
 
 @push('scripts')
-	<script src="{{ asset('js/review.js') }}"></script>
+	<script src="{{ asset('js/review.js') }}?v={{ filemtime(public_path('js/review.js')) }}"></script>
 @endpush

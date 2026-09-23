@@ -4,6 +4,18 @@
 
 @section('content')
     <div class="au-page-card">
+        <div class="staff-page-heading">
+            <span class="staff-page-kicker">Administration</span>
+            <h1>User Management</h1>
+            <p>Manage staff accounts and teams.</p>
+        </div>
+        @if ($errors->any())
+            <div class="alert alert-danger" role="alert">
+                @foreach ($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
+            </div>
+        @endif
         @if(isset($editUser))
             <div class="au-edit-panel">
                 <h3>Edit {{ $editUser->name }}</h3>
@@ -50,15 +62,11 @@
                                 <h5>Personal Information</h5>
                                 <div class="mb-3">
                                     <label for="fullName" class="form-label">Full Name *</label>
-                                    <input type="text" class="form-control" id="fullName" name="name" placeholder="Enter full name" required>
+                                    <input type="text" class="form-control" id="fullName" name="name" value="{{ old('name') }}" placeholder="Enter full name" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Email Address *</label>
-                                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="contactNumber" class="form-label">Contact Number *</label>
-                                    <input type="tel" class="form-control" id="contactNumber" name="contact_number" placeholder="Enter contact number" required>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" placeholder="Enter email address" required>
                                 </div>
                             </div>
 
@@ -69,15 +77,15 @@
                                     <label for="role" class="form-label">Role *</label>
                                     <select class="form-select" id="role" name="role_name" required>
                                         <option value="">Select a role</option>
-                                        <option value="Lead Broker">Lead Broker</option>
-                                        <option value="Admin">Admin</option>
-                                        <option value="Broker">Broker</option>
-                                        <option value="Agent">Agent</option>
+                                        <option value="Lead Broker" {{ old('role_name') === 'Lead Broker' ? 'selected' : '' }}>Lead Broker</option>
+                                        <option value="Admin" {{ old('role_name') === 'Admin' ? 'selected' : '' }}>Admin</option>
+                                        <option value="Broker" {{ old('role_name') === 'Broker' ? 'selected' : '' }}>Broker</option>
+                                        <option value="Agent" {{ old('role_name') === 'Agent' ? 'selected' : '' }}>Agent</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
                                     <label for="password" class="form-label">Password *</label>
-                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required minlength="8">
                                 </div>
                             </div>
                         </div>
@@ -88,9 +96,9 @@
                                 <div class="mb-3">
                                     <label for="status" class="form-label">Status *</label>
                                     <select class="form-select" id="status" name="account_status" required>
-                                        <option value="Active">Active</option>
-                                        <option value="Inactive">Inactive</option>
-                                        <option value="Suspended">Suspended</option>
+                                        <option value="Active" {{ old('account_status', 'Active') === 'Active' ? 'selected' : '' }}>Active</option>
+                                        <option value="Inactive" {{ old('account_status') === 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                        <option value="Suspended" {{ old('account_status') === 'Suspended' ? 'selected' : '' }}>Suspended</option>
                                     </select>
                                 </div>
                             </div>
@@ -159,10 +167,7 @@
                                         <td class="text-muted">{{ $user->created_at->format('M d, Y') }}</td>
                                         <td class="text-end">
                                             <div class="au-action-group">
-                                                <a href="{{ route('admin.users.edit', $user->user_id) }}" class="au-edituser-btn">
-                                                    <i class="fas fa-pen text-primary"></i>
-                                                </a>
-                                                <button class="au-deleteuser-btn" onclick="deleteUser({{ $user->user_id }})">
+                                                <button class="au-deleteuser-btn" data-delete-user="{{ $user->user_id }}" type="button">
                                                     <i class="fas fa-trash text-danger"></i>
                                                 </button>
                                             </div>
@@ -275,7 +280,7 @@
                                                 <a href="{{ route('admin.teams.edit', $team->team_id) }}" class="au-editteam-btn">
                                                     <i class="fas fa-pen text-primary"></i>
                                                 </a>
-                                                <button class="au-deleteteam-btn" onclick="deleteTeam({{ $team->team_id }})">
+                                                <button class="au-deleteteam-btn" data-delete-team="{{ $team->team_id }}" type="button">
                                                     <i class="fas fa-trash text-danger"></i>
                                                 </button>
                                             </div>
@@ -299,5 +304,5 @@
     </div>
 
     <link rel="stylesheet" href="{{ asset('css/admin-users.css') }}">
-    <script src="{{ asset('js/admin-users.js') }}"></script>
+    <script src="{{ asset('js/admin-users.js') }}?v={{ filemtime(public_path('js/admin-users.js')) }}"></script>
 @endsection

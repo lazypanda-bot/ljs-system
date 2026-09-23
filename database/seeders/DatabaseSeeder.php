@@ -16,14 +16,21 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'admin@testing.com'],
-            [
-                'name' => 'Admin User',
-                'password' => Hash::make('admin'),
-                'account_status' => 'Active',
-                'role_name' => 'Admin',
-            ]
-        );
+        $adminEmail = env('ADMIN_EMAIL');
+        $adminPassword = env('ADMIN_PASSWORD');
+
+        if (! $adminEmail || ! $adminPassword) {
+            throw new \RuntimeException('ADMIN_EMAIL and ADMIN_PASSWORD must be set before seeding the admin account.');
+        }
+
+        $admin = User::withTrashed()->firstOrNew(['email' => $adminEmail]);
+        $admin->restore();
+        $admin->fill([
+            'name' => env('ADMIN_NAME', 'Admin'),
+            'password' => Hash::make($adminPassword),
+            'account_status' => 'Active',
+            'role_name' => 'Admin',
+        ]);
+        $admin->save();
     }
 }

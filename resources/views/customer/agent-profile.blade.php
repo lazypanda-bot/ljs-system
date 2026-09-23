@@ -37,7 +37,7 @@
                         @forelse ($listings as $listing)
                             @php $image = $listing->images->first(); @endphp
                             <article class="profile-listing-card">
-                                <img src="{{ $image ? asset('storage/' . $image->image_path) : asset('images/night.png') }}" alt="{{ $listing->property_name }}">
+                                <img src="{{ $image ? asset('storage/' . $image->image_path) : asset('images/ljs-logo.jpg') }}" alt="{{ $listing->property_name }}">
                                 <div><span>{{ $listing->property_status }}</span><h3>{{ $listing->property_name }}</h3><p>PHP {{ number_format($listing->price, 0) }}</p><a href="{{ route('properties.show', $listing) }}">View listing</a></div>
                             </article>
                         @empty

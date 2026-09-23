@@ -23,7 +23,7 @@ use App\Http\Controllers\ReportController;
 // HOME / LANDING PAGE
 Route::get('/', function () {
     $properties = Property::with(['images', 'details'])
-        ->where('approval_status', 'Approved')
+        ->where('approval_status', 'Live')
         ->whereNotIn('property_status', ['Pending'])
         ->latest()
         ->get();
@@ -32,6 +32,7 @@ Route::get('/', function () {
 
     $featuredProperties = Property::with('images')
         ->where('featured', true)
+        ->where('approval_status', 'Live')
         ->latest()
         ->get();
 
@@ -41,6 +42,7 @@ Route::get('/', function () {
 // PROPERTIES CATALOG
 Route::get('/properties', function (Request $request) {
     $properties = Property::with(['images', 'details'])
+        ->where('approval_status', 'Live')
         ->when($request->filled('type'), fn ($query) => $query->where('property_type', $request->string('type')))
         ->when($request->filled('location'), fn ($query) => $query->where(function ($query) use ($request) {
             $location = $request->string('location');
@@ -120,8 +122,12 @@ Route::get('/app/users', [UserController::class, 'index'])->middleware('auth');
 // AUTHENTICATION ROUTES
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/login/otp', [AuthController::class, 'showOtp'])->name('login.otp');
+Route::post('/login/otp', [AuthController::class, 'verifyOtp'])->name('login.otp.verify');
+Route::post('/login/otp/resend', [AuthController::class, 'resendOtp'])->name('login.otp.resend');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+Route::post('/settings/profile', [AuthController::class, 'updateProfile'])->name('settings.profile.update')->middleware('auth');
 
 // AUTHENTICATED ROUTES
 Route::middleware('auth')->group(function () {
@@ -177,10 +183,21 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
     $pageTitle = ucfirst(str_replace(['-', '_'], ' ', $page));
 
     if ($page === 'appointments') {
-        return app(AppointmentController::class)->index();
+        return app(AppointmentController::class)->index(request());
     }
     if ($page === 'review') return app(ReviewController::class)->index();
     if ($page === 'report') return app(ReportController::class)->index();
+
+    if ($page === 'agents') {
+        $teamIds = $user->teams()->pluck('team_id');
+        $managedAgents = User::whereIn('user_id', \App\Models\TeamMember::whereIn('team_id', $teamIds)->where('status', 'Approved')->pluck('user_id'))
+            ->where('account_status', 'Active')
+            ->with('professionalProfile')
+            ->orderBy('name')
+            ->get();
+
+        return view('pages.managed-agents', compact('managedAgents', 'acting', 'pageTitle'));
+    }
 
     if ($page === 'dashboard') {
         $properties = Property::visibleTo($user)->with('details')->get();

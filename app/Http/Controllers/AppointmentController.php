@@ -13,28 +13,32 @@ use Illuminate\Support\Facades\Auth;
 
 class AppointmentController extends Controller
 {
-	public function index()
+	public function index(Request $request)
 	{
 		$user = Auth::user();
 		if (! ($user instanceof User)) {
 			abort(403);
 		}
 		$actingRole = $user->actingRole();
+		$filter = $request->string('status')->toString();
 
 		$appointments = Appointment::with(['assignment.property', 'assignment.user', 'blockedDate'])
 			->when($actingRole !== 'admin', function ($query) use ($user) {
 				$query->whereHas('assignment', fn ($query) => $query->where('user_id', $user->user_id));
 			})
+			->when($filter === 'active', fn ($query) => $query->whereIn('appointment_status', ['Pending', 'Confirmed']))
+			->when($filter === 'cancelled', fn ($query) => $query->whereIn('appointment_status', ['Cancelled', 'Rejected']))
+			->when($filter === 'done', fn ($query) => $query->where('appointment_status', 'Completed'))
 			->latest('preferred_date')
 			->latest('preferred_time')
 			->get();
 
-		return view('pages.appointments', compact('appointments'));
+		return view('pages.appointments', compact('appointments', 'filter'));
 	}
 
 	public function create(Property $property)
 	{
-		abort_unless($property->approval_status === 'Approved', 404);
+		abort_unless($property->approval_status === 'Live', 404);
 		if ($property->assignments()->where('status', 'Approved')->doesntExist() && in_array($property->user?->role_name, ['Broker', 'Agent'], true)) {
 			$property->assignments()->create(['user_id' => $property->user_id, 'assigned_date' => now()->toDateString(), 'status' => 'Approved']);
 		}
@@ -49,7 +53,7 @@ class AppointmentController extends Controller
 
 	public function store(Request $request, Property $property)
 	{
-		abort_unless($property->approval_status === 'Approved', 404);
+		abort_unless($property->approval_status === 'Live', 404);
 
 		$validated = $request->validate([
 			'assign_id' => ['nullable', 'integer'],

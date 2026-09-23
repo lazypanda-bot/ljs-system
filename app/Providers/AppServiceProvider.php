@@ -25,8 +25,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //FOR NGROK
-        if (str_contains(config('app.url'), 'ngrok-free.dev')) {
+        // Force HTTPS only for requests that actually arrive through ngrok.
+        $requestHost = request()->getHost();
+        if (str_contains($requestHost, 'ngrok-free.dev') || str_contains($requestHost, 'ngrok.io')) {
             URL::forceScheme('https');
         }
 
@@ -59,6 +60,10 @@ class AppServiceProvider extends ServiceProvider
                     $pageLabel = ucfirst(str_replace(['-', '_'], ' ', $currentPage));
                 } elseif (request()->routeIs('dashboard')) {
                     $pageLabel = 'Dashboard';
+                } elseif (request()->routeIs('admin.users.*')) {
+                    $pageLabel = 'Users';
+                } elseif (request()->routeIs('admin.teams.*')) {
+                    $pageLabel = 'Teams';
                 }
             }
 

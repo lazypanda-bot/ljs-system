@@ -3,12 +3,7 @@
         @if(!empty($pageLabel))
             <div class="page-label">
                 <span class="page-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="8" height="8" rx="2" />
-                        <rect x="13" y="3" width="8" height="8" rx="2" />
-                        <rect x="3" y="13" width="8" height="8" rx="2" />
-                        <rect x="13" y="13" width="8" height="8" rx="2" />
-                    </svg>
+                    <i class="fas fa-chart-pie"></i>
                 </span>
                 <div>
                     <p class="page-label-title">{{ $pageLabel }}</p>
@@ -44,10 +39,7 @@
                         @if (($unreadNotificationCount ?? 0) > 0)
                             <span class="notification-count" data-notification-count>{{ $unreadNotificationCount }}</span>
                         @endif
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M15 17h5l-1.4-1.4A7.94 7.94 0 0 0 18 10V8a6 6 0 1 0-12 0v2c0 1.3-.3 2.6-.9 3.7L4 17h5" />
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                        </svg>
+                        <i class="fas fa-bell" aria-hidden="true"></i>
                     </button>
                     <div class="notification-menu" id="notificationMenu" aria-hidden="true">
                         <div class="notification-menu-title">Notifications <span>{{ $unreadNotificationCount ?? 0 }} new</span></div>
@@ -70,7 +62,7 @@
                             <span class="user-name">{{ Auth::user()->name ?? 'User' }}</span>
                             <span class="user-email">{{ Auth::user()->email ?? '' }}</span>
                         </div>
-                        <span class="profile-arrow">▾</span>
+                        <span class="profile-arrow"><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
                     </button>
 
                     <div id="profileMenu" class="profile-menu" aria-hidden="true">
@@ -94,10 +86,7 @@
             @guest
                 <button class="notification-btn" aria-label="Notifications">
                     <span class="notification-count">0</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M15 17h5l-1.4-1.4A7.94 7.94 0 0 0 18 10V8a6 6 0 1 0-12 0v2c0 1.3-.3 2.6-.9 3.7L4 17h5" />
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                    </svg>
+                    <i class="fas fa-bell" aria-hidden="true"></i>
                 </button>
 
                 <button id="openLoginModal" class="signin-btn" type="button">Sign in</button>

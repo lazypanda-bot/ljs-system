@@ -7,7 +7,7 @@
         <div class="media">
             <img src="{{ asset('images/your-lifestyle-image.jpg') }}" 
                 alt="Lifestyle Match" 
-                onerror="this.onerror=null; this.src='{{ asset('images/ljs-logo.jpg') }}';">
+                data-fallback-src="{{ asset('images/ljs-logo.jpg') }}">
         </div>
 
         <!-- Right Half: Content (Must be a direct child of .lifestyle, right next to .media) -->
@@ -82,10 +82,10 @@
 
         <!-- PROPERTIES GRID -->
         <div class="properties-grid">
-            @forelse ($properties->where('approval_status', 'Approved') as $item)
+            @forelse ($properties->where('approval_status', 'Live') as $item)
                 @php
                     $firstImage = $item->images->first();
-                    $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/night.png');
+                    $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
                     $imageCount = $item->images->count() > 0 ? $item->images->count() : 1;
                 @endphp
 
@@ -103,11 +103,11 @@
 
                         <div class="property-agent-overlay">
                             <div class="property-agent-avatar">
-                                <img src="{{ asset('images/ljs-logo.jpg') }}" alt="Agent" onerror="this.style.display='none'">
+                                <img src="{{ asset('images/ljs-logo.jpg') }}" alt="Agent">
                             </div>
                             <div class="property-agent-info">
-                                <div class="property-agent-name">Maria Santos</div>
-                                <div class="property-agent-prc">PRC 23456789</div>
+                                <div class="property-agent-name">{{ $item->user?->name ?? 'LJS Professional' }}</div>
+                                <div class="property-agent-prc">{{ $item->user?->role_name ?? 'Real Estate Professional' }}</div>
                             </div>
                         </div>
 
@@ -116,7 +116,7 @@
                     <div class="property-card-body">
                         <div class="property-price">₱ {{ number_format($item->price, 0, '.', ',') }}</div>
                         <h3 class="property-title">{{ $item->property_name }}</h3>
-                        <p class="property-location"> {{ $item->property_location ?? 'Cebu City, Cebu, Philippines' }}</p>
+                        <p class="property-location">{{ $item->city }}, {{ $item->province }}</p>
                         
                         <div class="property-category-tag">{{ $item->property_type ?? 'Condominium' }} - For Sale</div>
 

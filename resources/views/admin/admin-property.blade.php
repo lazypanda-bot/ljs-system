@@ -3,18 +3,18 @@
 @section('title', 'Admin Property')
 
 @section('content')
-    <div class="listings-management-container">
-        <div class="listings-header">
+    <div class="listings-management-container staff-page-surface">
+        <div class="listings-header staff-page-heading">
             <div>
                 <h1>My Listings Management</h1>
                 <p>You can manage your property listings here.</p>
             </div>
-            <a href="{{ route('admin.subfiles.addproperty') }}" class="btn-add-property" style="text-decoration: none;">+ Add Property</a>
+            <a href="{{ route('admin.subfiles.addproperty') }}" class="btn-add-property"><i class="fas fa-plus" aria-hidden="true"></i> Add Property</a>
         </div>
 
         <div class="listings-toolbar">
             <div class="search-box">
-                <span class="search-icon">&#128269;</span>
+                <span class="search-icon"><i class="fas fa-magnifying-glass" aria-hidden="true"></i></span>
                 <input id="propertySearch" type="search" placeholder="Search by property name">
             </div>
             <select id="propertyStatusFilter" class="btn-filter" aria-label="Filter properties by status">
@@ -31,7 +31,7 @@
             @forelse ($properties ?? [] as $property)
                 @php
                     $firstImage = $property->images->first();
-                    $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/night.png');
+                    $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
                     $status = $property->property_status ?? 'Available';
                 @endphp
                 <div class="property-card-item" data-property-card data-property-name="{{ strtolower($property->property_name) }}" data-property-status="{{ $status }}">
@@ -57,11 +57,11 @@
                             </select>
                         </div>
 
-                        @if (($property->approval_status ?? 'Approved') === 'Pending')
+                        @if (($property->approval_status ?? 'Live') === 'Pending')
                             <form method="POST" action="{{ route('admin.properties.review', $property) }}" class="property-approval-form">
                                 @csrf
                                 <span>Awaiting verification</span>
-                                <button name="approval_status" value="Approved" type="submit">Approve</button>
+                                <button name="approval_status" value="Live" type="submit">Approve</button>
                                 <button name="approval_status" value="Rejected" type="submit">Reject</button>
                             </form>
                         @endif
@@ -87,9 +87,9 @@
 
                         <div class="card-footer-actions">
                             <div class="action-buttons">
-                                <a href="{{ route('staff.properties.show', $property) }}" title="View" class="btn-action view">&#128065;</a>
-                                <a href="{{ route('admin.properties.edit', $property) }}" title="Edit" class="btn-action edit">&#9998;</a>
-                                <form method="POST" action="{{ route('admin.properties.destroy', $property) }}" onsubmit="return confirm('Delete this property?')" style="display:inline">@csrf @method('DELETE')<button title="Delete" class="btn-action delete" type="submit">&#128465;</button></form>
+                                <a href="{{ route('staff.properties.show', $property) }}" title="View" class="btn-action view"><i class="fas fa-eye" aria-hidden="true"></i></a>
+                                <a href="{{ route('admin.properties.edit', $property) }}" title="Edit" class="btn-action edit"><i class="fas fa-pen" aria-hidden="true"></i></a>
+                                <form method="POST" action="{{ route('admin.properties.destroy', $property) }}" class="inline-action-form">@csrf @method('DELETE')<button title="Delete" class="btn-action delete" type="submit"><i class="fas fa-trash" aria-hidden="true"></i></button></form>
                             </div>
                         </div>
                     </div>

@@ -57,7 +57,6 @@
     /* padding: 14px 22px; */
     padding-left: 28px;
     margin-top: 1px;
-    /* color: var(--color-text-dark); */
     color: var(--color-text) !important;
     text-decoration: none;
     /* border-radius: 18px; */
@@ -74,7 +73,7 @@
     height: 46px;
     border-radius: 14px;
     background: transparent;
-    color: var(--color-text-dark);
+    color: var(--color-text);
 }
 .nav-icon svg {
     width: 30px;
@@ -115,3 +114,5 @@
 .sidebar.collapsed {
     display: none;
 }
+.nav-icon i { font-size: 18px; line-height: 1; }
+.nav-link:hover .nav-icon i { transform: translateX(4px); }

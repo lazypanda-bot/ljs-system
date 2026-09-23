@@ -147,7 +147,7 @@
                     </div>
 
                     <div class="property-status-controls">
-                        <button class="status-btn active full-width-btn" type="button">Block Date</button>
+                        <button class="status-btn active full-width-btn" type="button" id="openBlockDateModal">Block Date</button>
                         <div class="status-month-label">{{ now()->translatedFormat('F Y') }}</div>
                     </div>
 
@@ -155,7 +155,7 @@
                         <div class="bar-row">
                             <span class="bar-label">For Sale</span>
                             <div class="bar-track">
-                                <div class="bar-fill bar-for-sale" style="width: {{ $forSalePct }}%;"></div>
+                                <div class="bar-fill bar-for-sale" data-width="{{ $forSalePct }}"></div>
                             </div>
                             <span class="bar-value">{{ $forSaleCount }} ({{ $forSalePct }}%)</span>
                         </div>
@@ -163,7 +163,7 @@
                         <div class="bar-row">
                             <span class="bar-label">Pending</span>
                             <div class="bar-track">
-                                <div class="bar-fill bar-pending" style="width: {{ $pendingPct }}%;"></div>
+                                <div class="bar-fill bar-pending" data-width="{{ $pendingPct }}"></div>
                             </div>
                             <span class="bar-value">{{ $pendingCount }} ({{ $pendingPct }}%)</span>
                         </div>
@@ -171,7 +171,7 @@
                         <div class="bar-row">
                             <span class="bar-label">Sold</span>
                             <div class="bar-track">
-                                <div class="bar-fill bar-sold" style="width: {{ $soldPct }}%;"></div>
+                                <div class="bar-fill bar-sold" data-width="{{ $soldPct }}"></div>
                             </div>
                             <span class="bar-value">{{ $soldCount }} ({{ $soldPct }}%)</span>
                         </div>
@@ -179,7 +179,7 @@
                         <div class="bar-row">
                             <span class="bar-label">Inactive</span>
                             <div class="bar-track">
-                                <div class="bar-fill bar-inactive" style="width: {{ $inactivePct }}%;"></div>
+                                <div class="bar-fill bar-inactive" data-width="{{ $inactivePct }}"></div>
                             </div>
                             <span class="bar-value">{{ $inactiveCount }} ({{ $inactivePct }}%)</span>
                         </div>
@@ -217,4 +217,23 @@
 
         </div>
     </div>
+
+    <div class="block-date-modal" id="blockDateModal" aria-hidden="true">
+        <form method="POST" action="{{ route('appointments.block-date') }}" class="block-date-dialog">
+            @csrf
+            <div class="block-date-dialog-header"><h2>Block a date</h2><button type="button" id="closeBlockDateModal" aria-label="Close">&times;</button></div>
+            <label>Date<input type="date" name="date" min="{{ now()->toDateString() }}" required></label>
+            <label>Start time<input type="time" name="start_time"></label>
+            <label>End time<input type="time" name="end_time"></label>
+            <label>Reason<input type="text" name="reason" placeholder="Personal appointment"></label>
+            <button type="submit">Block date</button>
+        </form>
+    </div>
 @endsection
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/dashboard.css') }}?v={{ filemtime(public_path('css/dashboard.css')) }}">
+@endpush
+@push('scripts')
+<script src="{{ asset('js/dashboard.js') }}?v={{ filemtime(public_path('js/dashboard.js')) }}" defer></script>
+@endpush

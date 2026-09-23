@@ -98,7 +98,7 @@ class PropertyController extends Controller
                 'province'             => $validated['province'],
                 'price'                => (int) $validated['price'],
                 'property_status'      => $this->normalizeStatus($validated['property_status']),
-                'approval_status'      => in_array($actingRole, ['broker', 'agent'], true) ? 'Pending' : 'Approved',
+                'approval_status'      => in_array($actingRole, ['broker', 'agent'], true) ? 'Pending' : 'Live',
                 'latitude'             => $latitude,
                 'longitude'            => $longitude,
                 'featured'             => $request->boolean('featured'),
@@ -294,7 +294,7 @@ class PropertyController extends Controller
     public function reviewListing(Request $request, Property $property)
     {
         $this->authorizeAdmin();
-        $validated = $request->validate(['approval_status' => ['required', 'in:Approved,Rejected']]);
+        $validated = $request->validate(['approval_status' => ['required', 'in:Live,Rejected']]);
         $property->update(['approval_status' => $validated['approval_status']]);
 
         AppNotification::create([
@@ -391,7 +391,7 @@ class PropertyController extends Controller
         // Fetch the property with its related images, details, and user/agent
         $property = Property::with(['images', 'details', 'user'])->findOrFail($id);
 
-        if ($property->approval_status !== 'Approved') {
+        if ($property->approval_status !== 'Live') {
             $viewer = Auth::user();
             abort_unless(
                 $viewer instanceof User

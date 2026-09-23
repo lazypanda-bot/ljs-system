@@ -64,6 +64,10 @@
     background: #e7f3f4;
 }
 
+#loginModalOverlay.otp-active .auth-tabs {
+    display: none;
+}
+
 #loginModalOverlay .auth-tab {
     border: 0;
     border-radius: 999px;
@@ -134,7 +138,7 @@
 }
 
 #loginModalOverlay .form-group label {
-    color: var(--color-text-dark);
+    color: var(--color-text);
     font-size: 13px;
     font-weight: 700;
 }
@@ -215,6 +219,41 @@
 #loginModalOverlay .auth-input-error {
     color: #b91c1c;
     font-size: 12px;
+}
+
+#loginModalOverlay .auth-login-status {
+    min-height: 18px;
+    color: #b91c1c;
+    font-size: 13px;
+    text-align: center;
+}
+
+#loginModalOverlay .auth-otp-status {
+    min-height: 18px;
+    color: #166534;
+    font-size: 13px;
+    text-align: center;
+}
+
+#loginModalOverlay .auth-otp-status.error {
+    color: #b91c1c;
+}
+
+#loginModalOverlay .auth-otp-resend,
+#loginModalOverlay .auth-otp-back {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--color-primary);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px;
+}
+
+#loginModalOverlay .auth-otp-back {
+    color: var(--color-text-muted);
+    font-weight: 500;
 }
 
 @media (max-width: 480px) {

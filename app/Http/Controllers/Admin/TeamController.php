@@ -19,10 +19,7 @@ class TeamController extends Controller
     {
         $this->authorizeAdmin();
 
-        $teams = Team::with('user', 'members')->paginate(10);
-        $users = User::where('account_status', 'Active')->get();
-        
-        return view('admin.admin-users', compact('teams', 'users'));
+        return view('admin.admin-users', $this->usersPageData());
     }
 
     /**
@@ -32,8 +29,7 @@ class TeamController extends Controller
     {
         $this->authorizeAdmin();
 
-        $users = User::where('account_status', 'Active')->get();
-        return view('admin.admin-users', compact('users'));
+        return view('admin.admin-users', $this->usersPageData());
     }
 
     /**
@@ -85,7 +81,7 @@ class TeamController extends Controller
         $this->authorizeAdmin();
 
         $team->load('user', 'members');
-        return view('admin.admin-users', compact('team'));
+        return view('admin.admin-users', array_merge($this->usersPageData(), compact('team')));
     }
 
     /**
@@ -96,8 +92,7 @@ class TeamController extends Controller
         $this->authorizeAdmin();
 
         $team->load('user', 'members');
-        $users = User::where('account_status', 'Active')->get();
-        return view('admin.admin-users', compact('team', 'users'));
+        return view('admin.admin-users', array_merge($this->usersPageData(), compact('team')));
     }
 
     /**
@@ -134,5 +129,14 @@ class TeamController extends Controller
         $user = Auth::user();
 
         abort_unless($user instanceof User && $user->actingRole() === 'admin', 403);
+    }
+
+    private function usersPageData(): array
+    {
+        return [
+            'users' => User::where('role_name', '!=', 'Client')->paginate(10),
+            'allUsers' => User::where('role_name', '!=', 'Client')->get(),
+            'teams' => Team::with(['user', 'members'])->latest()->get(),
+        ];
     }
 }

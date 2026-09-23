@@ -35,6 +35,7 @@ class AgentController extends Controller
                         ->orWhere('role_name', 'like', "%{$search}%");
                 });
             })
+            ->when($request->filled('role') && $request->role !== 'all', fn ($query) => $query->where('role_name', $request->role))
             ->orderBy('name')
             ->get();
 

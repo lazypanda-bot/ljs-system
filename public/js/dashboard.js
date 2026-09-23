@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
+    const blockDateModal = document.getElementById('blockDateModal');
+    document.getElementById('openBlockDateModal')?.addEventListener('click', () => blockDateModal?.classList.add('open'));
+    document.getElementById('closeBlockDateModal')?.addEventListener('click', () => blockDateModal?.classList.remove('open'));
+
     const calendarDates = document.getElementById('calendarDates');
     if (!calendarDates) return;
 

@@ -3,8 +3,8 @@
 @section('title', 'Agent Listings')
 
 @section('content')
-    <div class="listings-management-container">
-        <div class="listings-header">
+    <div class="listings-management-container staff-page-surface">
+        <div class="listings-header staff-page-heading">
             <div>
                 <h1>My Listings</h1>
                 <p>Properties you've listed.</p>
@@ -15,7 +15,7 @@
             @forelse ($properties ?? [] as $property)
                 @php
                     $firstImage = $property->images->first();
-                    $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/night.png');
+                    $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
                     $status = $property->property_status ?? 'Available';
                 @endphp
                 <div class="property-card-item">
@@ -33,7 +33,7 @@
 
                         <div class="card-footer-actions">
                             <div class="action-buttons">
-                                <a href="{{ route('properties.show', $property->property_id) }}" title="View" class="btn-action view">&#128065;</a>
+                                <a href="{{ route('properties.show', $property->property_id) }}" title="View" class="btn-action view"><i class="fas fa-eye" aria-hidden="true"></i></a>
                             </div>
                         </div>
                     </div>

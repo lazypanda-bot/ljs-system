@@ -5,6 +5,7 @@
     border-radius: 12px; 
     box-shadow: 0 2px 10px rgba(0,0,0,0.02); 
 }
+.listings-management-container.staff-page-surface { margin: 22px 24px; padding: 28px; }
 .listings-header { 
     display: flex; 
     justify-content: space-between; 
@@ -28,6 +29,11 @@
     font-weight: 600; 
     border-radius: 8px; 
     cursor: pointer; 
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 .btn-add-property:hover { 
     background-color: #059669; 
@@ -64,6 +70,27 @@
     align-items: center; 
     gap: 6px; 
 }
+.staff-page-surface .btn-filter,
+.staff-page-surface .status-select,
+.staff-page-surface .property-assign-form select,
+.staff-page-surface .property-approval-form button,
+.staff-page-surface .assignment-request-row button {
+    min-height: 38px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+}
+.staff-page-surface .property-approval-form button,
+.staff-page-surface .assignment-request-row button { padding: 8px 12px; border: 0; background: var(--color-primary); color: #fff; }
+.staff-page-surface .property-approval-form button[value="Rejected"],
+.staff-page-surface .assignment-request-row form:last-of-type button { background: var(--color-danger); }
+.staff-page-surface .property-approval-form button[value="Live"],
+.staff-page-surface .assignment-request-row form:first-of-type button { background: var(--color-success); }
 .property-cards-grid { 
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
@@ -503,16 +530,17 @@
 .btn-secondary:hover {
     background: #cbd5e1;
 }
-.property-assign-form { display: grid; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--color-border-soft); }
+.property-assign-form { display: grid; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--color-border); }
 .property-assign-form label { color: var(--color-text-muted); font-size: 11px; font-weight: 700; }
 .property-assign-form select { min-height: 58px; border: 1px solid var(--color-border); border-radius: 6px; color: var(--color-text); font-size: 11px; }
 .btn-assign-property { border: 0; border-radius: 6px; background: var(--color-primary); color: #fff; cursor: pointer; font-size: 12px; font-weight: 700; padding: 8px; }
-.btn-request-listing { border: 0; border-radius: 6px; background: var(--color-accent-green); color: #fff; cursor: pointer; font-size: 11px; font-weight: 700; padding: 7px 9px; }
+.btn-request-listing { border: 0; border-radius: 6px; background: var(--color-success); color: #fff; cursor: pointer; font-size: 11px; font-weight: 700; padding: 7px 9px; }
 .assignment-request-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; margin-top: 8px; padding: 8px; border-radius: 6px; background: #fffbeb; color: #92400e; font-size: 11px; }
 .assignment-request-row form button { border: 0; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; padding: 5px 7px; }
 .assignment-request-row form:first-of-type button { background: var(--color-success); color: #fff; }.assignment-request-row form:last-of-type button { background: #fee2e2; color: #991b1b; }
 .property-approval-form { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding: 8px; border-radius: 6px; background: #fffbeb; color: #92400e; font-size: 11px; font-weight: 700; }.property-approval-form button { border: 0; border-radius: 4px; color: #fff; cursor: pointer; font-size: 11px; font-weight: 700; padding: 5px 7px; }.property-approval-form button[value="Approved"] { background: var(--color-success); }.property-approval-form button[value="Rejected"] { background: #b91c1c; }
 .staff-listing-tabs { display: flex; gap: 8px; margin: 0 0 20px; border-bottom: 1px solid var(--color-border); }
+.staff-listing-panel[hidden] { display: none !important; }
 .staff-listing-tab { border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--color-text-muted); cursor: pointer; font-weight: 700; padding: 10px 14px; }
 .staff-listing-tab.active { border-color: var(--color-primary); color: var(--color-primary); }
 .listing-owner-badge { align-self: center; color: var(--color-success); font-size: 11px; font-weight: 700; }

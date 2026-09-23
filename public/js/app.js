@@ -12,6 +12,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
+        const searchInput = document.getElementById('mapSearchInput');
+        const searchButton = document.getElementById('mapSearchButton');
+        const mapData = window.propertyMapData || [];
+
+        function searchMap() {
+            const query = (searchInput?.value || '').trim().toLowerCase();
+            if (!query) return;
+
+            const match = mapData.find((property) => `${property.name} ${property.location}`.toLowerCase().includes(query));
+            if (match) {
+                map.setView([Number(match.lat), Number(match.lng)], 15);
+                return;
+            }
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`, { headers: { Accept: 'application/json' } })
+                .then((response) => response.json())
+                .then((results) => {
+                    if (results[0]) map.setView([Number(results[0].lat), Number(results[0].lon)], 14);
+                    else alert('Location not found.');
+                })
+                .catch(() => alert('Unable to search this location right now.'));
+        }
+
+        searchButton?.addEventListener('click', searchMap);
+        searchInput?.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); searchMap(); } });
+
     // Hook up functionality to your existing HTML button
     const locateBtn = document.getElementById('locateMeBtn');
     if (locateBtn) {
@@ -45,9 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'Pending': '#f59e0b'
     };
 
-    // Pulling the properties mapped via window.propertyMapData from Blade
-    const mapData = window.propertyMapData || [];
-
+    // Plot the properties already supplied by the Blade page.
     if (mapData.length > 0) {
         const bounds = [];
 
@@ -82,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span>${property.type}</span><br>
                         <small>${property.location}</small><br>
                         <strong>₱ ${Number(property.price || 0).toLocaleString()}</strong><br>
-                        <a href="/properties" style="color: #1f6cff; text-decoration: underline; margin-top: 5px; display: inline-block;">View Details</a>
+                        <a href="/properties/${property.id}" style="color: #1f6cff; text-decoration: underline; margin-top: 5px; display: inline-block;">View Details</a>
                     </div>
                 `);
 

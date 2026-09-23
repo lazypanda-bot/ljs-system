@@ -9,7 +9,7 @@
 @section('content')
 	<div class="messaging-container {{ $isClient ? 'public-messaging' : '' }}">
 		<aside class="thread-list">
-			<div class="thread-list-header"><span>Messages</span></div>
+					<div class="thread-list-header"><span>Messages</span><button type="button" class="compose-message-btn" id="openComposeMessage" aria-label="Compose message"><i class="fas fa-pen" aria-hidden="true"></i><span>Compose</span></button></div>
 			<div class="threads-container">
 				@forelse ($conversations as $item)
 					@php
@@ -50,8 +50,6 @@
 			@endif
 		</section>
 	</div>
-	<button type="button" class="compose-floating-btn" id="openComposeMessage" aria-label="Compose message" title="Compose message"><i class="fas fa-pen"></i></button>
-
 	<div class="compose-modal" id="composeMessageModal" aria-hidden="true">
 		<form method="POST" action="{{ route('messages.compose') }}" enctype="multipart/form-data" class="compose-dialog">
 			@csrf

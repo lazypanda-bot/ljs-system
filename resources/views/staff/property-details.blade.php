@@ -14,7 +14,7 @@
                 @forelse($property->images as $image)
                     <img src="{{ asset('storage/' . $image->image_path) }}" alt="{{ $property->property_name }}">
                 @empty
-                    <img src="{{ asset('images/night.png') }}" alt="{{ $property->property_name }}">
+                    <img src="{{ asset('images/ljs-logo.jpg') }}" alt="{{ $property->property_name }}">
                 @endforelse
             </section>
             <section class="staff-property-panel">

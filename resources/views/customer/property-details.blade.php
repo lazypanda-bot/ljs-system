@@ -34,7 +34,7 @@
                 @foreach($property->images as $index => $image)
                     <img src="{{ asset('storage/' . $image->image_path) }}" 
                          class="thumbnail {{ $index === 0 ? 'active' : '' }}" 
-                         onclick="document.getElementById('mainImage').src=this.src"
+                         data-thumbnail-target="mainImage"
                          alt="Thumbnail">
                 @endforeach
             </div>

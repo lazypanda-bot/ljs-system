@@ -361,7 +361,7 @@ body {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05) !important;
 }
 .landing-nav.transparent-nav.scrolled .landing-nav-link {
-    color: var(--color-text-dark, #333) !important;
+    color: var(--color-text, #333) !important;
     text-shadow: none !important;
 }
 .landing-nav.transparent-nav.scrolled .landing-nav-link:hover,
@@ -394,7 +394,7 @@ body {
     align-items: center;
 }
 .landing-nav-link {
-    color: var(--color-text-dark, #333);
+    color: var(--color-text, #333);
     text-decoration: none;
     font-weight: 500;
     font-size: 15px;
@@ -434,8 +434,15 @@ body {
     box-shadow: 0 10px 22px rgba(37, 99, 235, 0.28);
     filter: brightness(1.02);
 }
-.public-account-actions, .public-profile-wrap { position: relative; display: flex; align-items: center; }.public-profile-menu { position: absolute; top: calc(100% + 10px); right: 0; z-index: 1010; display: none; width: 280px; overflow: hidden; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16); }.public-profile-menu.open { display: block; }
-.public-profile-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border: 0; border-bottom: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; text-align: left; text-decoration: none; }.public-profile-item:hover { background: var(--color-surface-soft); }.public-logout { color: #b91c1c; }.public-notification-badge { display: grid; min-width: 18px; height: 18px; place-items: center; margin-left: auto; border-radius: 50%; background: #ef4444; color: #ffffff; font-size: 10px; }.public-notification-list { display: none; max-height: 270px; overflow-y: auto; background: var(--color-body); }.public-notification-list.open { display: block; }.public-notification-list p { padding: 14px; color: var(--color-text-muted); font-size: 13px; text-align: center; }.public-notification-item { display: block; padding: 12px 14px; border-bottom: 1px solid var(--color-border); color: var(--color-text); text-decoration: none; }.public-notification-item:hover { background: var(--color-surface-soft); }.public-notification-item strong, .public-notification-item small, .public-notification-item time { display: block; }.public-notification-item strong { font-size: 12px; }.public-notification-item small, .public-notification-item time { margin-top: 3px; color: var(--color-text-muted); font-size: 11px; }
+.public-account-actions, .public-profile-wrap { position: relative; display: flex; align-items: center; }.public-profile-menu { position: absolute; top: calc(100% + 10px); right: 0; z-index: 1010; display: none; width: 220px; overflow: hidden; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16); }.public-profile-menu.open { display: block; }
+.floating-actions { position: fixed; right: 28px; bottom: 28px; z-index: 900; display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 16px; }
+.floating-action { position: relative; display: grid; width: 64px; height: 64px; place-items: center; border: 0; border-radius: 50%; background: var(--color-primary); box-shadow: 0 14px 30px var(--color-primary-shadow); color: #fff; cursor: pointer; font-size: 24px; text-decoration: none; }
+.floating-action:hover { background: var(--color-success); transform: translateY(-2px); }
+.floating-notification-wrap { position: relative; }
+.floating-notification-panel { position: absolute; bottom: calc(100% + 14px); right: 0; z-index: 910; display: none; width: 320px; max-height: 320px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: 0 18px 42px rgba(15, 23, 42, 0.18); }
+.floating-notification-panel.open { display: block; }
+.floating-notification-title { padding: 14px 16px; border-bottom: 1px solid var(--color-border); color: var(--color-text); font-size: 14px; font-weight: 800; }
+.public-profile-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border: 0; background: var(--color-surface); color: var(--color-text); cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; text-align: left; text-decoration: none; }.public-profile-item:hover { background: var(--color-primary-soft); }.public-logout { color: #b91c1c; }.public-notification-badge { position: absolute; top: -2px; right: -2px; display: grid; min-width: 20px; height: 20px; place-items: center; border: 2px solid #fff; border-radius: 50%; background: #ef4444; color: #ffffff; font-size: 11px; font-weight: 700; }.public-notification-item { display: block; padding: 12px 16px; border-bottom: 1px solid var(--color-border); color: var(--color-text); text-decoration: none; }.public-notification-item:hover { background: var(--color-primary-soft); }.public-notification-item strong, .public-notification-item small, .public-notification-item time { display: block; }.public-notification-item strong { font-size: 12px; }.public-notification-item small, .public-notification-item time { margin-top: 3px; color: var(--color-text-muted); font-size: 11px; }.floating-notification-panel p { padding: 14px 16px; color: var(--color-text-muted); font-size: 13px; text-align: center; }
 .public-account-pill { display: grid; grid-template-columns: 28px auto 12px; column-gap: 8px; align-items: center; padding: 6px 12px 6px 6px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface); color: var(--color-text); cursor: pointer; font-size: 13px; font-weight: 700; text-align: left; }
 .public-account-pill > span { display: grid; grid-row: span 2; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: var(--color-primary); color: #ffffff; }
 .public-account-pill small { color: var(--color-text-muted); font-size: 10px; font-weight: 500; }
@@ -477,7 +484,7 @@ body {
 }
 .hero-btn {
     display: inline-block;
-    background-color: var(--color-accent-green, #2bbf62);
+    background-color: var(--color-success);
     color: #ffffff;
     padding: 14px 32px;
     font-size: 16px;

@@ -19,7 +19,7 @@
                         @endphp
                         <article class="agent-highlight-card">
                             <div class="agent-avatar-container">
-                                <img src="{{ $agentImage }}" alt="{{ $professional->name }}" onerror="this.src='{{ asset('images/ljs-logo.jpg') }}'">
+                                <img src="{{ $agentImage }}" alt="{{ $professional->name }}" data-fallback-src="{{ asset('images/ljs-logo.jpg') }}">
                             </div>
                             <div class="agent-card-info">
                                 <h3>{{ $professional->name }}</h3>
@@ -60,6 +60,11 @@
                     </svg>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search agents, brokers..." />
                 </div>
+                <select name="role" class="agent-role-filter" aria-label="Filter professionals">
+                    <option value="all">All Professionals</option>
+                    <option value="Broker" {{ request('role') === 'Broker' ? 'selected' : '' }}>Brokers</option>
+                    <option value="Agent" {{ request('role') === 'Agent' ? 'selected' : '' }}>Agents</option>
+                </select>
                 <button type="submit" class="agent-search-btn">Search</button>
             </form>
 
@@ -71,7 +76,7 @@
                     @endphp
                     <article class="agent-highlight-card">
                         <div class="agent-avatar-container">
-                            <img src="{{ $directoryImage }}" alt="{{ $professional->name }}" onerror="this.src='{{ asset('images/ljs-logo.jpg') }}'">
+                            <img src="{{ $directoryImage }}" alt="{{ $professional->name }}" data-fallback-src="{{ asset('images/ljs-logo.jpg') }}">
                         </div>
 
                         <div class="agent-card-info">

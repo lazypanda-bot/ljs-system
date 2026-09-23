@@ -133,7 +133,7 @@
 }
 
 .back-btn .back:hover {
-    color: var(--color-accent-orange);
+    color: var(--color-warning);
 }
 
 .back-btn .arrow {

@@ -1,0 +1,51 @@
+body.auth-page {
+    background: linear-gradient(rgba(226, 238, 250, 0.62), rgba(226, 238, 250, 0.62)), url('../images/day.png') center / cover fixed;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 450px;
+    padding: 20px;
+}
+
+.login-card,
+.otp-card {
+    box-sizing: border-box;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    padding: 40px;
+}
+
+.login-card { animation: slide-up 0.5s ease; }
+.login-header { text-align: center; margin-bottom: 30px; }
+.login-logo { width: 92px; height: 92px; object-fit: contain; border-radius: 12px; margin-bottom: 14px; }
+.login-header h1 { font-size: 2rem; color: #667eea; margin-bottom: 5px; font-weight: 700; }
+.login-header p { color: #6c757d; font-size: 0.95rem; }
+.auth-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; padding: 4px; background: #edf2f7; border-radius: 8px; margin-bottom: 22px; }
+.auth-tab { border: 0; border-radius: 6px; background: transparent; color: #52616b; cursor: pointer; font-weight: 700; padding: 10px; }
+.auth-tab.active { background: #fff; color: #2563eb; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12); }
+.login-form { margin-bottom: 20px; }
+.form-group { margin-bottom: 20px; }
+.form-label { display: block; margin-bottom: 8px; font-weight: 600; color: #212529; }
+.form-control, .form-check-input { border: 1px solid #ced4da; border-radius: 6px; padding: 10px 12px; font-size: 0.95rem; }
+.input-group { display: flex; gap: 0; }
+.input-group .form-control { border-radius: 6px 0 0 6px; }
+.input-group .btn { border: 1px solid #ced4da; border-radius: 0 6px 6px 0; background: #fff; color: #6c757d; }
+.btn-login { width: 100%; margin-top: 10px; padding: 10px 20px; border: 0; border-radius: 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; cursor: pointer; font-size: 1rem; font-weight: 600; }
+.login-footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; }
+.invalid-feedback.is-visible { display: block; }
+
+.otp-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.otp-card { width: 100%; max-width: 450px; text-align: left; }
+.otp-card .login-header { text-align: center; }
+.otp-input { width: 100%; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 6px; padding: 12px; font-size: 1.3rem; letter-spacing: .3em; text-align: center; }
+.otp-status, .otp-error { margin-bottom: 16px; padding: 10px; border-radius: 6px; font-size: 13px; }
+.otp-status { background: #d1fae5; color: #166534; }
+.otp-error { background: #f8d7da; color: #721c24; }
+.otp-resend-form { margin-top: 12px; }
+.otp-resend { width: 100%; border: 0; border-radius: 6px; padding: 10px; background: #edf2f7; color: #2563eb; cursor: pointer; font-weight: 600; }
+.otp-back { display: block; margin-top: 18px; color: #667eea; font-size: 13px; text-align: center; text-decoration: none; }
+
+@keyframes slide-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 480px) { .login-card, .otp-card { padding: 25px; } .login-header h1 { font-size: 1.5rem; } }

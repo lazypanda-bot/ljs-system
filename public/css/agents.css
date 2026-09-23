@@ -287,7 +287,7 @@
 
 .professional-summary,
 .profile-content-section {
-    border: 1px solid var(--color-border-soft);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     background: var(--color-surface);
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
@@ -324,7 +324,7 @@
 .professional-score { color: var(--color-warning); font-weight: 800; }
 .professional-score small { color: var(--color-text-muted); font-weight: 400; }
 .professional-details { margin: 22px 0; text-align: left; }
-.professional-details div { padding: 10px 0; border-bottom: 1px solid var(--color-border-soft); }
+.professional-details div { padding: 10px 0; border-bottom: 1px solid var(--color-border); }
 .professional-details dt { font-weight: 700; }
 .professional-details dd { margin: 3px 0 0; color: var(--color-text); }
 .professional-bio { text-align: left; line-height: 1.5; }
@@ -335,7 +335,7 @@
 .profile-section-heading h2 { color: var(--color-text); font-size: 20px; }
 .profile-section-heading span { color: var(--color-text-muted); font-size: 13px; }
 .profile-listings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
-.profile-listing-card { overflow: hidden; border: 1px solid var(--color-border-soft); border-radius: 8px; background: var(--color-surface); }
+.profile-listing-card { overflow: hidden; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); }
 .profile-listing-card > img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
 .profile-listing-card > div { padding: 12px; }
 .profile-listing-card span { color: var(--color-success); font-size: 12px; font-weight: 700; }
@@ -345,15 +345,15 @@
 .profile-empty-state { color: var(--color-text-muted); font-size: 14px; }
 .profile-success { margin-bottom: 16px; color: var(--color-success); font-weight: 700; }
 
-.client-review-form { display: grid; gap: 8px; margin-bottom: 20px; padding: 16px; border: 1px solid var(--color-primary-soft); border-radius: 8px; background: var(--color-surface-soft); }
-.client-review-form label { color: var(--color-text-dark); font-size: 13px; font-weight: 700; }
+.client-review-form { display: grid; gap: 8px; margin-bottom: 20px; padding: 16px; border: 1px solid var(--color-primary-soft); border-radius: 8px; background: var(--color-primary-soft); }
+.client-review-form label { color: var(--color-text); font-size: 13px; font-weight: 700; }
 .client-review-form select, .client-review-form textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-text); }
 .client-review-form button { justify-self: start; border: 0; border-radius: 6px; padding: 10px 14px; background: var(--color-primary); color: #ffffff; cursor: pointer; font-weight: 700; }
 .profile-reviews-list { display: grid; gap: 12px; }
-.profile-review { padding: 14px; border-bottom: 1px solid var(--color-border-soft); }
+.profile-review { padding: 14px; border-bottom: 1px solid var(--color-border); }
 .profile-review > div { display: flex; justify-content: space-between; gap: 12px; color: var(--color-warning); }
 .profile-review strong { color: var(--color-text); }
-.profile-review p { margin: 8px 0; color: var(--color-text-dark); font-size: 14px; line-height: 1.5; }
+.profile-review p { margin: 8px 0; color: var(--color-text); font-size: 14px; line-height: 1.5; }
 .profile-review small { color: var(--color-text-muted); }
 
 @media (max-width: 800px) {
@@ -369,3 +369,4 @@
     .agent-search-toolbar { align-items: stretch; flex-direction: column; }
     .agent-search-btn { width: 100%; }
 }
+.agent-role-filter { height: 48px; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: #1f2937; font-size: 14px; }

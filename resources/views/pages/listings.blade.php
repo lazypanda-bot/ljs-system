@@ -3,8 +3,8 @@
 @section('title', $pageTitle ?? 'Listings')
 
 @section('content')
-	<div class="listings-management-container">
-		<div class="listings-header">
+	<div class="listings-management-container staff-page-surface">
+		<div class="listings-header staff-page-heading">
 			<div>
 				<h1>{{ $acting === 'agent' ? 'My Listings' : ($acting === 'broker' ? 'Listings' : 'All Listings') }}</h1>
 				<p>{{ $acting === 'agent' ? "Properties you've listed." : ($acting === 'broker' ? 'Manage your listings and view your team inventory.' : 'Properties managed by your organization.') }}</p>
@@ -30,7 +30,7 @@
 			@forelse ($listingCollection as $property)
 				@php
 					$firstImage = $property->images->first();
-					$imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/night.png');
+					$imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
 					$status = $property->property_status ?? 'Available';
 				@endphp
 				<div class="property-card-item">
@@ -49,7 +49,7 @@
 					</div>
 				</div>
 			@empty
-				<div class="empty-state"><p>No properties yet.</p></div>
+				<div class="empty-state"><p>{{ $panelId === 'open-listings' ? 'No open listings available.' : 'No listings in this tab yet.' }}</p></div>
 			@endforelse
 		</div>
 		@endforeach
