@@ -7,6 +7,7 @@ use App\Models\ConversationMessage;
 use App\Models\AppNotification;
 use App\Models\Property;
 use App\Models\PropertyAssign;
+use App\Models\ReferralCode;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -97,16 +98,38 @@ class MessageController extends Controller
         return redirect()->route('messages.inbox', ['conversation' => $conversation->conversation_id]);
     }
 
-    public function propertyDirect(Property $property)
+    public function propertyDirect(Request $request, Property $property)
     {
         $user = $this->user();
-        $recipient = $property->user;
+        $referralCode = $request->filled('ref')
+            ? ReferralCode::query()->with('user')->where('code', $request->query('ref'))->where('property_id', $property->property_id)->firstOrFail()
+            : null;
+
+        if ($referralCode && $property->listing_mode === 'admin') {
+            $recipientId = $request->integer('recipient_id') ?: $referralCode->user_id;
+            $assignment = $property->assignments()
+                ->where('user_id', $recipientId)
+                ->where('status', 'Approved')
+                ->whereHas('user', fn ($query) => $query->where('account_status', 'Active'))
+                ->with('user')
+                ->first();
+            $recipient = $assignment?->user;
+
+            if (! $recipient
+                && $recipientId === (int) $referralCode->user_id
+                && $property->assignments()->where('status', 'Approved')->doesntExist()) {
+                $recipient = $referralCode->user;
+            }
+        } else {
+            $recipient = $referralCode?->user ?? $property->user;
+        }
 
         abort_unless(
-            $user->normalizedRole() === 'client'
+            $property->approval_status === 'Approved'
+                && $user->normalizedRole() === 'client'
                 && $recipient instanceof User
                 && $recipient->account_status === 'Active'
-                && in_array($recipient->role_name, ['Broker', 'Agent'], true),
+                && ($referralCode !== null || in_array($recipient->role_name, ['Broker', 'Agent', 'Lead Broker'], true)),
             403
         );
 

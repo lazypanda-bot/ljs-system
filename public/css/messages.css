@@ -127,6 +127,7 @@
     height: 100%;
     object-fit: cover;
 }
+.profile-menu .avatar img { border-radius: 50%; }
 
 .thread-info {
     flex: 1;
@@ -203,7 +204,7 @@
 }
 
 .message-bubble {
-    max-width: 70%;
+    max-width: 84%;
     padding: 10px 16px;
     border-radius: 16px;
     font-size: 14px;

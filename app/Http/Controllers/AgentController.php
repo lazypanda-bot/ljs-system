@@ -55,6 +55,7 @@ class AgentController extends Controller
 
         $listings = Property::with(['images', 'details'])
             ->where('user_id', $professional->user_id)
+            ->where('approval_status', 'Approved')
             ->whereNull('deleted_at')
             ->latest()
             ->get();

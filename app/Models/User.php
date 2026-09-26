@@ -134,22 +134,6 @@ class User extends Authenticatable
         return $this->hasMany(Review::class, 'reviewed_user_id', 'user_id');
     }
 
-    /**
-     * Get the messages sent by this user.
-     */
-    public function sentMessages()
-    {
-        return $this->hasMany(Message::class, 'sender_id', 'user_id');
-    }
-
-    /**
-     * Get the messages received by this user.
-     */
-    public function receivedMessages()
-    {
-        return $this->hasMany(Message::class, 'receiver_id', 'user_id');
-    }
-
     public function conversationParticipants()
     {
         return $this->hasMany(ConversationParticipant::class, 'user_id', 'user_id');

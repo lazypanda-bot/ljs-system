@@ -38,21 +38,6 @@ document.addEventListener('DOMContentLoaded', function () {
         searchButton?.addEventListener('click', searchMap);
         searchInput?.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); searchMap(); } });
 
-    // Hook up functionality to your existing HTML button
-    const locateBtn = document.getElementById('locateMeBtn');
-    if (locateBtn) {
-        locateBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function (position) {
-                    map.setView([position.coords.latitude, position.coords.longitude], 14);
-                }, function () {
-                    alert('Unable to retrieve your location.');
-                });
-            }
-        });
-    }
-
     // STREET VIEW AND LABELS
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 22,
@@ -81,8 +66,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!isNaN(lat) && !isNaN(lng)) {
                 const color = statusColors[property.status] || '#1f6cff';
-                const statusLabel = property.status || 'Available';
-
                 // Create the custom divIcon directly
                 const customIcon = L.divIcon({
                     className: 'map-bubble-marker',
@@ -100,15 +83,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
 
-                marker.bindPopup(`
-                    <div style="min-width:180px;">
-                        <strong>${property.name}</strong><br>
-                        <span>${property.type}</span><br>
-                        <small>${property.location}</small><br>
-                        <strong>₱ ${Number(property.price || 0).toLocaleString()}</strong><br>
-                        <a href="/properties/${property.id}" style="color: #1f6cff; text-decoration: underline; margin-top: 5px; display: inline-block;">View Details</a>
-                    </div>
-                `);
+                const popup = document.createElement('div');
+                popup.style.minWidth = '180px';
+
+                const name = document.createElement('strong');
+                name.textContent = property.name || 'Property';
+                popup.append(name, document.createElement('br'));
+
+                const type = document.createElement('span');
+                type.textContent = property.type || '';
+                popup.append(type, document.createElement('br'));
+
+                const location = document.createElement('small');
+                location.textContent = property.location || '';
+                popup.append(location, document.createElement('br'));
+
+                const price = document.createElement('strong');
+                price.textContent = `PHP ${Number(property.price || 0).toLocaleString()}`;
+                popup.append(price, document.createElement('br'));
+
+                const detailsLink = document.createElement('a');
+                detailsLink.href = `/properties/${encodeURIComponent(property.id)}`;
+                detailsLink.textContent = 'View Details';
+                detailsLink.style.cssText = 'color:#1f6cff;text-decoration:underline;margin-top:5px;display:inline-block';
+                popup.append(detailsLink);
+
+                marker.bindPopup(popup);
 
                 bounds.push([lat, lng]);
             }

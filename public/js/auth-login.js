@@ -16,8 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const panelId = tab.dataset.authPanel;
             tabs.forEach((item) => item.classList.toggle('active', item === tab));
             panels.forEach((panel) => { panel.hidden = panel.id !== panelId; panel.classList.toggle('active', panel.id === panelId); });
-            const credentials = document.getElementById('loginCredentials');
-            if (credentials) credentials.hidden = panelId !== 'login-panel';
         });
     });
 

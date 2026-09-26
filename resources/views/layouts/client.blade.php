@@ -8,7 +8,8 @@
 
         <link rel="preconnect" href="https://fonts.bunny.net" />
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+        <script src="{{ asset('js/icons.js') }}?v={{ filemtime(public_path('js/icons.js')) }}" defer></script>
         <link rel="stylesheet" href="{{ asset('css/global.css') }}?v={{ filemtime(public_path('css/global.css')) }}">
         <link rel="stylesheet" href="{{ asset('css/sidebar.css') }}?v={{ filemtime(public_path('css/sidebar.css')) }}">
         <link rel="stylesheet" href="{{ asset('css/navbar.css') }}?v={{ filemtime(public_path('css/navbar.css')) }}">
@@ -18,7 +19,8 @@
         <link rel="stylesheet" href="{{ asset('css/addproperty.css') }}?v={{ filemtime(public_path('css/addproperty.css')) }}">
         
         @stack('styles')
-        <link rel="stylesheet" href="{{ asset('css/portal-ui.css') }}?v={{ filemtime(public_path('css/portal-ui.css')) }}">
+        <link rel="stylesheet" href="{{ asset('css/icons.css') }}?v={{ filemtime(public_path('css/icons.css')) }}">
+        <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ filemtime(public_path('css/responsive.css')) }}">
     </head>
     <body>
         @include('components.flash-messages')

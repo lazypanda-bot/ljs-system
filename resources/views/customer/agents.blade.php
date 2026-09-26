@@ -25,7 +25,7 @@
                                 <h3>{{ $professional->name }}</h3>
                                 <p class="agent-role">{{ $professional->role_name }}</p>
                                 <div class="agent-rating">
-                                    <span class="stars">★★★★★</span>
+                                    <span class="stars" aria-label="5 stars">@for ($star = 0; $star < 5; $star++)<i data-lucide="star" aria-hidden="true"></i>@endfor</span>
                                     <span class="rating-score">{{ $rating }}</span>
                                     <span class="review-count">({{ $professional->received_reviews_count }} reviews)</span>
                                 </div>
@@ -54,10 +54,7 @@
 
             <form action="{{ route('agents') }}" method="GET" class="agent-search-toolbar">
                 <div class="agent-search-box">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
+                    <i class="search-icon" data-lucide="search" aria-hidden="true"></i>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search agents, brokers..." />
                 </div>
                 <select name="role" class="agent-role-filter" aria-label="Filter professionals">
@@ -84,7 +81,7 @@
                             <p class="agent-role">{{ $professional->role_name }}</p>
                             
                             <div class="agent-rating">
-                                <span class="stars">★★★★★</span>
+                                <span class="stars" aria-label="5 stars">@for ($star = 0; $star < 5; $star++)<i data-lucide="star" aria-hidden="true"></i>@endfor</span>
                                 <span class="rating-score">{{ $rating }}</span>
                                 <span class="review-count">({{ $professional->received_reviews_count }} reviews)</span>
                             </div>

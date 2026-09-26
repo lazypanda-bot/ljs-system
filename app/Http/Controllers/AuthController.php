@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -169,10 +171,19 @@ class AuthController extends Controller
             'role_name' => 'Client',
         ]);
 
-        Auth::login($user);
+        Auth::logout();
         $request->session()->regenerate();
+        $this->sendOtp($request, $user, false);
 
-        return redirect()->route('home');
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'A verification code was sent to your email address.',
+                'otp' => true,
+                'csrf_token' => csrf_token(),
+            ]);
+        }
+
+        return redirect()->route('login.otp');
     }
 
     /**
@@ -197,10 +208,98 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->user_id . ',user_id'],
             'contact_number' => ['nullable', 'string', 'max:20'],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
+
+        unset($validated['profile_photo']);
+        $oldPhoto = $user->profile_photo;
+        if ($request->hasFile('profile_photo')) {
+            $validated['profile_photo'] = $request->file('profile_photo')->store('profile-photos', 'public');
+        }
 
         $user->update($validated);
 
+        if ($request->hasFile('profile_photo') && $oldPhoto && ! filter_var($oldPhoto, FILTER_VALIDATE_URL)) {
+            Storage::disk('public')->delete($oldPhoto);
+        }
+
         return redirect()->back()->with('success', 'Profile details updated successfully.');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $user = $request->user();
+        abort_unless($user instanceof User, 403);
+
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/'],
+        ]);
+
+        $user->update(['password' => Hash::make($validated['password'])]);
+
+        return redirect()->back()->with('success', 'Password updated successfully.');
+    }
+
+    public function showPasswordSetup(User $user, string $token)
+    {
+        $this->assertPasswordSetupToken($user, $token);
+
+        return view('auth.password-setup', compact('user', 'token'));
+    }
+
+    public function storePasswordSetup(Request $request, User $user, string $token)
+    {
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/'],
+        ]);
+
+        DB::transaction(function () use ($user, $token, $validated): void {
+            $setupToken = DB::table('account_password_setup_tokens')
+                ->where('user_id', $user->user_id)
+                ->lockForUpdate()
+                ->first();
+
+            abort_unless(
+                $setupToken
+                    && now()->lessThan($setupToken->expires_at)
+                    && hash_equals($setupToken->token_hash, hash('sha256', $token)),
+                404
+            );
+
+            $user->update(['password' => Hash::make($validated['password'])]);
+            DB::table('account_password_setup_tokens')->where('user_id', $user->user_id)->delete();
+        });
+
+        return redirect()->route('login')->with('status', 'Password set. You can now sign in.');
+    }
+
+    private function assertPasswordSetupToken(User $user, string $token): void
+    {
+        $setupToken = DB::table('account_password_setup_tokens')->where('user_id', $user->user_id)->first();
+        abort_unless(
+            $setupToken
+                && now()->lessThan($setupToken->expires_at)
+                && hash_equals($setupToken->token_hash, hash('sha256', $token)),
+            404
+        );
+    }
+
+    public function destroyAccount(Request $request)
+    {
+        $user = $request->user();
+        abort_unless($user instanceof User, 403);
+
+        $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'confirmation' => ['required', 'in:DELETE'],
+        ]);
+
+        Auth::logout();
+        $user->delete();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('home')->with('status', 'Your account has been deactivated.');
     }
 }

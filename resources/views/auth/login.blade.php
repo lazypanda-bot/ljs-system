@@ -19,8 +19,6 @@
         <div class="alert alert-danger" role="alert"><strong>Login failed.</strong>@foreach ($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>
     @endif
 
-    <div class="test-credentials-info" id="loginCredentials"><div class="alert alert-info"><strong>Test credentials</strong><hr><div class="credentials-list"><div class="credential-item"><span class="badge bg-danger">Admin</span><code>admin@testing.com</code> / <code>admin</code></div></div></div></div>
-
     <form method="POST" action="{{ route('login') }}" class="login-form auth-panel active" id="login-panel">
         @csrf
         <div class="form-group"><label for="email" class="form-label">Email Address</label><input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" placeholder="Enter your email" required autofocus></div>

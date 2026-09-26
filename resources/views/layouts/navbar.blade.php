@@ -57,7 +57,13 @@
 
                 <div class="profile-menu-wrap">
                     <button id="profileMenuButton" class="user-profile-nav" type="button" aria-expanded="false" aria-haspopup="true">
-                        <div class="avatar">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</div>
+                        <div class="avatar role-{{ Auth::user()->normalizedRole() }}">
+                            @if (Auth::user()->profile_photo)
+                                <img src="{{ str_starts_with(Auth::user()->profile_photo, 'http') ? Auth::user()->profile_photo : asset('storage/' . Auth::user()->profile_photo) }}" alt="">
+                            @else
+                                {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
+                            @endif
+                        </div>
                         <div class="user-info-nav">
                             <span class="user-name">{{ Auth::user()->name ?? 'User' }}</span>
                             <span class="user-email">{{ Auth::user()->email ?? '' }}</span>
@@ -67,7 +73,13 @@
 
                     <div id="profileMenu" class="profile-menu" aria-hidden="true">
                         <div class="profile-menu-header">
-                            <div class="avatar">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</div>
+                            <div class="avatar role-{{ Auth::user()->normalizedRole() }}">
+                                @if (Auth::user()->profile_photo)
+                                    <img src="{{ str_starts_with(Auth::user()->profile_photo, 'http') ? Auth::user()->profile_photo : asset('storage/' . Auth::user()->profile_photo) }}" alt="">
+                                @else
+                                    {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
+                                @endif
+                            </div>
                             <div>
                                 <div class="profile-menu-title">{{ Auth::user()->name ?? 'User' }}</div>
                                 <div class="profile-menu-subtitle">{{ Auth::user()->email ?? '' }}</div>

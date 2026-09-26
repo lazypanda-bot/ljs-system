@@ -30,17 +30,6 @@
             </div>
 
             <div class="map-container-wrapper">
-                <button type="button" id="locateMeBtn" class="locate-me-btn">
-                    <svg class="locate-me-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="7"></circle>
-                        <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
-                        <line x1="12" y1="2" x2="12" y2="5"></line>
-                        <line x1="12" y1="19" x2="12" y2="22"></line>
-                        <line x1="2" y1="12" x2="5" y2="12"></line>
-                        <line x1="19" y1="12" x2="22" y2="12"></line>
-                    </svg>
-                    Locate Me
-                </button>
                 <div id="propertyMap" class="property-map"></div>
             </div>
 
@@ -115,15 +104,11 @@
                                 
                                 <!-- Top Badges -->
                                 <div class="rush-badges">
-                                    <span class="badge-featured">★ Featured</span>
+                                    <span class="badge-featured"><i data-lucide="star" aria-hidden="true"></i> Featured</span>
                                     <span class="badge-sale">FOR SALE</span>
                                 </div>
 
                                 <!-- Favorite Button -->
-                                <button type="button" class="rush-favorite-btn" aria-label="Save Property">
-                                    ♡
-                                </button>
-
                                 <!-- Image Counter -->
                                 <span class="rush-img-count">
                                     1/{{ max(1, $item->images->count()) }}
@@ -135,8 +120,8 @@
                                         <img src="{{ asset('images/ljs-logo.jpg') }}" alt="Agent">
                                     </div>
                                     <div class="rush-agent-info">
-                                        <div class="rush-agent-name">Maria Santos</div>
-                                        <div class="rush-agent-prc">PRC 23456789</div>
+                                        <div class="rush-agent-name">{{ $item->user?->name ?? 'LJS Realty Team' }}</div>
+                                            <div class="rush-agent-prc">{{ $item->user?->professionalProfile?->license_number ?? 'LJS Realty and Brokerage' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -159,14 +144,14 @@
 
                                 <!-- Property Meta Details -->
                                 <div class="rush-meta">
-                                    <span> 2 beds</span>
-                                    <span> 2 baths</span>
-                                    <span> 85 sqm</span>
+                                    <span>{{ $item->details?->bedroom ?? 0 }} beds</span>
+                                    <span>{{ $item->details?->bathroom ?? 0 }} baths</span>
+                                    <span>{{ $item->details?->floor_area ?? 0 }} sqm</span>
                                 </div>
 
                                 <!-- Action Button -->
                                 <div class="rush-action">
-                                    <a href="#" class="rush-btn">View Details</a>
+                                    <a href="{{ route('properties.show', $item->property_id) }}" class="rush-btn">View Details</a>
                                 </div>
                             </div>
                         </article>            

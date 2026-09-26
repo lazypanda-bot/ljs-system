@@ -14,7 +14,7 @@
                 <img class="professional-profile-photo" src="{{ $photo }}" alt="{{ $professional->name }}">
                 <h1>{{ $professional->name }}</h1>
                 <p class="professional-role">{{ $professional->role_name }}</p>
-                <div class="professional-score"><span>★</span> {{ $rating }} <small>({{ $professional->received_reviews_count }} reviews)</small></div>
+                <div class="professional-score"><i data-lucide="star" aria-hidden="true"></i> {{ $rating }} <small>({{ $professional->received_reviews_count }} reviews)</small></div>
                 <dl class="professional-details">
                     <div><dt>Experience</dt><dd>{{ $professional->professionalProfile?->years_experience ?? 0 }} years</dd></div>
                     <div><dt>License</dt><dd>{{ $professional->professionalProfile?->license_number ?? 'Not listed' }}</dd></div>
@@ -59,7 +59,7 @@
                     @endif
                     <div class="profile-reviews-list">
                         @forelse ($professional->receivedReviews as $review)
-                            <article class="profile-review"><div><strong>{{ $review->reviewer?->name ?? 'Verified client' }}</strong><span>{{ str_repeat('★', $review->rating) }}{{ str_repeat('☆', 5 - $review->rating) }}</span></div><p>{{ $review->review }}</p><small>{{ $review->created_at->format('M d, Y') }}</small></article>
+                            <article class="profile-review"><div><strong>{{ $review->reviewer?->name ?? 'Verified client' }}</strong><span class="review-rating-icons">@for ($star = 1; $star <= 5; $star++)<i data-lucide="star" class="{{ $star <= $review->rating ? 'is-rated' : '' }}" aria-hidden="true"></i>@endfor</span></div><p>{{ $review->review }}</p><small>{{ $review->created_at->format('M d, Y') }}</small></article>
                         @empty
                             <p class="profile-empty-state">No reviews yet.</p>
                         @endforelse

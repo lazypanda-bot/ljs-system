@@ -152,6 +152,12 @@
     font-weight: 700;
     font-size: 16px;
 }
+.user-profile-nav .avatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+.user-profile-nav .avatar.role-admin { background: #7c3aed; }
+.user-profile-nav .avatar.role-lead_broker { background: #d97706; }
+.user-profile-nav .avatar.role-broker { background: #2563eb; }
+.user-profile-nav .avatar.role-agent { background: #059669; }
+.user-profile-nav .avatar.role-client { background: #0891b2; }
 .user-info-nav {
     display: flex;
     flex-direction: column;

@@ -9,11 +9,6 @@
 @section('content')
     <div class="appointments-page staff-page-surface">
         <div class="appointments-page-header">
-            <div>
-                <span>PROPERTY SCHEDULE</span>
-                <h1>Appointments</h1>
-                <p>Review scheduled viewings and appointment requests assigned to your account.</p>
-            </div>
             <form method="GET">
                 <select name="status" data-auto-submit>
                     <option value="">All statuses</option>

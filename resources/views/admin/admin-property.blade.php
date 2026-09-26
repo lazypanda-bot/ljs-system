@@ -5,10 +5,6 @@
 @section('content')
     <div class="listings-management-container staff-page-surface">
         <div class="listings-header staff-page-heading">
-            <div>
-                <h1>My Listings Management</h1>
-                <p>You can manage your property listings here.</p>
-            </div>
             <a href="{{ route('admin.subfiles.addproperty') }}" class="btn-add-property"><i class="fas fa-plus" aria-hidden="true"></i> Add Property</a>
         </div>
 
@@ -19,8 +15,10 @@
             </div>
             <select id="propertyStatusFilter" class="btn-filter" aria-label="Filter properties by status">
                 <option value="">All statuses</option>
+                <option value="Available">Available</option>
                 <option value="For Sale">For Sale</option>
                 <option value="For Rent">For Rent</option>
+                <option value="Reserved">Reserved</option>
                 <option value="Pending">Pending</option>
                 <option value="Sold">Sold</option>
                 <option value="Unavailable">Unavailable</option>
@@ -47,23 +45,31 @@
                         <h3 class="property-title">{{ $property->property_name }}</h3>
                         <p class="property-price">₱ {{ number_format($property->price, 0, '.', ',') }}</p>
 
-                        <div class="card-status-select-wrapper">
-                            <label>Status:</label>
-                            <select class="status-select">
-                                <option {{ $status === 'Available' ? 'selected' : '' }}>Available</option>
-                                <option {{ $status === 'Rented' ? 'selected' : '' }}>Rented</option>
-                                <option {{ $status === 'Sold' ? 'selected' : '' }}>Sold</option>
-                                <option {{ $status === 'Unavailable' ? 'selected' : '' }}>Unavailable</option>
+                        <form method="POST" action="{{ route('admin.properties.status', $property) }}" class="card-status-select-wrapper">
+                            @csrf
+                            @method('PATCH')
+                            <label for="status-{{ $property->property_id }}">Status:</label>
+                            <select id="status-{{ $property->property_id }}" class="status-select" name="property_status" data-auto-submit>
+                                @foreach (['Available', 'For Sale', 'For Rent', 'Reserved', 'Pending', 'Sold', 'Unavailable'] as $statusOption)
+                                    <option value="{{ $statusOption }}" {{ $status === $statusOption ? 'selected' : '' }}>{{ $statusOption }}</option>
+                                @endforeach
                             </select>
-                        </div>
+                        </form>
 
-                        @if (($property->approval_status ?? 'Live') === 'Pending')
-                            <form method="POST" action="{{ route('admin.properties.review', $property) }}" class="property-approval-form">
-                                @csrf
-                                <span>Awaiting verification</span>
-                                <button name="approval_status" value="Live" type="submit">Approve</button>
-                                <button name="approval_status" value="Rejected" type="submit">Reject</button>
-                            </form>
+                        @if (($property->approval_status ?? 'Approved') === 'Pending')
+                            <div class="property-approval-panel">
+                                <p>Awaiting verification</p>
+                                <form method="POST" action="{{ route('admin.properties.review', $property) }}" class="inline-action-form">
+                                    @csrf
+                                    <button name="approval_status" value="Approved" type="submit">Approve</button>
+                                </form>
+                                <form method="POST" action="{{ route('admin.properties.review', $property) }}" class="property-rejection-form">
+                                    @csrf
+                                    <label for="rejection-note-{{ $property->property_id }}">Reason for rejection</label>
+                                    <textarea id="rejection-note-{{ $property->property_id }}" name="rejection_note" rows="2" maxlength="2000" required></textarea>
+                                    <button name="approval_status" value="Rejected" type="submit">Reject and notify</button>
+                                </form>
+                            </div>
                         @endif
 
                         <form method="POST" action="{{ route('admin.properties.assign', $property) }}" class="property-assign-form">

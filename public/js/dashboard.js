@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!calendarDates) return;
 
     let appointments = [];
+    let blockedDates = [];
     if (calendarDates.dataset.appointments) {
         try {
             appointments = JSON.parse(calendarDates.dataset.appointments);
@@ -14,8 +15,13 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Failed to parse appointments data', e);
         }
     }
-
-    if (appointments.length === 0) return;
+    if (calendarDates.dataset.blockedDates) {
+        try {
+            blockedDates = JSON.parse(calendarDates.dataset.blockedDates);
+        } catch (e) {
+            console.error('Failed to parse blocked dates data', e);
+        }
+    }
 
     const cells = calendarDates.querySelectorAll('.calendar-cell:not(.other-month)');
     
@@ -35,8 +41,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const monthNum = String(dateObj.getMonth() + 1).padStart(2, '0');
         const dateString = `${year}-${monthNum}-${dayNum}`;
 
-        const dayAppointments = appointments.filter(app => app.date === dateString);
-        if (dayAppointments.length > 0) {
+        const dayAppointments = appointments.filter((app) => String(app.preferred_date).slice(0, 10) === dateString);
+        const dayBlockedDates = blockedDates.filter((blocked) => String(blocked.date).slice(0, 10) === dateString);
+        if (dayAppointments.length > 0 || dayBlockedDates.length > 0) {
             let badgeContainer = cell.querySelector('.day-badges');
             if (!badgeContainer) {
                 badgeContainer = document.createElement('div');
@@ -46,9 +53,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
             dayAppointments.forEach(app => {
                 const badge = document.createElement('span');
-                badge.className = `appointment-badge ${app.type}`;
-                badge.title = app.title;
+                badge.className = 'appointment-badge appointment-event';
+                badge.title = `${app.contact_name || 'Appointment'}${app.assignment?.property?.property_name ? `: ${app.assignment.property.property_name}` : ''}`;
                 badgeContainer.appendChild(badge);
+            });
+
+            dayBlockedDates.forEach((blocked) => {
+                const badge = document.createElement('span');
+                badge.className = 'appointment-badge blocked-date-event';
+                badge.title = blocked.reason || 'Blocked date';
+                badge.setAttribute('aria-label', badge.title);
+                badgeContainer.appendChild(badge);
+                cell.classList.add('calendar-cell-blocked');
             });
         }
     });

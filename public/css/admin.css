@@ -40,19 +40,21 @@
 }
 .listings-toolbar { 
     display: flex; 
+    align-items: center;
     gap: 15px; 
     margin-bottom: 25px; 
+    flex-wrap: wrap;
 }
-.search-box { 
+.listings-toolbar .search-box {
     display: flex; 
     align-items: center; 
     border: 1px solid #d1d5db; 
     border-radius: 8px; 
     padding: 6px 12px; 
-    width: 300px; 
+    width: min(300px, 100%);
     background: #fff; 
 }
-.search-box input { 
+.listings-toolbar .search-box input {
     border: none; 
     outline: none; 
     width: 100%; 
@@ -70,6 +72,7 @@
     align-items: center; 
     gap: 6px; 
 }
+.btn-add-property { margin-left: auto; }
 .staff-page-surface .btn-filter,
 .staff-page-surface .status-select,
 .staff-page-surface .property-assign-form select,
@@ -232,15 +235,33 @@
     border-color: #bae6fd; 
     background: #f0f9ff; 
 }
+.btn-action.view:hover,
+.btn-action.view:focus-visible {
+    color: #c2410c;
+    border-color: #fdba74;
+    background: #fff7ed;
+}
 .btn-action.edit { 
     color: #16a34a; 
     border-color: #bbf7d0; 
     background: #f0fdf4; 
 }
+.btn-action.edit:hover,
+.btn-action.edit:focus-visible {
+    color: #15803d;
+    border-color: #86efac;
+    background: #f0fdf4;
+}
 .btn-action.delete { 
     color: #dc2626; 
     border-color: #fecaca; 
     background: #fef2f2; 
+}
+.btn-action.delete:hover,
+.btn-action.delete:focus-visible {
+    color: #b91c1c;
+    border-color: #f87171;
+    background: #fef2f2;
 }
 .pagination-container { 
     display: flex;
@@ -538,7 +559,22 @@
 .assignment-request-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; margin-top: 8px; padding: 8px; border-radius: 6px; background: #fffbeb; color: #92400e; font-size: 11px; }
 .assignment-request-row form button { border: 0; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 700; padding: 5px 7px; }
 .assignment-request-row form:first-of-type button { background: var(--color-success); color: #fff; }.assignment-request-row form:last-of-type button { background: #fee2e2; color: #991b1b; }
-.property-approval-form { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding: 8px; border-radius: 6px; background: #fffbeb; color: #92400e; font-size: 11px; font-weight: 700; }.property-approval-form button { border: 0; border-radius: 4px; color: #fff; cursor: pointer; font-size: 11px; font-weight: 700; padding: 5px 7px; }.property-approval-form button[value="Approved"] { background: var(--color-success); }.property-approval-form button[value="Rejected"] { background: #b91c1c; }
+.property-approval-panel { display: grid; grid-template-columns: auto auto minmax(150px, 1fr); align-items: start; gap: 8px; margin-top: 8px; padding: 10px; border-radius: 6px; background: #fffbeb; color: #92400e; font-size: 11px; font-weight: 700; }
+.property-approval-panel > p { margin: 7px 0 0; }
+.property-approval-panel button { min-height: 34px; border: 0; border-radius: 5px; color: #fff; cursor: pointer; font-size: 11px; font-weight: 700; padding: 7px 10px; }
+.property-approval-panel button[value="Approved"] { background: var(--color-success); }
+.property-rejection-form { display: grid; gap: 5px; }
+.property-rejection-form label { color: #78350f; }
+.property-rejection-form textarea { width: 100%; min-height: 58px; border: 1px solid #fcd34d; border-radius: 5px; padding: 7px; resize: vertical; }
+.property-rejection-form button[value="Rejected"] { background: #b91c1c; }
+.listing-review-status { margin: 10px 0; color: #92400e; font-size: 12px; font-weight: 700; }
+.listing-rejection-note { margin: 12px 0; padding: 12px; border-left: 3px solid #dc2626; background: #fef2f2; color: #7f1d1d; font-size: 13px; }
+.listing-rejection-note p { margin: 5px 0 0; white-space: pre-wrap; }
+.listing-rejection-note a { display: inline-block; margin-top: 8px; color: #991b1b; font-weight: 700; }
+
+@media (max-width: 720px) {
+    .property-approval-panel { grid-template-columns: minmax(0, 1fr); }
+}
 .staff-listing-tabs { display: flex; gap: 8px; margin: 0 0 20px; border-bottom: 1px solid var(--color-border); }
 .staff-listing-panel[hidden] { display: none !important; }
 .staff-listing-tab { border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--color-text-muted); cursor: pointer; font-weight: 700; padding: 10px 14px; }

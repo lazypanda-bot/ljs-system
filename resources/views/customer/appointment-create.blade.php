@@ -4,5 +4,32 @@
 <link rel="stylesheet" href="{{ asset('css/appointment-create.css') }}?v={{ filemtime(public_path('css/appointment-create.css')) }}">
 @endpush
 @section('content')
-<div class="appointment-create-page"><a href="{{ route('properties.show', $property) }}">&larr; Back to property</a><h1>Book a viewing</h1><p>{{ $property->property_name }}</p><form method="POST" action="{{ route('appointments.store', $property) }}">@csrf<label>Professional<select name="assign_id" required>@foreach($assignments as $assignment)<option value="{{ $assignment->assign_id }}">{{ $assignment->user->name }}</option>@endforeach</select></label><label>Name<input name="contact_name" required value="{{ auth()->user()->name ?? '' }}"></label><label>Contact number<input name="contact_number" required value="{{ auth()->user()->contact_number ?? '' }}"></label><label>Email<input type="email" name="contact_email" required value="{{ auth()->user()->email ?? '' }}"></label><label>Appointment type<select name="appointment_type" required><option>Property viewing</option><option>Consultation</option><option>Site visit</option></select></label><label>Date<input type="date" name="preferred_date" min="{{ now()->toDateString() }}" required></label><label>Time<input type="time" name="preferred_time" required></label><label>Notes<textarea name="additional_note" rows="4"></textarea></label><button type="submit">Request appointment</button></form></div>
+<div class="appointment-create-page">
+	<a href="{{ $referralCode ? route('properties.show', ['id' => $property->property_id, 'ref' => $referralCode->code]) : route('properties.show', $property) }}">&larr; Back to property</a>
+	<h1>Book a viewing</h1>
+	<p>{{ $property->property_name }}</p>
+	<form method="POST" action="{{ route('appointments.store', $property) }}">
+		@csrf
+		@if ($referralCode)
+			<input type="hidden" name="ref" value="{{ $referralCode->code }}">
+			@if ($isAdminListing && $assignments->count() > 1)
+				<label>Professional<select name="assign_id" required>@foreach($assignments as $assignment)<option value="{{ $assignment->assign_id }}" @selected((int) $assignment->assign_id === (int) $selectedAssignmentId)>{{ $assignment->user->name }} ({{ $assignment->user->role_name }})</option>@endforeach</select></label>
+				<p>The professional from your referral is selected first. You can choose another assigned professional.</p>
+			@else
+				<input type="hidden" name="assign_id" value="{{ $selectedAssignmentId }}">
+				<p>Appointment will be sent to {{ $assignments->first()->user->name }}.</p>
+			@endif
+		@else
+			<label>Professional<select name="assign_id" required>@foreach($assignments as $assignment)<option value="{{ $assignment->assign_id }}" @selected((int) $assignment->assign_id === (int) $selectedAssignmentId)>{{ $assignment->user->name }}</option>@endforeach</select></label>
+		@endif
+		<label>Name<input name="contact_name" required value="{{ auth()->user()->name ?? '' }}"></label>
+		<label>Contact number<input name="contact_number" required value="{{ auth()->user()->contact_number ?? '' }}"></label>
+		<label>Email<input type="email" name="contact_email" required value="{{ auth()->user()->email ?? '' }}"></label>
+		<label>Appointment type<select name="appointment_type" required><option>Property viewing</option><option>Consultation</option><option>Site visit</option></select></label>
+		<label>Date<input type="date" name="preferred_date" min="{{ now()->toDateString() }}" required></label>
+		<label>Time<input type="time" name="preferred_time" required></label>
+		<label>Notes<textarea name="additional_note" rows="4"></textarea></label>
+		<button type="submit">Request appointment</button>
+	</form>
+</div>
 @endsection

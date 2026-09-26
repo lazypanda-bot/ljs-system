@@ -11,7 +11,7 @@
         {{-- QUIZ --}}
         <div id="lifestyleQuiz" class="lifestyle-quiz">
             <div class="lifestyle-quiz-header">
-                <span class="lifestyle-quiz-icon">&#9733;</span>
+                <span class="lifestyle-quiz-icon"><i data-lucide="sparkles" aria-hidden="true"></i></span>
                 <h1>Lifestyle Match</h1>
                 <p>Answer a few questions about your lifestyle and we'll find the perfect properties for you.</p>
             </div>
@@ -45,7 +45,7 @@
         {{-- RESULTS --}}
         <div id="lifestyleResults" class="lifestyle-results" hidden>
             <div class="lifestyle-results-header">
-                <span class="lifestyle-results-check">&#10003;</span>
+                <span class="lifestyle-results-check"><i data-lucide="circle-check" aria-hidden="true"></i></span>
                 <h1>Your Lifestyle Match is Ready!</h1>
                 <p>Based on your answers, we've found properties that best fit your lifestyle and preferences.</p>
             </div>
@@ -63,7 +63,7 @@
                     <div id="lifestyleMatchesGrid" class="properties-grid lifestyle-matches-grid"></div>
 
                     <div class="lifestyle-why-matches">
-                        <span class="lifestyle-why-icon">&#9733;</span>
+                        <span class="lifestyle-why-icon"><i data-lucide="sparkles" aria-hidden="true"></i></span>
                         <div>
                             <strong>Why these matches?</strong>
                             <p>These properties align with your lifestyle preferences, including your ideal location, budget, must-have features, and the type of environment you value most.</p>
@@ -91,7 +91,7 @@
 
                     <div class="lifestyle-retake-card">
                         <p>Not exactly what you were looking for?</p>
-                        <button type="button" id="lifestyleRetakeBtn" class="lifestyle-btn-secondary">&#8635; Retake Lifestyle Quiz</button>
+                        <button type="button" id="lifestyleRetakeBtn" class="lifestyle-btn-secondary"><i data-lucide="rotate-ccw" aria-hidden="true"></i> Retake Lifestyle Quiz</button>
                     </div>
                 </aside>
             </div>

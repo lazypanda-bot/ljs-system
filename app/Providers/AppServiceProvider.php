@@ -57,9 +57,23 @@ class AppServiceProvider extends ServiceProvider
 
                 $currentPage = request()->route('page');
                 if ($currentPage) {
-                    $pageLabel = ucfirst(str_replace(['-', '_'], ' ', $currentPage));
+                    $pageLabel = match ($currentPage) {
+                        'property' => 'Properties',
+                        'appointment' => 'Appointments',
+                        'review' => 'Reviews',
+                        'report' => 'Reports',
+                        default => ucfirst(str_replace(['-', '_'], ' ', $currentPage)),
+                    };
                 } elseif (request()->routeIs('dashboard')) {
                     $pageLabel = 'Dashboard';
+                } elseif (request()->routeIs('appointments.index')) {
+                    $pageLabel = 'Appointments';
+                } elseif (request()->routeIs('reports.*')) {
+                    $pageLabel = 'Reports';
+                } elseif (request()->routeIs('messages.inbox')) {
+                    $pageLabel = 'Messages';
+                } elseif (request()->routeIs('staff.properties.show')) {
+                    $pageLabel = 'Property Details';
                 } elseif (request()->routeIs('admin.users.*')) {
                     $pageLabel = 'Users';
                 } elseif (request()->routeIs('admin.teams.*')) {

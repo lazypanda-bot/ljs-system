@@ -22,7 +22,7 @@
 		<div class="reviews-header"><h1>Review Summary</h1><p>View feedback and ratings given by clients.</p></div>
 		<div class="metrics-grid">
 			<div class="metric-card card-blue"><span class="card-title">Total Reviews</span><div class="metric-value-container"><span class="metric-number">{{ count($reviews) }}</span></div><span class="card-subtitle">Reviews received</span></div>
-			<div class="metric-card card-teal"><span class="card-title">Average Rating</span><div class="metric-value-container"><span class="metric-number">{{ $averageRating }}</span><div class="stars-row">@for ($star = 1; $star <= 5; $star++)<i class="fa-{{ $star <= round($averageRating) ? 'solid' : 'regular' }} fa-star"></i>@endfor</div></div><span class="card-subtitle">Average rating from clients</span></div>
+			<div class="metric-card card-teal"><span class="card-title">Average Rating</span><div class="metric-value-container"><span class="metric-number">{{ $averageRating }}</span><div class="stars-row">@for ($star = 1; $star <= 5; $star++)<i data-lucide="star" class="{{ $star <= round($averageRating) ? 'is-rated' : '' }}" aria-hidden="true"></i>@endfor</div></div><span class="card-subtitle">Average rating from clients</span></div>
 			<div class="metric-card card-breakdown">
 				@for ($rating = 5; $rating >= 1; $rating--)
 					@php $count = $ratingCounts->get($rating, 0); $percentage = count($reviews) ? ($count / count($reviews)) * 100 : 0; @endphp
@@ -36,10 +36,10 @@
 					<div class="review-item" data-id="{{ $index + 1 }}">
 						<div class="user-avatar"><img src="https://ui-avatars.com/api/?name={{ urlencode($review['name']) }}&background=1e293b&color=fff" alt="{{ $review['name'] }}"></div>
 						<div class="review-content">
-							<div class="review-item-header"><div class="user-info"><h3 class="user-name">{{ $review['name'] }}</h3><p class="purchased-text">Purchased: <span>{{ $review['property'] }}</span></p></div><div class="rating-meta"><div class="stars">@for ($star = 1; $star <= 5; $star++)<i class="fa-{{ $star <= $review['rating'] ? 'solid' : 'regular' }} fa-star"></i>@endfor</div><span class="review-date">{{ $review['date'] }}</span></div></div>
+							<div class="review-item-header"><div class="user-info"><h3 class="user-name">{{ $review['name'] }}</h3><p class="purchased-text">Purchased: <span>{{ $review['property'] }}</span></p></div><div class="rating-meta"><div class="stars">@for ($star = 1; $star <= 5; $star++)<i data-lucide="star" class="{{ $star <= $review['rating'] ? 'is-rated' : '' }}" aria-hidden="true"></i>@endfor</div><span class="review-date">{{ $review['date'] }}</span></div></div>
 							<p class="review-comment">{{ $review['comment'] }}</p>
 						</div>
-						@if ($acting === 'admin')<button class="btn-delete" title="Delete review" type="button" data-delete-review="{{ $index + 1 }}"><i class="fa-regular fa-trash-can"></i></button>@endif
+						@if ($acting === 'admin')<button class="btn-delete" title="Delete review" type="button" data-delete-review="{{ $index + 1 }}"><i data-lucide="trash-2" aria-hidden="true"></i></button>@endif
 					</div>
 				@endforeach
 			</div>

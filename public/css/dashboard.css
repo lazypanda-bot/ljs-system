@@ -170,6 +170,8 @@
     background: #f1f5f9;
     border-color: #94a3b8;
 }
+.block-calendar-btn { display: inline-flex; align-items: center; gap: 7px; border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+.block-calendar-btn:hover { border-color: #93c5fd; background: #dbeafe; color: #1e40af; }
 
 .calendar-btn.nav-btn {
     width: 36px;
@@ -298,6 +300,9 @@
 .appointment-badge.cancelled {
     background-color: #dc2626;
 }
+.appointment-badge.appointment-event { background-color: #2563eb; }
+.appointment-badge.blocked-date-event { background-color: #dc2626; }
+.calendar-cell-blocked { background: #fff1f2; border-color: #fda4af; }
 .dash-sidebar {
     display: flex;
     flex-direction: column;

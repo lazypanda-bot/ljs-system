@@ -4,11 +4,6 @@
 
 @section('content')
     <div class="au-page-card">
-        <div class="staff-page-heading">
-            <span class="staff-page-kicker">Administration</span>
-            <h1>User Management</h1>
-            <p>Manage staff accounts and teams.</p>
-        </div>
         @if ($errors->any())
             <div class="alert alert-danger" role="alert">
                 @foreach ($errors->all() as $error)
@@ -19,10 +14,12 @@
         @if(isset($editUser))
             <div class="au-edit-panel">
                 <h3>Edit {{ $editUser->name }}</h3>
-                <form method="POST" action="{{ route('admin.users.update', $editUser->user_id) }}">
+                <form method="POST" action="{{ route('admin.users.update', $editUser->user_id) }}" enctype="multipart/form-data">
                     @csrf @method('PUT')
                     <div class="row"><div class="col-md-6"><label>Name</label><input class="form-control" name="name" value="{{ $editUser->name }}" required></div><div class="col-md-6"><label>Email</label><input class="form-control" type="email" name="email" value="{{ $editUser->email }}" required></div></div>
                     <div class="row"><div class="col-md-6"><label>Role</label><select class="form-select" name="role_name"><option {{ $editUser->role_name === 'Admin' ? 'selected' : '' }}>Admin</option><option {{ $editUser->role_name === 'Broker' ? 'selected' : '' }}>Broker</option><option {{ $editUser->role_name === 'Agent' ? 'selected' : '' }}>Agent</option><option {{ $editUser->role_name === 'Lead Broker' ? 'selected' : '' }}>Lead Broker</option></select></div><div class="col-md-6"><label>Status</label><select class="form-select" name="account_status"><option {{ $editUser->account_status === 'Active' ? 'selected' : '' }}>Active</option><option {{ $editUser->account_status === 'Inactive' ? 'selected' : '' }}>Inactive</option><option {{ $editUser->account_status === 'Suspended' ? 'selected' : '' }}>Suspended</option></select></div></div>
+                    <label for="editCredentialDocument">Credential document (private, PDF/JPG/PNG, max 10 MB)</label>
+                    <input class="form-control" id="editCredentialDocument" type="file" name="credential_document" accept=".pdf,.jpg,.jpeg,.png">
                     <button class="au-saveuser-btn" type="submit">Save Changes</button><a class="au-canceluser-btn" href="{{ route('admin.users.index') }}">Cancel</a>
                 </form>
             </div>
@@ -41,7 +38,7 @@
         <div class="au-tab-content active" id="all-users">
             <div class="au-section-header">
                 <div>
-                    <h2>User Management</h2>
+                    <h2>Staff accounts</h2>
                     <p class="text-muted mb-0">You can manage your system users here.</p>
                 </div>
                 <button class="au-adduser-toggle-btn" id="openAddUserModal">
@@ -54,7 +51,7 @@
                 <div class="au-form-card">
                     <button type="button" class="au-modal-close" id="closeAddUserModal" aria-label="Close">&times;</button>
                     <h3>Add New User</h3>
-                    <form method="POST" action="{{ route('admin.users.store') }}">
+                    <form method="POST" action="{{ route('admin.users.store') }}" enctype="multipart/form-data">
                         @csrf
                         <div class="row">
                             <!-- Personal Information -->
@@ -84,8 +81,11 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="password" class="form-label">Password *</label>
-                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required minlength="8">
+                                     <p class="text-muted">The user will receive a one-time link to set their password.</p>
+                                <div class="mb-3">
+                                    <label for="credentialDocument" class="form-label">Credential document</label>
+                                    <input type="file" class="form-control" id="credentialDocument" name="credential_document" accept=".pdf,.jpg,.jpeg,.png">
+                                    <small class="text-muted">Private to Admins; PDF/JPG/PNG, max 10 MB.</small>
                                 </div>
                             </div>
                         </div>
@@ -143,7 +143,11 @@
                                     <tr>
                                         <td>
                                             <div class="au-user-cell">
-                                                <img src="{{ $user->profile_photo ?? 'https://via.placeholder.com/40' }}" alt="{{ $user->name }}" class="rounded-circle shadow-sm" width="40" height="40">
+                                                @if ($user->profile_photo)
+                                                    <img src="{{ str_starts_with($user->profile_photo, 'http') ? $user->profile_photo : asset('storage/' . $user->profile_photo) }}" alt="{{ $user->name }}" class="rounded-circle shadow-sm" width="40" height="40">
+                                                @else
+                                                    <span class="au-user-avatar role-{{ $user->normalizedRole() }}" aria-label="{{ $user->name }}">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+                                                @endif
                                                 <span class="fw-semibold text-dark">{{ $user->name }}</span>
                                             </div>
                                         </td>
@@ -151,9 +155,13 @@
                                         <td>{{ $user->contact_number }}</td>
                                         <td>
                                             @if($user->agent)
-                                                <a href="#" class="badge bg-light text-primary border px-2 py-1">
-                                                    <i class="fas fa-file-pdf text-danger"></i> Agent documents.pdf
-                                                </a>
+                                                @if ($user->agent->document_file)
+                                                    <a href="{{ route('admin.users.credentials', $user) }}" class="badge bg-light text-primary border px-2 py-1">
+                                                        <i class="fas fa-file-shield text-success" aria-hidden="true"></i> Download securely
+                                                    </a>
+                                                @else
+                                                    <span class="text-muted">No documents</span>
+                                                @endif
                                             @endif
                                         </td>
                                         <td>

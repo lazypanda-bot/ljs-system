@@ -104,7 +104,7 @@
                     <div class="card-header">
                         <h2>Appointments Calendar</h2>
                         <div class="calendar-controls">
-                            <a href="{{ url()->current() }}?month={{ $now->month }}&year={{ $now->year }}" class="calendar-btn today-btn">Today</a>
+                            <button class="calendar-btn block-calendar-btn" type="button" id="openBlockDateModal"><i class="fas fa-calendar-minus" aria-hidden="true"></i> Block Date</button>
                             <a href="{{ url()->current() }}?month={{ $prevDate->month }}&year={{ $prevDate->year }}" class="calendar-btn nav-btn" aria-label="Previous month"><i class="fas fa-chevron-left"></i></a>
                             <a href="{{ url()->current() }}?month={{ $nextDate->month }}&year={{ $nextDate->year }}" class="calendar-btn nav-btn" aria-label="Next month"><i class="fas fa-chevron-right"></i></a>
                             <div class="calendar-month-display">{{ $currentMonthName }}</div>
@@ -123,7 +123,7 @@
                     </div>
 
                     <!-- Calendar Days Grid -->
-                    <div class="calendar-dates" id="calendarDates" data-appointments='@json($appointments ?? [])'>
+                    <div class="calendar-dates" id="calendarDates" data-appointments='@json($calendarAppointments ?? [])' data-blocked-dates='@json($calendarBlockedDates ?? [])'>
                         @for ($i = 0; $i < $firstDayOfWeek; $i++)
                             <div class="calendar-cell other-month"></div>
                         @endfor
@@ -147,7 +147,6 @@
                     </div>
 
                     <div class="property-status-controls">
-                        <button class="status-btn active full-width-btn" type="button" id="openBlockDateModal">Block Date</button>
                         <div class="status-month-label">{{ now()->translatedFormat('F Y') }}</div>
                     </div>
 
@@ -191,7 +190,7 @@
                 <div class="card activities-card">
                     <div class="card-header">
                         <h3>Recent System Activities</h3>
-                        <a href="#" class="view-all-link">View all</a>
+                        <a href="{{ route('notifications.index') }}" class="view-all-link">View all</a>
                     </div>
 
                     <div class="activities-list">

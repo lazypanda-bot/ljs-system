@@ -2,10 +2,22 @@
 
 @push('styles')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 @endpush
 
 @section('content')
+@php
+    $appointmentParameters = ['property' => $property];
+    $messageParameters = ['property' => $property];
+    if ($referralCode) {
+        $appointmentParameters['ref'] = $referralCode->code;
+        $messageParameters['ref'] = $referralCode->code;
+        if ($selectedAssignmentId) {
+            $appointmentParameters['assign_id'] = $selectedAssignmentId;
+        }
+    }
+    $appointmentUrl = route('appointments.create', $appointmentParameters);
+    $messageUrl = route('properties.message', $messageParameters);
+@endphp
 <div class="property-details-page">
     <!-- Breadcrumb -->
     <nav class="mb-4 text-muted small">
@@ -22,9 +34,6 @@
             @else
                 <img src="{{ asset('images/default-property.jpg') }}" class="banner" alt="Default Image">
             @endif
-            <button class="favorite">
-                <i class="far fa-heart text-primary fs-5"></i>
-            </button>
         </div>
         
         <!-- Thumbnails & Navigation Arrows -->
@@ -100,25 +109,39 @@
                 <div class="d-flex align-items-center gap-3 mb-4">
                     <img src="{{ asset('images/default-avatar.png') }}" class="avatar" alt="Agent">
                     <div>
-                        <h6 class="fw-bold mb-1">{{ $property->user->name ?? 'Maria Samantha Reyes' }}</h6>
-                        <p class="text-muted small mb-0">Real Estate Broker</p>
+                        <h6 id="referralContactName" class="fw-bold mb-1">{{ $contactUser->name ?? 'LJS Realty Professional' }}</h6>
+                        <p id="referralContactRole" class="text-muted small mb-0">{{ $contactUser->role_name ?? 'Listing Professional' }}</p>
                     </div>
                 </div>
 
                 <div class="mb-3 text-secondary small">
-                    <p class="mb-2"><i class="fas fa-phone-alt text-primary me-2"></i> +63 917 123 4567</p>
-                    <p class="mb-0"><i class="fas fa-envelope text-primary me-2"></i> {{ $property->user->email ?? 'agent@lsrealty.ph' }}</p>
+                    <p class="mb-2"><i class="fas fa-phone-alt text-primary me-2"></i> {{ $contactUser?->contact_number ?: 'Contact number not provided' }}</p>
+                    <p class="mb-0"><i class="fas fa-envelope text-primary me-2"></i> <span id="referralContactEmail">{{ $contactUser->email ?? 'Contact details unavailable' }}</span></p>
                 </div>
+
+                @if ($referralCode && $isAdminListing && $contactProfessionals->count() > 1)
+                    <label class="form-label small fw-bold" for="referralProfessionalSelect">Choose a professional</label>
+                    <select class="form-select mb-3" id="referralProfessionalSelect">
+                        @foreach ($contactProfessionals as $professionalAssignment)
+                            <option value="{{ $professionalAssignment->user_id }}" data-assignment-id="{{ $professionalAssignment->assign_id }}" data-name="{{ $professionalAssignment->user->name }}" data-role="{{ $professionalAssignment->user->role_name }}" data-email="{{ $professionalAssignment->user->email }}" @selected((int) $professionalAssignment->user_id === (int) $contactUser->user_id)>
+                                {{ $professionalAssignment->user->name }} ({{ $professionalAssignment->user->role_name }})
+                            </option>
+                        @endforeach
+                    </select>
+                @endif
 
                 <hr class="text-muted opacity-25 my-4">
 
-                <a class="actionbutton outlinebutton text-decoration-none text-center" href="{{ route('appointments.create', $property) }}">
+                <a id="referralAppointmentLink" class="actionbutton outlinebutton text-decoration-none text-center" href="{{ $appointmentUrl }}">
                     <i class="far fa-calendar-alt me-2"></i> Book Appointment
                 </a>
                 @auth
-                    @if (auth()->user()?->normalizedRole() === 'client' && in_array($property->user?->role_name, ['Broker', 'Agent'], true))
-                        <form method="POST" action="{{ route('properties.message', $property) }}">
+                    @if (auth()->user()?->normalizedRole() === 'client' && ($referralCode || in_array($contactUser?->role_name, ['Broker', 'Agent', 'Lead Broker'], true)))
+                        <form method="POST" action="{{ $messageUrl }}">
                             @csrf
+                            @if ($referralCode)
+                                <input type="hidden" name="recipient_id" id="referralMessageRecipient" value="{{ $contactUser->user_id }}">
+                            @endif
                             <button class="actionbutton primarybutton" type="submit"><i class="far fa-paper-plane me-2"></i> Send Message</button>
                         </form>
                     @endif
@@ -130,3 +153,26 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.getElementById('referralProfessionalSelect')?.addEventListener('change', function () {
+            const option = this.selectedOptions[0];
+            const recipient = document.getElementById('referralMessageRecipient');
+            const appointmentLink = document.getElementById('referralAppointmentLink');
+            const contactName = document.getElementById('referralContactName');
+            const contactRole = document.getElementById('referralContactRole');
+            const contactEmail = document.getElementById('referralContactEmail');
+
+            if (recipient) recipient.value = option.value;
+            if (contactName) contactName.textContent = option.dataset.name;
+            if (contactRole) contactRole.textContent = option.dataset.role;
+            if (contactEmail) contactEmail.textContent = option.dataset.email;
+            if (appointmentLink) {
+                const url = new URL(appointmentLink.href);
+                url.searchParams.set('assign_id', option.dataset.assignmentId);
+                appointmentLink.href = url.toString();
+            }
+        });
+    </script>
+@endpush

@@ -48,6 +48,11 @@ class Property extends Model
         return $this->hasMany(PropertyAssign::class, 'property_id', 'property_id');
     }
 
+    public function referralCodes()
+    {
+        return $this->hasMany(ReferralCode::class, 'property_id', 'property_id');
+    }
+
     /**
      * Scope properties to what the given user is allowed to see, based on their
      * acting role: admins see everything, brokers see their whole team's

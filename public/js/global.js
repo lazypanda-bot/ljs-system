@@ -1,4 +1,32 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const publicNavToggle = document.getElementById('publicNavToggle');
+    const publicNavigation = document.getElementById('publicNavigation');
+
+    if (publicNavToggle && publicNavigation) {
+        const closePublicNavigation = () => {
+            publicNavigation.classList.remove('open');
+            publicNavToggle.setAttribute('aria-expanded', 'false');
+            publicNavToggle.setAttribute('aria-label', 'Open navigation menu');
+        };
+
+        publicNavToggle.addEventListener('click', () => {
+            const isOpen = publicNavigation.classList.toggle('open');
+            publicNavToggle.setAttribute('aria-expanded', String(isOpen));
+            publicNavToggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+        });
+
+        publicNavigation.querySelectorAll('a').forEach((link) => link.addEventListener('click', closePublicNavigation));
+        document.addEventListener('click', (event) => {
+            if (!publicNavigation.contains(event.target) && !publicNavToggle.contains(event.target)) closePublicNavigation();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && publicNavigation.classList.contains('open')) {
+                closePublicNavigation();
+                publicNavToggle.focus();
+            }
+        });
+    }
+
     document.querySelectorAll('[data-width]').forEach((element) => {
         const width = Number(element.dataset.width);
         if (Number.isFinite(width)) element.style.setProperty('--bar-width', Math.max(0, Math.min(100, width)));
@@ -53,6 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'Are you sure you want to continue with this action?';
     };
 
+    const shouldFocusCancel = (form) => {
+        const action = form.action.toLowerCase();
+        const message = getActionMessage(form).toLowerCase();
+        return /(delete|destroy|remove|reject|cancel|cannot be undone)/.test(`${action} ${message}`);
+    };
+
     const shouldConfirmForm = (form) => {
         if (form.dataset.noConfirm !== undefined || form.dataset.confirmed === 'true') return false;
         const method = (form.querySelector('input[name="_method"]')?.value || form.method || 'GET').toUpperCase();
@@ -74,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.querySelector('.action-confirm-cancel').addEventListener('click', () => finish(false));
         overlay.querySelector('.action-confirm-accept').addEventListener('click', () => finish(true));
         overlay.addEventListener('click', (event) => { if (event.target === overlay) finish(false); });
-        overlay.querySelector('.action-confirm-accept').focus();
+        overlay.querySelector(shouldFocusCancel(form) ? '.action-confirm-cancel' : '.action-confirm-accept').focus();
     });
 
     window.appConfirm = (message) => {

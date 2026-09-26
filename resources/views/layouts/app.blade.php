@@ -4,11 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', config('app.name', 'LJS'))</title>
+    {{-- <title>@yield('title', config('app.name', 'LJS'))</title> --}}
+    <title>LJS Realty and Brokerage</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/ljs-logo.jpg') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net" />
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+    <script src="{{ asset('js/icons.js') }}?v={{ filemtime(public_path('js/icons.js')) }}" defer></script>
     <link rel="stylesheet" href="{{ asset('css/global.css') }}?v={{ filemtime(public_path('css/global.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/auth-modal.css') }}?v={{ filemtime(public_path('css/auth-modal.css')) }}">
@@ -22,7 +25,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     @stack('styles')
-    <link rel="stylesheet" href="{{ asset('css/portal-ui.css') }}?v={{ filemtime(public_path('css/portal-ui.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/icons.css') }}?v={{ filemtime(public_path('css/icons.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ filemtime(public_path('css/responsive.css')) }}">
 </head>
 <body class="landing-page">
     @include('components.flash-messages')
@@ -34,12 +38,16 @@
                 <a href="{{ route('home') }}" aria-label="LJS Realty home"><img class="landing-img" src="{{ asset('images/ljs-logo.jpg') }}" alt="LJS Realty" /></a>
             </div>
             <div class="right">
-                <nav class="landing-nav-links">
+                <nav class="landing-nav-links" id="publicNavigation" aria-label="Main navigation">
                     <a href="{{ route('home') }}" class="landing-nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
                     <a href="{{ route('properties') }}" class="landing-nav-link {{ request()->routeIs('properties*') ? 'active' : '' }}">Properties</a>
                     <a href="{{ route('agents') }}" class="landing-nav-link {{ request()->routeIs('agents*') ? 'active' : '' }}">Agents</a>
                     <a href="{{ route('about') }}" class="landing-nav-link {{ request()->routeIs('about') ? 'active' : '' }}">About Us</a>
+                    <a href="{{ route('contact') }}" class="landing-nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">Contact Us</a>
                 </nav>
+                <button class="mobile-nav-toggle" id="publicNavToggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="publicNavigation">
+                    <i data-lucide="menu" aria-hidden="true"></i>
+                </button>
                 <div class="auth-action">
                     @auth
                         <div class="public-account-actions">
@@ -97,34 +105,6 @@
         <div class="footer-container">
             <div class="footer-col brand-col">
                 <img src="{{ asset('images/ljs-logo.jpg') }}" alt="LJS Realty Logo" class="footer-logo" />
-                <p class="footer-tagline">Your trusted partner in real estate.<br>Helping you find your dream property.</p>
-            </div>
-
-            <div class="footer-col">
-                <h4>Quick Links</h4>
-                <ul>
-                    <li><a href="{{ route('home') }}">Home</a></li>
-                    <li><a href="{{ route('properties') }}">Properties</a></li>
-                    <li><a href="{{ route('agents') }}">Agents</a></li>
-                    <li><a href="{{ route('about') }}">About Us</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-col">
-                <h4>Contact Us</h4>
-                <ul class="contact-list">
-                    <li><i class="icon-phone"></i> +63 921 345 6789</li>
-                    <li><i class="icon-email"></i> ljsrealty@gmail.com</li>
-                    <li><i class="icon-location"></i> Unit 6 Labangon Town Center<br>Katipunan St, Cebu City</li>
-                </ul>
-            </div>
-
-            <div class="footer-col">
-                <h4>Social Media</h4>
-                <div class="social-icons">
-                    <a href="mailto:ljsrealty@gmail.com" class="social-icon fb" aria-label="Email LJS Realty"></a>
-                    <a href="{{ route('agents') }}" class="social-icon messenger" aria-label="Meet our professionals"></a>
-                </div>
             </div>
         </div>
     </footer>

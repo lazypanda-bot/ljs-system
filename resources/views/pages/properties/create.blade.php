@@ -23,7 +23,7 @@
                     <label class="section-label">Images *</label>
                     <div class="image-upload-box-row">
                         <div class="upload-dropzone-mini" id="dropzoneTrigger">
-                            <span>&#128228;</span>
+                            <i data-lucide="upload" aria-hidden="true"></i>
                             <p>Drag &amp; drop images here<br><small>or click to browse</small></p>
                         </div>
                         <div class="image-preview-slots" id="imagePreviewContainer">

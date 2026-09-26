@@ -1,6 +1,6 @@
 .properties {
     background-color: #f8fafc;
-    padding: 110px 20px 80px 20px;
+    padding: 110px 40px 80px;
     font-family: system-ui, -apple-system, sans-serif;
     min-height: 80vh;
 }
@@ -64,7 +64,7 @@
     min-width: 200px;
 }
 
-.search-box {
+.filter-form .search-box {
     display: flex;
     align-items: center;
     border: 1px solid #cbd5e1;
@@ -73,7 +73,7 @@
     overflow: hidden;
 }
 
-.search-box input {
+.filter-form .search-box input {
     width: 100%;
     padding: 10px 12px;
     border: none;
@@ -81,7 +81,7 @@
     font-size: 0.85rem;
 }
 
-.search-box button {
+.filter-form .search-box button {
     background: transparent;
     border: none;
     padding: 0 14px;
@@ -99,11 +99,6 @@
     overflow: hidden;
     margin-bottom: 24px;
     width: 100%;
-
-    margin-top: -30px;
-    margin-left: -20px;  
-    margin-right: -20px; 
-    width: calc(100% + 40px); 
 }
 
 /* Left Side: Image with gradient fade effect */
