@@ -43,7 +43,7 @@
                     <a href="{{ route('properties') }}" class="landing-nav-link {{ request()->routeIs('properties*') ? 'active' : '' }}">Properties</a>
                     <a href="{{ route('agents') }}" class="landing-nav-link {{ request()->routeIs('agents*') ? 'active' : '' }}">Agents</a>
                     <a href="{{ route('about') }}" class="landing-nav-link {{ request()->routeIs('about') ? 'active' : '' }}">About Us</a>
-                    <a href="{{ route('contact') }}" class="landing-nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">Contact Us</a>
+                    {{-- <a href="{{ route('contact') }}" class="landing-nav-link {{ request()->routeIs('contact') ? 'active' : '' }}">Contact Us</a> --}}
                 </nav>
                 <button class="mobile-nav-toggle" id="publicNavToggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="publicNavigation">
                     <i data-lucide="menu" aria-hidden="true"></i>
@@ -54,6 +54,7 @@
                             <div class="public-profile-wrap">
                                 <button class="public-account-pill" type="button" id="publicProfileButton" aria-expanded="false"><span>{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>{{ Auth::user()->name }}<i class="fas fa-chevron-down"></i></button>
                                 <div class="public-profile-menu" id="publicProfileMenu" aria-hidden="true">
+                                    <a href="{{ route('app.page', ['page' => 'client-profile']) }}" class="public-profile-item">Profile</a>
                                     <form method="POST" action="{{ route('logout') }}">@csrf<button class="public-profile-item public-logout" type="submit"><i class="fas fa-right-from-bracket"></i> Logout</button></form>
                                 </div>
                             </div>

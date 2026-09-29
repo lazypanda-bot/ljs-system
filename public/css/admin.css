@@ -580,3 +580,58 @@
 .staff-listing-tab { border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--color-text-muted); cursor: pointer; font-weight: 700; padding: 10px 14px; }
 .staff-listing-tab.active { border-color: var(--color-primary); color: var(--color-primary); }
 .listing-owner-badge { align-self: center; color: var(--color-success); font-size: 11px; font-weight: 700; }
+
+.staff-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* Tabs styling */
+.staff-tabs-top {
+    display: flex;
+    gap: 8px;
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+}
+
+.staff-tabs-top .tab-btn {
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.staff-tabs-top .tab-btn.active {
+    background: #dbeafe;
+    color: #2563eb;
+    font-weight: 600;
+}
+
+/* Green Add Button */
+.btn-add-user-style {
+    background-color: #10b981;
+    color: #ffffff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: background 0.2s;
+}
+
+.btn-add-user-style:hover {
+    background-color: #059669;
+}

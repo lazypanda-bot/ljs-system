@@ -20,7 +20,15 @@
 				<p>Appointment will be sent to {{ $assignments->first()->user->name }}.</p>
 			@endif
 		@else
-			<label>Professional<select name="assign_id" required>@foreach($assignments as $assignment)<option value="{{ $assignment->assign_id }}" @selected((int) $assignment->assign_id === (int) $selectedAssignmentId)>{{ $assignment->user->name }}</option>@endforeach</select></label>
+			<label>Professional
+				<select name="assign_id" required>
+					@foreach($assignments as $assignment)
+						<option value="{{ $assignment->assign_id }}" @selected((int) $assignment->assign_id === (int) $selectedAssignmentId)>
+							{{ $assignment->user?->name ?? 'Unknown Professional' }}
+						</option>
+					@endforeach
+				</select>
+			</label>
 		@endif
 		<label>Name<input name="contact_name" required value="{{ auth()->user()->name ?? '' }}"></label>
 		<label>Contact number<input name="contact_number" required value="{{ auth()->user()->contact_number ?? '' }}"></label>

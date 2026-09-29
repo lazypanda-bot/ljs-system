@@ -11,8 +11,6 @@ body {
     text-align: center;
     z-index: 2;
     opacity: 0;
-    /* transform: translateY(30px);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out; */
 }
 
 .about-hero-section.visible {
@@ -236,6 +234,7 @@ body {
 .about-btn-explore:hover {
     background: #00b048;
 }
+
 .company-section {
     padding: 80px 0;
     background-color: #f0f6ff;
@@ -280,7 +279,6 @@ body {
     display: block;
 }
 
-/* Right Content Area */
 .company-content-wrapper {
     flex: 1;
     display: flex;
@@ -318,6 +316,7 @@ body:has(.about-page-wrapper) .landing-nav-links a {
     color: #ffffff !important; 
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
+
 body:has(.about-page-wrapper) .landing-nav-links a.active,
 body:has(.about-page-wrapper) .landing-nav-links a.current,
 body:has(.about-page-wrapper) .landing-nav-links a:hover,
@@ -326,3 +325,178 @@ body:has(.about-page-wrapper) .landing-nav-links a:hover,
 .about-page-wrapper ~ header .landing-nav-links a:hover {
     color: #0084ff !important;
 }
+
+.contact-page {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 60px 40px !important;
+    margin: 0 !important;
+    background-color: #f0f6ff !important;
+}
+
+.contact-page-inner {
+    max-width: 1300px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    padding: 0 !important;
+}
+
+.contact-container-split {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 40px !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Left Column: Text Label */
+.contact-left-content {
+    flex: 0 0 32% !important;
+    max-width: 380px !important;
+    text-align: left !important;
+}
+
+.contact-left-content .map-section-tag {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #10b981;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.contact-left-content h2 {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    color: #111827 !important;
+    margin-bottom: 12px !important;
+}
+
+.contact-left-content p {
+    font-size: 1rem !important;
+    color: #4b5563 !important;
+    line-height: 1.6 !important;
+    margin: 0 !important;
+}
+
+/* Right Side Buttons Container - NO WRAPPING so they stay in one single row */
+.contact-right-buttons {
+    flex: 1 1 68% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important; /* Forces all 5 to stay on one line */
+    gap: 10px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: visible !important;
+}
+
+/* Individual Expanding Pill Card */
+.contact-icon-card {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: #ffffff;
+    padding: 6px !important;
+    border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 2px solid #e2e8f0;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    flex: 0 0 72px; 
+    height: 72px;
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
+    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                border-color 0.35s ease, 
+                box-shadow 0.35s ease !important;
+}
+
+/* Round Icon Circle */
+.contact-icon-circle {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background-color: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    flex-shrink: 0;
+    transition: all 0.35s ease;
+}
+
+.contact-icon-circle i,
+.contact-icon-circle svg {
+    width: 24px !important;
+    height: 24px !important;
+    stroke-width: 2;
+    transition: transform 0.35s ease;
+}
+
+/* Text Label Inside Card */
+.contact-text-label {
+    opacity: 0;
+    white-space: nowrap;
+    padding-left: 14px !important;
+    padding-right: 18px !important;
+    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    pointer-events: none;
+}
+
+.contact-text-label .label-title {
+    font-size: 9px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.contact-text-label .label-value {
+    font-size: 11.5px;
+    color: #1e293b;
+    font-weight: 700;
+}
+.contact-icon-card:hover .contact-text-label,
+.contact-icon-card.active .contact-text-label {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.contact-icon-card:hover .contact-icon-circle,
+.contact-icon-card.active .contact-icon-circle {
+    color: #ffffff;
+    transform: scale(1.05);
+}
+
+/* CUSTOM EXPANSION WIDTHS PER CARD (No excess space for short text, plenty of room for address) */
+.contact-icon-card.facebook:hover, .contact-icon-card.facebook.active { flex: 0 0 240px !important; }
+.contact-icon-card.instagram:hover, .contact-icon-card.instagram.active { flex: 0 0 230px !important; }
+.contact-icon-card.phone:hover, .contact-icon-card.phone.active { flex: 0 0 220px !important; }
+.contact-icon-card.email:hover, .contact-icon-card.email.active { flex: 0 0 260px !important; }
+.contact-icon-card.address:hover, .contact-icon-card.address.active { flex: 0 0 320px !important; } 
+
+/* Brand Colors on Hover */
+.contact-icon-card.facebook:hover { border-color: #1877f2; }
+.contact-icon-card.instagram:hover { border-color: #d6249f; }
+.contact-icon-card.phone:hover { border-color: #10b981; }
+.contact-icon-card.email:hover { border-color: #f59e0b; }
+.contact-icon-card.address:hover { border-color: #ef4444; }
+
+.contact-icon-card.facebook:hover .contact-icon-circle, .contact-icon-card.facebook.active .contact-icon-circle { background-color: #1877f2; }
+.contact-icon-card.instagram:hover .contact-icon-circle, .contact-icon-card.instagram.active .contact-icon-circle { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #df5950 45%, #d6249f 60%, #285AEB 90%); }
+.contact-icon-card.phone:hover .contact-icon-circle, .contact-icon-card.phone.active .contact-icon-circle { background-color: #10b981; }
+.contact-icon-card.email:hover .contact-icon-circle, .contact-icon-card.email.active .contact-icon-circle { background-color: #f59e0b; }
+.contact-icon-card.address:hover .contact-icon-circle, .contact-icon-card.address.active .contact-icon-circle { background-color: #ef4444; }

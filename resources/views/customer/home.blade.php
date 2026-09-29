@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'LJS Realty and Brokerage - Find Your Dream Property')
+@section('title', 'LJS Realty and Brokerage')
 
 @section('content')
     <section class="hero-section">

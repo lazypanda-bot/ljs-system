@@ -1,7 +1,6 @@
 @extends('layouts.app')
-
 @push('styles')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ asset('css/appointment-create.css') }}">
 @endpush
 
 @section('content')
@@ -18,123 +17,115 @@
     $appointmentUrl = route('appointments.create', $appointmentParameters);
     $messageUrl = route('properties.message', $messageParameters);
 @endphp
-<div class="property-details-page">
-    <!-- Breadcrumb -->
-    <nav class="mb-4 text-muted small">
-        <a href="{{ route('home') }}" class="text-decoration-none text-muted">Properties</a> 
-        <span class="mx-2">></span> 
-        <span class="text-dark">{{ $property->property_name }}</span>
+<article class="property-details-page">
+    <nav class="property-breadcrumb" aria-label="Breadcrumb">
+        <a href="{{ route('properties') }}">Properties</a>
+        <span aria-hidden="true">/</span>
+        <span>{{ $property->property_name }}</span>
     </nav>
 
-    <!-- Main Image Gallery Section -->
-    <div class="gallery">
-        <div class="wrapper">
-            @if($property->images->isNotEmpty())
-                <img id="mainImage" src="{{ asset('storage/' . $property->images->first()->image_path) }}" class="banner" alt="Property Image">
+    <section class="property-gallery" aria-label="Property photos">
+        <div class="property-image-frame">
+            @if ($property->images->isNotEmpty())
+                <img id="mainImage" class="property-main-image" src="{{ asset('storage/' . $property->images->first()->image_path) }}" data-fallback-src="{{ asset('images/ljs-logo.jpg') }}" alt="{{ $property->property_name }}">
             @else
-                <img src="{{ asset('images/default-property.jpg') }}" class="banner" alt="Default Image">
+                <div class="property-image-placeholder">No property photos available</div>
             @endif
         </div>
-        
-        <!-- Thumbnails & Navigation Arrows -->
-        <div class="toolbar">
-            <button class="navbutton"><i class="fas fa-chevron-left"></i></button>
-            <div class="strip">
-                @foreach($property->images as $index => $image)
-                    <img src="{{ asset('storage/' . $image->image_path) }}" 
-                         class="thumbnail {{ $index === 0 ? 'active' : '' }}" 
-                         data-thumbnail-target="mainImage"
-                         alt="Thumbnail">
-                @endforeach
-            </div>
-            <button class="navbutton"><i class="fas fa-chevron-right"></i></button>
-        </div>
-    </div>
-
-    <!-- Main Content & Contact Sidebar -->
-    <div class="row g-4">
-        <!-- Left Column: Details & Description -->
-        <div class="col-lg-8">
-            <!-- Price and Title -->
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                    <h1 class="fw-bold text-primary mb-1">₱{{ number_format($property->price, 2) }}</h1>
-                    <h3 class="fw-bold text-dark mb-2">{{ $property->property_name }}</h3>
-                    <p class="text-muted mb-0"><i class="fas fa-map-marker-alt text-danger me-1"></i> {{ $property->property_location }}</p>
+        @if ($property->images->count() > 1)
+            <div class="property-gallery-controls">
+                <button class="gallery-nav-button" type="button" id="propertyImagePrevious" aria-label="Previous photo"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+                <div class="property-thumbnail-strip">
+                    @foreach ($property->images as $index => $image)
+                        <img src="{{ asset('storage/' . $image->image_path) }}" class="property-thumbnail {{ $index === 0 ? 'active' : '' }}" data-thumbnail-target="mainImage" data-image-index="{{ $index }}" data-fallback-src="{{ asset('images/ljs-logo.jpg') }}" alt="{{ $property->property_name }} photo {{ $index + 1 }}">
+                    @endforeach
                 </div>
+                <button class="gallery-nav-button" type="button" id="propertyImageNext" aria-label="Next photo"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
             </div>
+        @endif
+    </section>
 
-            <!-- Property Metrics Bar -->
-            <div class="panel">
-                <div class="d-flex justify-content-around text-muted small fw-semibold">
-                    <span><i class="fas fa-bed text-primary me-2"></i> {{ $property->details->bedrooms ?? 0 }} beds</span>
-                    <span><i class="fas fa-bath text-primary me-2"></i> {{ $property->details->bathrooms ?? 0 }} baths</span>
-                    <span><i class="fas fa-car text-primary me-2"></i> {{ $property->details->parking ?? 1 }} parking</span>
-                    <span><i class="fas fa-vector-square text-primary me-2"></i> {{ $property->details->floor_area ?? 0 }} m² floor</span>
-                    <span><i class="fas fa-expand text-primary me-2"></i> {{ $property->details->lot_area ?? 0 }} m² lot</span>
-                </div>
-            </div>
+    <div class="property-content-layout">
+        <div class="property-information-column">
+            <header class="property-details-heading">
+                <p class="property-details-price">PHP {{ number_format($property->price, 2) }}</p>
+                <h1>{{ $property->property_name }}</h1>
+                <p class="property-details-location"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {{ collect([$property->city, $property->province])->filter()->implode(', ') }}</p>
+            </header>
 
-            <!-- Description Box -->
-            <div class="panel">
-                <h4 class="fw-bold mb-3">Description</h4>
-                <div class="description">
-                    {{ $property->details->description ?? 'No additional description provided for this listing.' }}
-                </div>
-            </div>
+            <section class="property-details-panel property-metrics" aria-label="Property details">
+                <div><i class="fas fa-bed" aria-hidden="true"></i><span>{{ $property->details?->bedroom ?? 0 }} beds</span></div>
+                <div><i class="fas fa-bath" aria-hidden="true"></i><span>{{ $property->details?->bathroom ?? 0 }} baths</span></div>
+                <div><i class="fas fa-car" aria-hidden="true"></i><span>{{ $property->details?->parking ?? 0 }} parking</span></div>
+                <div><i class="fas fa-vector-square" aria-hidden="true"></i><span>{{ number_format($property->details?->floor_area ?? 0, 2) }} m² floor</span></div>
+                <div><i class="fas fa-expand" aria-hidden="true"></i><span>{{ number_format($property->details?->lot_area ?? 0, 2) }} m² lot</span></div>
+            </section>
 
-            <!-- Features & Amenities Box -->
-            <div class="panel">
-                <h4 class="fw-bold mb-4">Features & amenities</h4>
-                <div class="amenities">
-                    @if($property->details?->amenities?->isNotEmpty())
-                        @foreach($property->details->amenities as $amenity)
-                            <div class="d-flex align-items-center gap-2 text-secondary">
-                                <i class="fas fa-check-circle text-primary"></i> {{ $amenity->amenity_name }}
-                            </div>
+            <section class="property-details-panel">
+                <h2>Description</h2>
+                <p class="property-description">{{ $property->property_description ?: 'No additional description provided for this listing.' }}</p>
+            </section>
+
+            <section class="property-details-panel">
+                <h2>Features &amp; amenities</h2>
+                @if ($property->details?->amenities?->isNotEmpty())
+                    <ul class="property-amenities-list">
+                        @foreach ($property->details->amenities as $amenity)
+                            <li><i class="fas fa-check-circle" aria-hidden="true"></i>{{ $amenity->amenity_name }}</li>
                         @endforeach
+                    </ul>
+                @else
+                    <p class="property-description">No amenities listed for this property.</p>
+                @endif
+            </section>
+        </div>
+
+        <aside class="professional-contact-card" aria-labelledby="contactProfessionalHeading">
+            <p class="contact-card-kicker">Listing professional</p>
+            <h2 id="contactProfessionalHeading">Contact professional</h2>
+
+            <div class="professional-contact-identity">
+                <div class="professional-avatar">
+                    @if ($contactUser?->profile_photo)
+                        <img src="{{ str_starts_with($contactUser->profile_photo, 'http') ? $contactUser->profile_photo : asset('storage/' . $contactUser->profile_photo) }}" data-fallback-src="{{ asset('images/ljs-logo.jpg') }}" alt="{{ $contactUser->name }}">
                     @else
-                        <p class="text-muted small mb-0">No amenities listed for this property.</p>
+                        <span aria-hidden="true">{{ strtoupper(substr($contactUser?->name ?? 'L', 0, 1)) }}</span>
                     @endif
                 </div>
+                <div class="professional-contact-name">
+                    <h3 id="referralContactName">{{ $contactUser->name ?? 'LJS Realty Professional' }}</h3>
+                    <p id="referralContactRole">{{ $contactUser->role_name ?? 'Listing Professional' }}</p>
+                </div>
             </div>
-        </div>
 
-        <!-- Right Column: Contact Agent Card -->
-        <div class="col-lg-4">
-            <div class="panel sidebar">
-                <p class="text-uppercase text-muted small fw-bold mb-3">Listing Professional</p>
-                <h5 class="fw-bold mb-4">Contact agent</h5>
+            <div class="professional-contact-details">
+                <p><i class="fas fa-phone" aria-hidden="true"></i><span id="referralContactPhone">{{ $contactUser?->contact_number ?: 'Contact number not provided' }}</span></p>
+                <p><i class="fas fa-envelope" aria-hidden="true"></i><span id="referralContactEmail">{{ $contactUser->email ?? 'Contact details unavailable' }}</span></p>
+            </div>
 
-                <div class="d-flex align-items-center gap-3 mb-4">
-                    <img src="{{ asset('images/default-avatar.png') }}" class="avatar" alt="Agent">
-                    <div>
-                        <h6 id="referralContactName" class="fw-bold mb-1">{{ $contactUser->name ?? 'LJS Realty Professional' }}</h6>
-                        <p id="referralContactRole" class="text-muted small mb-0">{{ $contactUser->role_name ?? 'Listing Professional' }}</p>
-                    </div>
-                </div>
+            @if ($referralCode && $isAdminListing && isset($contactProfessionals) && $contactProfessionals->count() > 1)
+                <label class="professional-select-label" for="referralProfessionalSelect">Choose a professional</label>
+                <select class="professional-select" id="referralProfessionalSelect">
+                    @foreach ($contactProfessionals as $professionalAssignment)
+                        <option value="{{ $professionalAssignment->user_id }}" data-assignment-id="{{ $professionalAssignment->assign_id }}" data-name="{{ $professionalAssignment->user->name }}" data-role="{{ $professionalAssignment->user->role_name }}" data-email="{{ $professionalAssignment->user->email }}" data-phone="{{ $professionalAssignment->user->contact_number }}" @selected((int) $professionalAssignment->user_id === (int) $contactUser->user_id)>
+                            {{ $professionalAssignment->user->name }} ({{ $professionalAssignment->user->role_name }})
+                        </option>
+                    @endforeach
+                </select>
+            @endif
 
-                <div class="mb-3 text-secondary small">
-                    <p class="mb-2"><i class="fas fa-phone-alt text-primary me-2"></i> {{ $contactUser?->contact_number ?: 'Contact number not provided' }}</p>
-                    <p class="mb-0"><i class="fas fa-envelope text-primary me-2"></i> <span id="referralContactEmail">{{ $contactUser->email ?? 'Contact details unavailable' }}</span></p>
-                </div>
-
-                @if ($referralCode && $isAdminListing && $contactProfessionals->count() > 1)
-                    <label class="form-label small fw-bold" for="referralProfessionalSelect">Choose a professional</label>
-                    <select class="form-select mb-3" id="referralProfessionalSelect">
-                        @foreach ($contactProfessionals as $professionalAssignment)
-                            <option value="{{ $professionalAssignment->user_id }}" data-assignment-id="{{ $professionalAssignment->assign_id }}" data-name="{{ $professionalAssignment->user->name }}" data-role="{{ $professionalAssignment->user->role_name }}" data-email="{{ $professionalAssignment->user->email }}" @selected((int) $professionalAssignment->user_id === (int) $contactUser->user_id)>
-                                {{ $professionalAssignment->user->name }} ({{ $professionalAssignment->user->role_name }})
-                            </option>
-                        @endforeach
-                    </select>
-                @endif
-
-                <hr class="text-muted opacity-25 my-4">
-
-                <a id="referralAppointmentLink" class="actionbutton outlinebutton text-decoration-none text-center" href="{{ $appointmentUrl }}">
-                    <i class="far fa-calendar-alt me-2"></i> Book Appointment
-                </a>
+            <div class="professional-contact-actions">
+                @auth
+                    <button type="button" id="referralAppointmentLink" class="contact-action contact-action-secondary" onclick="openAppointmentModal()">
+                        <i class="far fa-calendar-alt" aria-hidden="true"></i> Book appointment
+                    </button>
+                @else
+                    <!-- Triggers login or redirects if not logged in -->
+                    <button type="button" class="contact-action contact-action-secondary" id="openLoginModal">
+                        <i class="far fa-calendar-alt" aria-hidden="true"></i> Sign in to book
+                    </button>
+                @endauth
+                
                 @auth
                     @if (auth()->user()?->normalizedRole() === 'client' && ($referralCode || in_array($contactUser?->role_name, ['Broker', 'Agent', 'Lead Broker'], true)))
                         <form method="POST" action="{{ $messageUrl }}">
@@ -142,37 +133,68 @@
                             @if ($referralCode)
                                 <input type="hidden" name="recipient_id" id="referralMessageRecipient" value="{{ $contactUser->user_id }}">
                             @endif
-                            <button class="actionbutton primarybutton" type="submit"><i class="far fa-paper-plane me-2"></i> Send Message</button>
+                            <button class="contact-action contact-action-primary" type="submit"><i class="far fa-paper-plane" aria-hidden="true"></i> Send message</button>
                         </form>
                     @endif
                 @else
-                    <button class="actionbutton primarybutton" type="button" id="openLoginModal"><i class="far fa-paper-plane me-2"></i> Sign in to send a message</button>
+                    <button class="contact-action contact-action-primary" type="button" id="openLoginModal"><i class="far fa-paper-plane" aria-hidden="true"></i> Sign in to send a message</button>
                 @endauth
             </div>
+        </aside>
+    </div>
+
+    <!-- APPOINTMENT MODAL CONTAINER -->
+    <div id="appointmentModal" class="modal-overlay">
+        <div class="modal-content appointment-create-page">
+            
+            <button type="button" onclick="closeAppointmentModal()">&times;</button>
+            
+            <h1>Book an Appointment</h1>
+            <p>{{ $property->property_name }}</p>
+
+            <form method="POST" action="{{ route('appointments.store', $property) }}">
+                @csrf
+                @if ($referralCode)
+                    <input type="hidden" name="ref" value="{{ $referralCode->code }}">
+                @endif
+
+                <!-- Automatically locked to the correct listing/referral professional's assignment ID -->
+                <input type="hidden" name="assign_id" value="{{ $selectedAssignmentId }}">
+
+                <!-- Display info to user so they know who they are booking with -->
+                <div class="form-group mb-3">
+                    <label>Professional</label>
+                    <input type="text" 
+                        class="form-control" 
+                        value="{{ $contactUser?->name ?? 'Default Listing Agent' }} ({{ $contactUser?->role_name ?? 'Agent' }})" 
+                        disabled 
+                        readonly>
+                    <small class="text-muted">This appointment is automatically routed to the agent handling this listing.</small>
+                </div>
+
+                <label>Name<input name="contact_name" required value="{{ auth()->user()->name ?? '' }}"></label>
+                <label>Contact number<input name="contact_number" required value="{{ auth()->user()->contact_number ?? '' }}"></label>
+                <label>Email<input type="email" name="contact_email" required value="{{ auth()->user()->email ?? '' }}"></label>
+                
+                <label>Appointment type
+                    <select name="appointment_type" required>
+                        <option>Property viewing</option>
+                        <option>Consultation</option>
+                        <option>Site visit</option>
+                    </select>
+                </label>
+                
+                <label>Date<input type="date" name="preferred_date" min="{{ now()->toDateString() }}" required></label>
+                <label>Time<input type="time" name="preferred_time" required></label>
+                <label>Notes<textarea name="additional_note" rows="4"></textarea></label>
+                
+                <button type="submit">Request appointment</button>
+            </form>
         </div>
     </div>
-</div>
+</article>
 @endsection
 
 @push('scripts')
-    <script>
-        document.getElementById('referralProfessionalSelect')?.addEventListener('change', function () {
-            const option = this.selectedOptions[0];
-            const recipient = document.getElementById('referralMessageRecipient');
-            const appointmentLink = document.getElementById('referralAppointmentLink');
-            const contactName = document.getElementById('referralContactName');
-            const contactRole = document.getElementById('referralContactRole');
-            const contactEmail = document.getElementById('referralContactEmail');
-
-            if (recipient) recipient.value = option.value;
-            if (contactName) contactName.textContent = option.dataset.name;
-            if (contactRole) contactRole.textContent = option.dataset.role;
-            if (contactEmail) contactEmail.textContent = option.dataset.email;
-            if (appointmentLink) {
-                const url = new URL(appointmentLink.href);
-                url.searchParams.set('assign_id', option.dataset.assignmentId);
-                appointmentLink.href = url.toString();
-            }
-        });
-    </script>
+    <script src="{{ asset('js/properties.js') }}"></script>
 @endpush

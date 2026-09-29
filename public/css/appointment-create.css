@@ -1,7 +1,107 @@
-.appointment-create-page { max-width: 620px; margin: 0 auto; padding: 8px; }
-.appointment-create-page h1 { margin: 16px 0 4px; color: var(--color-text); }
-.appointment-create-page p { color: var(--color-text-muted); }
-.appointment-create-page form { display: grid; gap: 12px; margin-top: 22px; padding: 24px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
-.appointment-create-page label { display: grid; gap: 6px; color: var(--color-text); font-size: 13px; font-weight: 700; }
-.appointment-create-page input, .appointment-create-page select, .appointment-create-page textarea { padding: 10px; border: 1px solid var(--color-border); border-radius: 7px; background: var(--color-body); }
-.appointment-create-page button { padding: 12px; border: 0; border-radius: 7px; background: var(--color-primary); color: #fff; cursor: pointer; font-weight: 700; }
+.appointment-create-page { 
+    max-width: 900px;
+    margin: 0 auto; 
+    padding: 4px; 
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.appointment-create-page h1 { 
+    margin: 8px 0 2px; 
+    color: var(--color-text); 
+    font-size: 1.4rem;
+}
+
+.appointment-create-page p { 
+    color: var(--color-text-muted); 
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.appointment-create-page form { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; /* Reduced gap to save vertical space */
+    margin-top: 10px; 
+    padding: 16px; /* Reduced padding */
+    border: 1px solid var(--color-border); 
+    border-radius: 12px; 
+    background: var(--color-surface); 
+}
+
+/* Changes label to a horizontal row with label text on the left */
+.appointment-create-page label { 
+    display: grid; 
+    grid-template-columns: 160px 1fr; 
+    align-items: center; 
+    gap: 12px; 
+    color: var(--color-text); 
+    font-size: 13px; 
+    font-weight: 700; 
+    width: 100%;
+}
+
+.appointment-create-page input, 
+.appointment-create-page select, 
+.appointment-create-page textarea { 
+    padding: 8px 12px; /* Slightly tighter padding for inputs */
+    border: 1px solid var(--color-border); 
+    border-radius: 7px; 
+    background: var(--color-body); 
+    width: 100%;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.appointment-create-page textarea {
+    resize: none;
+    height: 60px; /* Restricts textarea height to prevent it from overflowing */
+}
+
+.appointment-create-page button { 
+    padding: 10px; 
+    border: 0; 
+    border-radius: 7px; 
+    background: var(--color-primary); 
+    color: #fff; 
+    cursor: pointer; 
+    font-weight: 700; 
+    font-size: 14px;
+    width: 100%;
+    margin-top: 4px;
+}
+
+.modal-overlay {
+    display: none; 
+    position: fixed; 
+    inset: 0; 
+    background: rgba(0, 0, 0, 0.5); 
+    z-index: 1000; 
+    align-items: center; 
+    justify-content: center;
+}
+
+.modal-overlay.active {
+    display: flex; 
+}
+
+.modal-content.appointment-create-page {
+    background: white; 
+    padding: 1.5rem; 
+    border-radius: 8px; 
+    max-width: 900px; 
+    width: 100%; 
+    position: relative; 
+    height: auto;
+    overflow-y: visible;
+}
+
+.modal-content.appointment-create-page button[type="button"] {
+    position: absolute; 
+    top: 1rem; 
+    right: 1rem; 
+    background: none; 
+    border: none; 
+    font-size: 1.5rem; 
+    cursor: pointer;
+}

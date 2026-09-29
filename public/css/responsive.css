@@ -14,10 +14,12 @@
 
 @media (max-width: 768px) {
     /* Public client navigation becomes a compact, keyboard-operable dropdown. */
-    .landing-nav { min-height: 68px; }
-    .logo-container { position: relative; min-height: 68px; padding: 8px 14px; }
-    .landing-img { width: 112px; height: auto; }
-    .logo-container .right { display: flex; align-items: center; gap: 10px; }
+    .landing-nav { height: 68px; min-height: 68px; }
+    .logo-container { position: relative; min-width: 0; min-height: 68px; gap: 10px; padding: 0 14px; }
+    .logo-container .left { height: auto; flex: 0 0 auto; margin: 0; }
+    .landing-img { width: 60px; height: 58px; max-width: 100%; border-radius: 8px; object-fit: contain; }
+    .logo-container .right { display: flex; min-width: 0; flex: 0 0 auto; align-items: center; gap: 8px; padding-right: 0; }
+    .logo-container .auth-action { display: flex; flex: 0 0 auto; align-items: center; }
     .mobile-nav-toggle { display: inline-grid; width: 42px; height: 42px; place-items: center; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface); color: var(--color-text); cursor: pointer; }
     .mobile-nav-toggle .lucide-icon { width: 20px; height: 20px; }
     .landing-nav-links { position: absolute; top: calc(100% - 1px); right: 12px; z-index: 1200; display: none; min-width: 210px; padding: 8px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: 0 16px 36px rgba(15, 23, 42, .18); }
@@ -99,7 +101,7 @@
 
 @media (max-width: 520px) {
     .logo-container { padding-right: 10px; padding-left: 10px; }
-    .landing-img { width: 72px; }
+    .landing-img { width: 56px; height: 54px; }
     .logo-container .right { gap: 7px; }
     .login-btn { height: 38px; padding: 0 11px; font-size: 13px; }
     .mobile-nav-toggle { width: 38px; height: 38px; }
@@ -110,7 +112,7 @@
     .hero-section { min-height: 76vh; padding: 56px 22px; }
     .hero-content { max-width: 100%; }
     .map-search-section { padding: 48px 12px 0; }
-    .properties { padding: 80px 12px 44px; }
+    .properties { padding: 84px 12px 44px; }
     .properties .media { height: 180px; }
     .properties .lifestyle-content { padding: 20px 18px 22px; }
     .properties .lifestyle-content h2 { font-size: 1.45rem; }
@@ -122,13 +124,23 @@
     .map-search-btn { height: 40px; padding: 0 12px; }
     .map-container-wrapper { min-height: 320px; }
     .property-map { min-height: 320px; }
-    .top-agents-section, .agents-directory-section, .properties { padding: 44px 12px; }
+    .top-agents-section { padding: 84px 12px 12px; }
+    .agents-directory-section { padding: 12px 12px 44px; }
+    .properties { padding-top: 84px; }
     .top-agents-container { padding: 16px; }
     .top-agents-track { justify-content: flex-start; overflow-x: auto; }
     .top-agents-track .agent-highlight-card { flex: 0 0 82%; width: 82%; }
     .agent-search-toolbar { display: grid; grid-template-columns: minmax(0, 1fr); }
     .agents-grid, .property-cards-grid, .profile-listings-grid, .managed-agents-grid { grid-template-columns: minmax(0, 1fr); }
-    .professional-profile-page, .property-details-page { padding: 14px 12px; }
+    .professional-profile-page { padding: 84px 12px 40px; }
+    .property-details-page { padding: 84px 12px 40px; }
+    .property-details-page > .row { margin-right: 0; margin-left: 0; }
+    .property-details-page > .row > .col-lg-8,
+    .property-details-page > .row > .col-lg-4 { flex: 0 0 100%; width: 100%; max-width: 100%; min-width: 0; }
+    .property-details-page .panel.sidebar { position: static; width: 100%; min-width: 0; }
+    .property-details-page .panel .d-flex.justify-content-around { justify-content: flex-start !important; flex-wrap: wrap; gap: 12px; }
+    .property-details-page .panel .d-flex.justify-content-around > span { flex: 1 1 88px; text-align: center; }
+    .property-details-page .amenities { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .professional-summary, .profile-content-section { padding: 18px; }
     .dashboard-content { gap: 12px; }
     .stats-section, .report-stat-grid, .metrics-grid { grid-template-columns: minmax(0, 1fr); }

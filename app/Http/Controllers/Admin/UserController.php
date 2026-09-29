@@ -7,12 +7,8 @@ use App\Models\User;
 use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -54,6 +50,7 @@ class UserController extends Controller
             'email' => 'required|email',
             'role_name' => 'required|in:Lead Broker,Admin,Broker,Agent',
             'account_status' => 'required|in:Active,Inactive,Suspended',
+            'password' => 'required|string|min:8',
             'credential_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
         unset($validated['credential_document']);
@@ -65,7 +62,8 @@ class UserController extends Controller
             ]);
         }
 
-        $validated['password'] = Hash::make(Str::random(64));
+        // Hash the password typed by the admin in the modal box
+        $validated['password'] = Hash::make($validated['password']);
 
         if ($existingUser) {
             $existingUser->restore();
@@ -80,43 +78,9 @@ class UserController extends Controller
             $user->professionalProfile()->updateOrCreate([], ['document_file' => $path]);
         }
 
-        $setupToken = Str::random(64);
-        DB::table('account_password_setup_tokens')->updateOrInsert(
-            ['user_id' => $user->user_id],
-            [
-                'token_hash' => hash('sha256', $setupToken),
-                'expires_at' => now()->addDay(),
-                'created_at' => now(),
-            ]
-        );
-        $setupUrl = URL::temporarySignedRoute(
-            'account.password-setup.show',
-            now()->addDay(),
-            ['user' => $user->user_id, 'token' => $setupToken]
-        );
-
-        $accountEmailSent = true;
-
-        try {
-            Mail::raw(
-                "Hello {$user->name},\n\nYour LJS Realty account has been created.\n\nLogin email: {$user->email}\nRole: {$user->role_name}\n\nSet your password using this one-time link within 24 hours:\n{$setupUrl}",
-                function ($message) use ($user) {
-                    $message->to($user->email, $user->name)->subject('Set up your LJS Realty account');
-                }
-            );
-        } catch (\Throwable $exception) {
-            $accountEmailSent = false;
-            Log::warning('New-user email could not be sent.', [
-                'user_id' => $user->user_id,
-                'error' => $exception->getMessage(),
-            ]);
-        }
-
         return redirect()->route('admin.users.index')->with(
-            $accountEmailSent ? 'success' : 'warning',
-            $accountEmailSent
-                ? 'User created and account details emailed successfully.'
-                : 'User created, but the password setup email could not be sent. Check the mail configuration and resend the setup link.'
+            'success', 
+            'User created successfully with the provided initial password.'
         );
     }
 

@@ -302,6 +302,7 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
         'appointments' => 'pages.appointments',
         'review' => 'pages.reviews',
         'settings' => 'pages.settings',
+        'client-profile' => 'customer.client-profile',
     ];
     $pageView = $sharedPageViews[$page] ?? $acting . '.' . $acting . '-' . str_replace('_', '-', $page);
 

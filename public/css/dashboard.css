@@ -505,3 +505,34 @@
 .appointment { background: #ec4899; }
 .broker { background: #14b8a6; }
 .status { background: #22c55e; }
+
+/* Ensure calendar cells are positioned so the absolute tooltip aligns properly */
+.calendar-cell {
+    position: relative;
+}
+
+/* Custom Tooltip Card */
+.calendar-cell .custom-day-tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 105%; /* Positions it right above the cell */
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b; /* Dark modern theme */
+    color: #ffffff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    z-index: 100;
+    pointer-events: none;
+    transition: opacity 0.15s ease-in-out, visibility 0.15s ease-in-out;
+}
+
+/* Show tooltip when hovering over the cell */
+.calendar-cell:hover .custom-day-tooltip {
+    visibility: visible;
+    opacity: 1;
+}

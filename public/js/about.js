@@ -35,3 +35,43 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 50);
     }
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const cards = document.querySelectorAll('.contact-icon-card');
+
+    cards.forEach(card => {
+        // When clicked, lock it open or open the link if already active
+        card.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isActive = this.classList.contains('active');
+            
+            // Close all others first
+            cards.forEach(c => c.classList.remove('active'));
+
+            if (!isActive) {
+                // Lock this one open
+                this.classList.add('active');
+            } else {
+                // If clicked again when already active, trigger link action
+                const link = this.getAttribute('data-link');
+                if (link) {
+                    if (this.getAttribute('data-external')) {
+                        window.open(link, '_blank');
+                    } else {
+                        window.location.href = link;
+                    }
+                }
+            }
+        });
+
+        // Hovering over ANY card clears active states so hover takes over seamlessly
+        card.addEventListener('mouseenter', function () {
+            cards.forEach(c => c.classList.remove('active'));
+        });
+    });
+
+    // Clicking outside closes all active/locked cards
+    document.addEventListener('click', function () {
+        cards.forEach(c => c.classList.remove('active'));
+    });
+});

@@ -7,7 +7,7 @@
                 </span>
                 <div>
                     <p class="page-label-title">{{ $pageLabel }}</p>
-                    <p class="page-label-subtitle">Welcome back</p>
+                    <p class="page-label-subtitle">Welcome back, {{ Auth::user()->name ?? 'User' }}</p>
                 </div>
             </div>
         {{-- @else

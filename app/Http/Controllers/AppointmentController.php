@@ -142,9 +142,29 @@ class AppointmentController extends Controller
 
 			$assignment = $assignmentQuery->firstOrFail();
 		} else {
-			$assignment = ! empty($validated['assign_id'])
-				? $property->assignments()->where('assign_id', $validated['assign_id'])->where('status', 'Approved')->firstOrFail()
-				: $property->assignments()->where('status', 'Approved')->first();
+			// 1. If an assign_id was submitted explicitly, use it
+            if (! empty($validated['assign_id'])) {
+                $assignment = $property->assignments()
+                    ->where('assign_id', $validated['assign_id'])
+                    ->where('status', 'Approved')
+                    ->firstOrFail();
+            } else {
+                // 2. Automatically look for an assignment belonging to the property's direct user/owner first
+                $assignment = null;
+                if ($property->user_id) {
+                    $assignment = $property->assignments()
+                        ->where('user_id', $property->user_id)
+                        ->where('status', 'Approved')
+                        ->first();
+                }
+
+                // 3. If the owner has no direct assignment, fallback to the first approved assignment
+                if (!$assignment) {
+                    $assignment = $property->assignments()
+                        ->where('status', 'Approved')
+                        ->first();
+                }
+            }
 		}
 
 		abort_unless($assignment, 422);
@@ -186,20 +206,47 @@ class AppointmentController extends Controller
 	}
 
 	public function blockDate(Request $request)
-	{
-		$user = Auth::user();
-		if (! ($user instanceof User)) abort(403);
-		abort_unless(in_array($user->actingRole(), ['admin', 'broker', 'agent'], true), 403);
+    {
+        $user = Auth::user();
+        if (! ($user instanceof User)) abort(403);
+        
+        // Ensure authorized roles can block dates
+        abort_unless(in_array($user->actingRole(), ['admin', 'broker', 'agent', 'lead_broker'], true), 403);
 
-		$validated = $request->validate([
-			'date' => ['required', 'date'],
-			'start_time' => ['nullable', 'date_format:H:i'],
-			'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
-			'reason' => ['nullable', 'string', 'max:255'],
-		]);
+        $validated = $request->validate([
+            'date' => ['required', 'date'],
+            'start_time' => ['nullable', 'date_format:H:i'],
+            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'reason' => ['nullable', 'string', 'max:255'],
+        ]);
 
-		$user->blockedDates()->create($validated);
+        // 1. Create the blocked date/time record
+        $user->blockedDates()->create($validated);
 
-		return redirect()->back()->with('success', 'Date blocked successfully.');
-	}
+        // 2. Format details for the notification body
+        $timeInfo = !empty($validated['start_time']) 
+            ? ' from ' . $validated['start_time'] . ' to ' . ($validated['end_time'] ?? 'onwards') 
+            : ' for the whole day';
+            
+        $reasonText = !empty($validated['reason']) ? ' Reason: ' . $validated['reason'] : '';
+
+        // 3. Find other team members to notify
+        $recipients = User::where('user_id', '!=', $user->user_id)->get()->filter(function ($recipient) {
+            return in_array($recipient->actingRole(), ['admin', 'broker', 'agent', 'lead_broker'], true);
+        });
+
+        // 4. Create notifications using your exact AppNotification fillable schema
+        foreach ($recipients as $recipient) {
+            \App\Models\AppNotification::create([
+                'user_id' => $recipient->user_id,
+                'type'    => 'team',
+                'title'   => 'Schedule Blocked',
+                'body'    => $user->name . ' blocked off ' . $validated['date'] . $timeInfo . '.' . $reasonText,
+                'url'     => null, // Optional: add a link if your calendar view has a specific URL
+                'read_at' => null, // Unread by default
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Date blocked successfully and team notified.');
+    }
 }

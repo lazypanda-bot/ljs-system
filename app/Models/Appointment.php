@@ -26,10 +26,10 @@ class Appointment extends Model
         'appointment_status',
     ];
 
-    protected $dates = [
-        'preferred_date',
-        'created_at',
-        'updated_at',
+    protected $casts = [
+        'preferred_date' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**

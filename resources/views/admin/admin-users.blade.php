@@ -46,8 +46,17 @@
                 </button>
             </div>
 
-            <!-- Add User Modal -->
+            <!-- Add New User Modal -->
             <div class="au-modal-overlay" id="addUserModalOverlay">
+                {{-- @if ($errors->any())
+                    <div style="color: red; margin-bottom: 15px;">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif --}}
                 <div class="au-form-card">
                     <button type="button" class="au-modal-close" id="closeAddUserModal" aria-label="Close">&times;</button>
                     <h3>Add New User</h3>
@@ -65,6 +74,14 @@
                                     <label for="email" class="form-label">Email Address *</label>
                                     <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" placeholder="Enter email address" required>
                                 </div>
+                                <div class="mb-3"> 
+                                    <label for="status" class="form-label">Status *</label>
+                                    <select class="form-select" id="status" name="account_status" required>
+                                        <option value="">Select a status</option>
+                                        <option value="Active" {{ old('account_status') === 'Active' ? 'selected' : '' }}>Active</option>
+                                        <option value="Inactive" {{ old('account_status') === 'Inactive' ? 'selected' : '' }}>Inactive</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <!-- Account Information -->
@@ -80,8 +97,13 @@
                                         <option value="Agent" {{ old('role_name') === 'Agent' ? 'selected' : '' }}>Agent</option>
                                     </select>
                                 </div>
+
+                                <!-- Initial Password Input Field -->
                                 <div class="mb-3">
-                                     <p class="text-muted">The user will receive a one-time link to set their password.</p>
+                                    <label for="password" class="form-label">Initial Password *</label>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter initial password" required>
+                                </div>
+
                                 <div class="mb-3">
                                     <label for="credentialDocument" class="form-label">Credential document</label>
                                     <input type="file" class="form-control" id="credentialDocument" name="credential_document" accept=".pdf,.jpg,.jpeg,.png">
@@ -89,30 +111,10 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Additional Information -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="status" class="form-label">Status *</label>
-                                    <select class="form-select" id="status" name="account_status" required>
-                                        <option value="Active" {{ old('account_status', 'Active') === 'Active' ? 'selected' : '' }}>Active</option>
-                                        <option value="Inactive" {{ old('account_status') === 'Inactive' ? 'selected' : '' }}>Inactive</option>
-                                        <option value="Suspended" {{ old('account_status') === 'Suspended' ? 'selected' : '' }}>Suspended</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="dateJoined" class="form-label">Date Joined</label>
-                                    <input type="date" class="form-control" id="dateJoined" name="date_joined">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="au-form-actions">
-                            <button type="submit" class="au-saveuser-btn">Save User</button>
-                            <button type="button" class="au-canceluser-btn" id="cancelAddUserForm">Cancel</button>
+                        
+                        <!-- Form Submit Buttons (Ensure you have your submit button here) -->
+                        <div class="mt-3 text-end">
+                            <button type="submit" class="btn btn-primary">Create User</button>
                         </div>
                     </form>
                 </div>

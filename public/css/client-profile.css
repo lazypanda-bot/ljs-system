@@ -1,0 +1,96 @@
+.profile-container {
+    padding: 30px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.profile-card {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+}
+
+.profile-header-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--color-text);
+}
+
+.profile-avatar-wrap {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile-avatar-box {
+    width: 70px;
+    height: 70px;
+    font-size: 24px;
+}
+
+.profile-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.profile-form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.profile-form-group input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+}
+
+.profile-submit-btn {
+    background: var(--color-primary);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.profile-appointment-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-badge-pending {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.profile-badge-completed {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.profile-badge-cancelled {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    background: #fee2e2;
+    color: #b91c1c;
+}

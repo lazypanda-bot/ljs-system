@@ -433,55 +433,60 @@ class PropertyController extends Controller
     }
 
     // VIEW DETAILS
-    public function show($id, Request $request)
-    {
-        // Fetch the property with its related images, details, and user/agent
-        $property = Property::with(['images', 'details', 'user'])->findOrFail($id);
-        $referralCode = null;
+   public function show($id, Request $request)
+{
+    $property = Property::with(['images', 'details', 'user', 'assignments.user'])->findOrFail($id);
+    $referralCode = null;
 
-        if ($request->filled('ref')) {
-            $referralCode = ReferralCode::query()
-                ->with('user')
-                ->where('code', $request->query('ref'))
-                ->where('property_id', $property->property_id)
-                ->firstOrFail();
-            abort_unless($referralCode->user?->account_status === 'Active', 404);
-        }
-
-        $isAdminListing = $property->listing_mode === 'admin';
-        $contactProfessionals = collect();
-        $selectedContactAssignment = null;
-
-        if ($referralCode && $isAdminListing) {
-            $contactProfessionals = $property->assignments()
-                ->where('status', 'Approved')
-                ->whereHas('user', fn ($query) => $query->where('account_status', 'Active'))
-                ->with('user')
-                ->get();
-            $selectedContactAssignment = $contactProfessionals->firstWhere('user_id', $referralCode->user_id)
-                ?? $contactProfessionals->first();
-        }
-
-        $contactUser = $selectedContactAssignment?->user ?? $referralCode?->user ?? $property->user;
-        $selectedAssignmentId = $selectedContactAssignment?->assign_id;
-
-        if ($property->approval_status !== 'Approved') {
-            $viewer = Auth::user();
-            abort_unless(
-                $viewer instanceof User
-                    && ($viewer->actingRole() === 'admin' || $property->user_id === $viewer->user_id),
-                404
-            );
-        }
-
-        return view('customer.property-details', compact(
-            'property',
-            'referralCode',
-            'isAdminListing',
-            'contactProfessionals',
-            'selectedContactAssignment',
-            'contactUser',
-            'selectedAssignmentId'
-        ));
+    if ($request->filled('ref')) {
+        $referralCode = ReferralCode::query()
+            ->with('user')
+            ->where('code', $request->query('ref'))
+            ->where('property_id', $property->property_id)
+            ->firstOrFail();
+        abort_unless($referralCode->user?->account_status === 'Active', 404);
     }
+
+    $isAdminListing = $property->listing_mode === 'admin';
+    
+    // Always fetch approved professional assignments for this property
+    $contactProfessionals = $property->assignments()
+        ->where('status', 'Approved')
+        ->whereHas('user', fn ($query) => $query->where('account_status', 'Active'))
+        ->with('user')
+        ->get();
+
+    $selectedContactAssignment = null;
+
+    if ($referralCode) {
+        $selectedContactAssignment = $contactProfessionals->firstWhere('user_id', $referralCode->user_id);
+    }
+
+    // Fallback: If no referral assignment, pick the first available assignment or default to the listing user
+    if (!$selectedContactAssignment) {
+        $selectedContactAssignment = $contactProfessionals->first();
+    }
+
+    $contactUser = $selectedContactAssignment?->user ?? $referralCode?->user ?? $property->user;
+    $selectedAssignmentId = $selectedContactAssignment?->assign_id;
+
+    if ($property->approval_status !== 'Approved') {
+        $viewer = Auth::user();
+        abort_unless(
+            $viewer instanceof User
+                && ($viewer->actingRole() === 'admin' || $property->user_id === $viewer->user_id),
+            404
+        );
+    }
+
+    return view('customer.property-details', compact(
+        'property',
+        'referralCode',
+        'isAdminListing',
+        'contactProfessionals',
+        'selectedContactAssignment',
+        'contactUser',
+        'selectedAssignmentId'
+    ));
+}
 }
