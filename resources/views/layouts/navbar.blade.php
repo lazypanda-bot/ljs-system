@@ -3,7 +3,7 @@
         @if(!empty($pageLabel))
             <div class="page-label">
                 <span class="page-icon" aria-hidden="true">
-                    <i class="fas fa-chart-pie"></i>
+                    <i class="fas {{ $pageIcon ?? 'fa-chart-pie' }}"></i>
                 </span>
                 <div>
                     <p class="page-label-title">{{ $pageLabel }}</p>
@@ -28,8 +28,11 @@
                 @if(!empty($roleToggle) && $roleToggle)
                     <form method="POST" action="{{ route('lead.toggle') }}" class="role-toggle-form">
                         @csrf
-                        <button type="submit" class="role-toggle-btn" aria-label="Toggle role">
-                            {{ ucfirst($actingAs ?? 'broker') }} view
+                        @php($activeRole = $actingAs ?? 'broker')
+                        <button type="submit" class="role-toggle-btn" data-active-role="{{ $activeRole }}" aria-label="Switch from {{ ucfirst($activeRole) }} to {{ $activeRole === 'admin' ? 'Broker' : 'Admin' }} view">
+                            <span class="role-toggle-label role-toggle-admin">Admin</span>
+                            <span class="role-toggle-track" aria-hidden="true"><span class="role-toggle-thumb"></span></span>
+                            <span class="role-toggle-label role-toggle-broker">Broker</span>
                         </button>
                     </form>
                 @endif

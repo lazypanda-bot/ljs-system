@@ -30,6 +30,7 @@ class User extends Authenticatable
         'profile_photo',
         'account_status',
         'role_name',
+        'timezone',
     ];
 
     /**
@@ -140,7 +141,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the appointments for this user.
+     * Staff roles that maintain a professional profile (license, bio, credentials).
+     */
+    public function isProfessional(): bool
+    {
+        return in_array($this->role_name, ['Lead Broker', 'Broker', 'Agent'], true);
+    }
+
+    /**
+     * Appointments assigned to this user as the listing professional.
      */
     public function appointments()
     {
@@ -152,6 +161,14 @@ class User extends Authenticatable
             'user_id',
             'assign_id'
         );
+    }
+
+    /**
+     * Viewing requests this client submitted (matched by contact email).
+     */
+    public function bookedAppointments()
+    {
+        return $this->hasMany(Appointment::class, 'client_id', 'user_id');
     }
 
     /**

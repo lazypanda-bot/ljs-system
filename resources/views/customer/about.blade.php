@@ -1,186 +1,181 @@
 @extends('layouts.app')
 
-@section('title', 'About Us - LJS Realty and Brokerage')
+@section('title', 'About LJS Realty and Brokerage')
 
 @section('content')
-    <section class="about-page-wrapper">
-        <!-- Hero Section acting as the full image banner -->
-        <div class="about-hero-section">
-            <div class="about-hero-overlay"></div>
-            <div class="container about-hero-content">
-                <span class="about-tag">ABOUT US</span>
-                <h1>LJS Realty & Brokerage</h1>
-                <div class="about-meta-info">
-                    <span><i data-lucide="map-pin" class="about-meta-icon" aria-hidden="true"></i> Cebu City, Philippines</span>
-                    <span><i data-lucide="calendar-days" class="about-meta-icon" aria-hidden="true"></i> Established in 2012</span>
-                    <span><i data-lucide="trending-up" class="about-meta-icon" aria-hidden="true"></i> 1,200+ Properties Sold</span>
-                </div>
+    <div class="business-about-page">
+        <section class="business-about-hero" aria-labelledby="aboutTitle">
+            <div class="business-about-hero-content">
+                <span class="business-eyebrow">LOCAL REAL ESTATE GUIDANCE</span>
+                <h1 id="aboutTitle">LJS Realty and Brokerage</h1>
+                <p>Helping people explore property opportunities in Cebu City, Philippines.</p>
             </div>
-        </div>
+            <span class="business-hero-caption">Property search · Buying · Selling · Leasing</span>
+        </section>
 
-        <section class="company-section">
-            <div class="company-container">        
-                <div class="company-image-wrapper">
-                    <div class="dot-pattern top-dots"></div>
-                    <div class="image-card">
-                        <img src="images/day.png" alt="image">
-                    </div>
-                </div>
-
-                <div class="company-content-wrapper">
-                    <div class="company-text-side">
-                        <span class="company-tag">Our Company</span>
-                        <p>Company</p>
-                        <p>Company</p>
-                    </div>
+        <section class="about-company-section" aria-labelledby="aboutCompanyTitle">
+            <div class="about-company-identity">
+                <img class="about-company-logo" src="{{ asset('images/ljs-logo.jpg') }}" alt="LJS Realty and Brokerage logo">
+                <div class="about-company-index">01 <span>OUR COMPANY</span></div>
+            </div>
+            <div class="about-company-copy">
+                <span class="about-page-eyebrow">Rooted in Cebu City</span>
+                <h2 id="aboutCompanyTitle">Local guidance for real property decisions.</h2>
+                <p>LJS Realty and Brokerage helps people explore property opportunities in Cebu City, Philippines. We bring listings and real estate professionals together so clients can compare options and decide what works for them.</p>
+                <p>From the first search to a conversation or viewing, our focus is clear information, thoughtful guidance, and a personal next step.</p>
+                <div class="about-company-values">
+                    <span><i data-lucide="map-pin" aria-hidden="true"></i> Local perspective</span>
+                    <span><i data-lucide="messages-square" aria-hidden="true"></i> Personal guidance</span>
+                    <span><i data-lucide="compass" aria-hidden="true"></i> Clear next steps</span>
                 </div>
             </div>
         </section>
 
-        <section class="about-offer-section">
-            <div class="container">
-                <div class="about-offer-header-row">
-                    <div class="about-offer-title-wrap">
-                        <h2 class="about-section-heading">What We Offer</h2>
-                        <div class="about-heading-line"></div>
-                    </div>
-                    <p class="about-offer-description">
-                        Etiam sit amet fringilla lacus. Pellentesque suscipit ante at ullamcorper pulvinar neque porttitor integer lectus.
-                    </p>
+        <section class="about-owner-note" aria-labelledby="aboutOwnerTitle">
+            <div class="about-owner-inner">
+                <div class="about-owner-symbol"><i data-lucide="quote" aria-hidden="true"></i></div>
+                <div class="about-owner-copy">
+                    <span class="about-owner-eyebrow">A NOTE FROM THE OWNERS</span>
+                    <h2 id="aboutOwnerTitle">Good guidance begins with listening.</h2>
+                    <blockquote>We believe every property decision deserves care, clear information, and a personal approach. Our role is to listen to what matters to you, help you explore your options, and support your next step.</blockquote>
+                    <p class="about-owner-attribution"><span></span>Owners <small>LJS Realty and Brokerage</small></p>
                 </div>
-
-                <div class="about-offer-cards-grid">
-                    <div class="about-offer-card">
-                        <div class="about-offer-icon-wrap">
-                            <i data-lucide="house" class="about-offer-icon" aria-hidden="true"></i>
-                        </div>
-                        <h3>Property Selling</h3>
-                        <p>Sell your property for the best value. Our strategic marketing and expert negotiation ensure a smooth and profitable sale.</p>
-                    </div>
-
-                    <div class="about-offer-card">
-                        <div class="about-offer-icon-wrap">
-                            <i data-lucide="search" class="about-offer-icon" aria-hidden="true"></i>
-                        </div>
-                        <h3>Property Buying</h3>
-                        <p>Find your perfect property with our expert guidance. We help you discover the best options that match your needs and budget.</p>
-                    </div>
-
-                    <div class="about-offer-card">
-                        <div class="about-offer-icon-wrap">
-                            <i data-lucide="key-round" class="about-offer-icon" aria-hidden="true"></i>
-                        </div>
-                        <h3>Property Leasing</h3>
-                        <p>Looking to rent? We offer a wide selection of quality rental properties and hassle-free leasing solutions.</p>
-                    </div>
-                </div>
+                <figure class="about-owner-image">
+                    <img src="{{ asset('images/ljs-family.jpg') }}" alt="LJS Realty and Brokerage team gathered at a company event">
+                    <figcaption>Growing together in Cebu City</figcaption>
+                </figure>
             </div>
         </section>
 
-        <section class="about-work-section">
-            <div class="container">
-                <div class="about-work-grid">
-                    <div class="about-work-text">
-                        <h2>How we work?</h2>
-                        <p>Lorem ipsum dolor sit amet casume adipisini elit. Maximus ligula semper metus pellentesque mattis volutpat, lorem diam enim.</p>
-                    </div>
-                    <div class="about-steps-flex">
-                        <div class="about-step-item">
-                            <div class="about-step-icon"><i data-lucide="phone" aria-hidden="true"></i></div>
-                            <span><strong>1. Consultation</strong></span>
-                        </div>
-                        <div class="about-step-item">
-                            <div class="about-step-icon"><i data-lucide="search" aria-hidden="true"></i></div>
-                            <span><strong>2. Property Search</strong></span>
-                        </div>
-                        <div class="about-step-item">
-                            <div class="about-step-icon"><i data-lucide="package-check" aria-hidden="true"></i></div>
-                            <span><strong>3. Closing Deal</strong></span>
-                        </div>
-                    </div>
+        <section class="about-offer-section" aria-labelledby="aboutOfferTitle">
+            <div class="about-content-width">
+                <div class="about-section-heading">
+                    <span class="about-page-eyebrow">WHAT WE OFFER</span>
+                    <h2 id="aboutOfferTitle">The right support for your next move.</h2>
+                    <p>Explore, buy, sell, or lease with help from local real estate professionals.</p>
+                </div>
+                <div class="about-offer-grid">
+                    <article class="about-offer-card">
+                        <span class="about-offer-watermark"><i data-lucide="house" aria-hidden="true"></i></span>
+                        <span class="about-offer-number">01 / BUY</span>
+                        <h3>Find your place</h3>
+                        <p>Browse homes and developments, compare details, and connect with the listing professional.</p>
+                    </article>
+                    <article class="about-offer-card">
+                        <span class="about-offer-watermark"><i data-lucide="tag" aria-hidden="true"></i></span>
+                        <span class="about-offer-number">02 / SELL</span>
+                        <h3>Bring your property to market</h3>
+                        <p>Share your property with people looking for opportunities in Cebu and beyond.</p>
+                    </article>
+                    <article class="about-offer-card">
+                        <span class="about-offer-watermark"><i data-lucide="key-round" aria-hidden="true"></i></span>
+                        <span class="about-offer-number">03 / LEASE</span>
+                        <h3>Make a place yours</h3>
+                        <p>Explore rental options and coordinate questions or viewings with the listing contact.</p>
+                    </article>
                 </div>
             </div>
         </section>
 
-        <section class="about-cta-section">
-            <div class="container text-center">
-                <p>Take the next step toward your real estate goals. Explore our listings or connect with our brokers and agents for personalized assistance.</p>
-                <a href="{{ route('properties') }}" class="about-btn-explore">Explore Now</a>
-            </div>
-        </section>
-
-        <!-- Two-Column Contact Section -->
-        <section class="contact-page" aria-labelledby="contact-title">
-            <div class="contact-page-inner">
-                <div class="contact-container-split">
-                    
-                    <!-- Left Side Text Content -->
-                    <div class="contact-left-content">
-                        <span class="map-section-tag">GET IN TOUCH</span>
-                        <h2 id="contact-title">Contact Us</h2>
-                        <p>Our team is ready to help you find the right property.</p>
-                    </div>
-
-                    <!-- Right Side Interactive Expanding Buttons -->
-                    <div class="contact-right-buttons">
-                        <!-- Facebook -->
-                        <div class="contact-icon-card facebook" data-link="https://facebook.com" data-external="true">
-                            <div class="contact-icon-circle">
-                                <i data-lucide="facebook" aria-hidden="true"></i>
-                            </div>
-                            <div class="contact-text-label">
-                                <span class="label-title">Facebook</span>
-                                <span class="label-value">LJS Realty & Brokerage</span>
-                            </div>
-                        </div>
-
-                        <!-- Instagram -->
-                        <div class="contact-icon-card instagram" data-link="https://instagram.com" data-external="true">
-                            <div class="contact-icon-circle">
-                                <i data-lucide="instagram" aria-hidden="true"></i>
-                            </div>
-                            <div class="contact-text-label">
-                                <span class="label-title">Instagram</span>
-                                <span class="label-value">@ljsrealty</span>
-                            </div>
-                        </div>
-
-                        <!-- Phone -->
-                        <div class="contact-icon-card phone" data-link="tel:+639213456789">
-                            <div class="contact-icon-circle">
-                                <i data-lucide="phone" aria-hidden="true"></i>
-                            </div>
-                            <div class="contact-text-label">
-                                <span class="label-title">Phone</span>
-                                <span class="label-value">+63 921 345 6789</span>
-                            </div>
-                        </div>
-
-                        <!-- Email -->
-                        <div class="contact-icon-card email" data-link="mailto:ljsrealty@gmail.com">
-                            <div class="contact-icon-circle">
-                                <i data-lucide="mail" aria-hidden="true"></i>
-                            </div>
-                            <div class="contact-text-label">
-                                <span class="label-title">Email</span>
-                                <span class="label-value">ljsrealty@gmail.com</span>
-                            </div>
-                        </div>
-
-                        <!-- Address -->
-                        <div class="contact-icon-card address">
-                            <div class="contact-icon-circle">
-                                <i data-lucide="map-pin" aria-hidden="true"></i>
-                            </div>
-                            <div class="contact-text-label">
-                                <span class="label-title">Office Address</span>
-                                <span class="label-value">Unit 6 Labangon Town Center, Cebu City</span>
-                            </div>
-                        </div>
-                    </div>
-
+        <section class="about-journey-section" aria-labelledby="aboutJourneyTitle">
+            <div class="about-content-width">
+                <div class="about-section-heading">
+                    <span class="about-page-eyebrow">HOW WE CAN HELP</span>
+                    <h2 id="aboutJourneyTitle">From first search to next step.</h2>
+                </div>
+                <div class="about-journey-grid">
+                    <article class="about-journey-step"><span class="about-step-number">01</span><i data-lucide="search" aria-hidden="true"></i><h3>Find a property</h3><p>Explore listings and narrow your search by location, property type, and budget.</p></article>
+                    <article class="about-journey-step"><span class="about-step-number">02</span><i data-lucide="messages-square" aria-hidden="true"></i><h3>Talk it through</h3><p>Connect with the professional or listing administrator responsible for the property.</p></article>
+                    <article class="about-journey-step"><span class="about-step-number">03</span><i data-lucide="calendar-days" aria-hidden="true"></i><h3>Plan a viewing</h3><p>Request an appointment and coordinate the next step directly with the listing contact.</p></article>
                 </div>
             </div>
         </section>
-    </section>
+
+        <section class="business-about-cta">
+            <div><span class="business-eyebrow">START EXPLORING</span><h2>Your next move starts with the right listing.</h2></div>
+            <div class="business-about-actions"><a href="{{ route('properties') }}" class="business-primary-link">Browse properties</a><button type="button" class="business-secondary-link" id="openContactUsDialog">Contact Us</button></div>
+        </section>
+
+        <dialog class="about-contact-dialog" id="contactUsDialog" aria-labelledby="contactUsDialogTitle">
+            <div class="about-contact-dialog-header">
+                <div>
+                    <span class="about-page-eyebrow">GET IN TOUCH</span>
+                    <h2 id="contactUsDialogTitle">Contact LJS Realty</h2>
+                    <p>Choose the contact option that works for you.</p>
+                </div>
+                <button type="button" class="about-contact-dialog-close" aria-label="Close contact options"><i data-lucide="x" aria-hidden="true"></i></button>
+            </div>
+            <div class="about-contact-options">
+                @auth
+                    @if (Auth::user()->normalizedRole() === 'client')
+                        <button type="button" class="about-contact-option" data-contact-open-messages aria-label="Open messages to contact LJS Realty">
+                    @else
+                        <a class="about-contact-option" href="{{ route('messages.inbox') }}" aria-label="Open messages to contact LJS Realty">
+                    @endif
+                @else
+                    <button type="button" class="about-contact-option" data-open-login-modal data-contact-open-login aria-label="Sign in to message LJS Realty">
+                @endauth
+                    <span class="about-contact-option-copy"><strong>Email</strong><small>ljsrealty@gmail.com</small></span>
+                @auth
+                    @if (Auth::user()->normalizedRole() === 'client')
+                        </button>
+                    @else
+                        </a>
+                    @endif
+                @else
+                    </button>
+                @endauth
+                <div class="about-contact-option">
+                    <span class="about-contact-option-icon"><i data-lucide="phone" aria-hidden="true"></i></span>
+                    <span class="about-contact-option-copy"><strong>Phone</strong><small>+63 921 345 6789</small></span>
+                </div>
+                <address class="about-contact-option">
+                    <span class="about-contact-option-icon"><i data-lucide="map-pin" aria-hidden="true"></i></span>
+                    <span class="about-contact-option-copy"><strong>Office Address</strong><small>Unit 6 Labangon Town Center<br>Katipunan St, Cebu City</small></span>
+                </address>
+                <a class="about-contact-option about-contact-placeholder" href="" data-contact-placeholder>
+                    <span class="about-contact-option-icon"><i data-lucide="share-2" aria-hidden="true"></i></span>
+                    <span class="about-contact-option-copy"><strong>Messenger</strong></span>
+                </a>
+                <a class="about-contact-option about-contact-placeholder" href="" data-contact-placeholder aria-label="X">
+                    <span class="about-contact-option-icon"><span class="about-contact-x-mark" aria-hidden="true">X</span></span>
+                    <span class="about-contact-option-copy"><strong>X</strong></span>
+                </a>
+            </div>
+        </dialog>
+    </div>
 @endsection
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/company-pages.css') }}?v={{ filemtime(public_path('css/company-pages.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/about-page.css') }}?v={{ filemtime(public_path('css/about-page.css')) }}">
+@endpush
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dialog = document.getElementById('contactUsDialog');
+            const openButton = document.getElementById('openContactUsDialog');
+            const closeButton = dialog?.querySelector('.about-contact-dialog-close');
+
+            openButton?.addEventListener('click', () => dialog?.showModal());
+            closeButton?.addEventListener('click', () => dialog?.close());
+            dialog?.querySelector('[data-contact-open-login]')?.addEventListener('click', () => dialog.close());
+            dialog?.querySelector('[data-contact-open-messages]')?.addEventListener('click', () => {
+                dialog.close();
+                document.getElementById('clientMessagesButton')?.click();
+            });
+            dialog?.addEventListener('click', (event) => {
+                if (event.target === dialog) dialog.close();
+            });
+            dialog?.querySelectorAll('[data-contact-placeholder]').forEach((link) => {
+                link.addEventListener('click', (event) => {
+                    if (!link.getAttribute('href')) event.preventDefault();
+                });
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && dialog?.open) dialog.close();
+            });
+        });
+    </script>
+@endpush

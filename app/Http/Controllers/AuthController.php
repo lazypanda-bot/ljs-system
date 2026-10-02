@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -204,12 +203,32 @@ class AuthController extends Controller
 
         abort_unless($user instanceof User, 403);
 
-        $validated = $request->validate([
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->user_id . ',user_id'],
             'contact_number' => ['nullable', 'string', 'max:20'],
+            'timezone' => ['nullable', 'timezone'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-        ]);
+        ];
+
+        if ($user->isProfessional()) {
+            $rules['license_number'] = ['nullable', 'string', 'max:100'];
+            $rules['years_experience'] = ['nullable', 'integer', 'min:0', 'max:80'];
+            $rules['professional_bio'] = ['nullable', 'string', 'max:2000'];
+            $rules['credential_document'] = ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'];
+        }
+
+        $validated = $request->validate($rules);
+
+        $profileFields = [];
+        if ($user->isProfessional()) {
+            $profileFields = [
+                'license_number' => $validated['license_number'] ?? null,
+                'years_experience' => $validated['years_experience'] ?? null,
+                'professional_bio' => $validated['professional_bio'] ?? null,
+            ];
+            unset($validated['license_number'], $validated['years_experience'], $validated['professional_bio'], $validated['credential_document']);
+        }
 
         unset($validated['profile_photo']);
         $oldPhoto = $user->profile_photo;
@@ -223,7 +242,39 @@ class AuthController extends Controller
             Storage::disk('public')->delete($oldPhoto);
         }
 
+        if ($user->isProfessional()) {
+            if ($request->hasFile('credential_document')) {
+                $oldPath = $user->professionalProfile?->document_file;
+                $profileFields['document_file'] = $request->file('credential_document')->store('professional-credentials', 'local');
+                if ($oldPath && str_starts_with($oldPath, 'professional-credentials/')) {
+                    Storage::disk('local')->delete($oldPath);
+                }
+            }
+
+            $user->professionalProfile()->updateOrCreate([], $profileFields);
+        }
+
         return redirect()->back()->with('success', 'Profile details updated successfully.');
+    }
+
+    public function downloadOwnCredentials(Request $request)
+    {
+        $user = $request->user();
+        abort_unless($user instanceof User && $user->isProfessional(), 403);
+
+        $path = $user->professionalProfile?->document_file;
+        abort_unless($path && str_starts_with($path, 'professional-credentials/'), 404);
+        $credentialRoot = realpath(Storage::disk('local')->path('professional-credentials'));
+        $credentialPath = realpath(Storage::disk('local')->path($path));
+        abort_unless(
+            $credentialRoot
+                && $credentialPath
+                && str_starts_with($credentialPath, $credentialRoot . DIRECTORY_SEPARATOR)
+                && is_file($credentialPath),
+            404
+        );
+
+        return response()->download($credentialPath, basename($credentialPath));
     }
 
     public function updatePassword(Request $request)
@@ -239,50 +290,6 @@ class AuthController extends Controller
         $user->update(['password' => Hash::make($validated['password'])]);
 
         return redirect()->back()->with('success', 'Password updated successfully.');
-    }
-
-    public function showPasswordSetup(User $user, string $token)
-    {
-        $this->assertPasswordSetupToken($user, $token);
-
-        return view('auth.password-setup', compact('user', 'token'));
-    }
-
-    public function storePasswordSetup(Request $request, User $user, string $token)
-    {
-        $validated = $request->validate([
-            'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/'],
-        ]);
-
-        DB::transaction(function () use ($user, $token, $validated): void {
-            $setupToken = DB::table('account_password_setup_tokens')
-                ->where('user_id', $user->user_id)
-                ->lockForUpdate()
-                ->first();
-
-            abort_unless(
-                $setupToken
-                    && now()->lessThan($setupToken->expires_at)
-                    && hash_equals($setupToken->token_hash, hash('sha256', $token)),
-                404
-            );
-
-            $user->update(['password' => Hash::make($validated['password'])]);
-            DB::table('account_password_setup_tokens')->where('user_id', $user->user_id)->delete();
-        });
-
-        return redirect()->route('login')->with('status', 'Password set. You can now sign in.');
-    }
-
-    private function assertPasswordSetupToken(User $user, string $token): void
-    {
-        $setupToken = DB::table('account_password_setup_tokens')->where('user_id', $user->user_id)->first();
-        abort_unless(
-            $setupToken
-                && now()->lessThan($setupToken->expires_at)
-                && hash_equals($setupToken->token_hash, hash('sha256', $token)),
-            404
-        );
     }
 
     public function destroyAccount(Request $request)

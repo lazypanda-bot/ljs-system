@@ -1,18 +1,43 @@
 @extends('layouts.app')
 
-@section('title', 'Contact Us - LJS Realty and Brokerage')
+@section('title', 'Contact LJS Realty and Brokerage')
 
 @section('content')
-    <section class="contact-page" aria-labelledby="contact-title">
-        <div class="contact-page-inner">
-            <span class="map-section-tag">GET IN TOUCH</span>
-            <h1 id="contact-title">Contact Us</h1>
-            <p>Our team is ready to help you find the right property.</p>
-            <div class="contact-page-details">
-                <a href="tel:+639213456789">+63 921 345 6789</a>
-                <a href="mailto:ljsrealty@gmail.com">ljsrealty@gmail.com</a>
-                <address>Unit 6 Labangon Town Center<br>Katipunan St, Cebu City</address>
-            </div>
+    <div class="business-contact-page">
+        <header class="business-contact-heading">
+            <span class="business-eyebrow">GET IN TOUCH</span>
+            <h1>Let’s talk property.</h1>
+            <p>Ask about a listing, request a viewing, or send a general question to the LJS Realty and Brokerage team.</p>
+        </header>
+
+        <div class="business-contact-layout">
+            <section class="business-contact-details" aria-labelledby="contactDetailsTitle">
+                <h2 id="contactDetailsTitle">Contact details</h2>
+                <p class="business-contact-location">Cebu City, Philippines</p>
+                <a href="tel:+639213456789"><i data-lucide="phone" aria-hidden="true"></i><span><small>PHONE</small>+63 921 345 6789</span></a>
+                <a href="mailto:ljsrealty@gmail.com"><i data-lucide="mail" aria-hidden="true"></i><span><small>EMAIL</small>ljsrealty@gmail.com</span></a>
+                <address><i data-lucide="map-pin" aria-hidden="true"></i><span><small>OFFICE</small>Unit 6 Labangon Town Center<br>Katipunan St, Cebu City</span></address>
+            </section>
+
+            <form class="business-contact-form" method="POST" action="{{ route('contact.submit') }}">
+                @csrf
+                <h2>Send a message</h2>
+                <p>We’ll use your contact details to respond to your inquiry.</p>
+                @if (session('success'))<p class="business-contact-success" role="status">{{ session('success') }}</p>@endif
+                <label for="contactName">Your name</label><input id="contactName" name="name" value="{{ old('name') }}" autocomplete="name" maxlength="120" required>
+                @error('name')<span class="business-contact-error">{{ $message }}</span>@enderror
+                <label for="contactEmail">Email address</label><input id="contactEmail" type="email" name="email" value="{{ old('email') }}" autocomplete="email" maxlength="255" required>
+                @error('email')<span class="business-contact-error">{{ $message }}</span>@enderror
+                <label for="contactPhone">Phone <span>(optional)</span></label><input id="contactPhone" name="phone" value="{{ old('phone') }}" autocomplete="tel" maxlength="30">
+                @error('phone')<span class="business-contact-error">{{ $message }}</span>@enderror
+                <label for="contactMessage">How can we help?</label><textarea id="contactMessage" name="message" rows="5" maxlength="3000" required>{{ old('message') }}</textarea>
+                @error('message')<span class="business-contact-error">{{ $message }}</span>@enderror
+                <button type="submit">Send inquiry</button>
+            </form>
         </div>
-    </section>
+    </div>
 @endsection
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/company-pages.css') }}?v={{ filemtime(public_path('css/company-pages.css')) }}">
+@endpush

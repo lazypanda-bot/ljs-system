@@ -11,12 +11,12 @@
             title: 'Which lifestyle best describes you?',
             subtitle: 'This helps us understand what environment suits you best.',
             options: [
-                { value: 'nature_lover', icon: '&#127795;', label: 'Nature Lover', description: 'I enjoy peace, greenery, and open spaces.' },
-                { value: 'city_explorer', icon: '&#127961;', label: 'City Explorer', description: 'I love the buzz of city life and convenient access to everything.' },
-                { value: 'family_oriented', icon: '&#128106;', label: 'Family Oriented', description: 'I prioritize a safe, comfortable neighborhood for my family.' },
-                { value: 'work_business', icon: '&#128188;', label: 'Work & Business', description: 'I need easy access to business districts and work hubs.' },
-                { value: 'beach_lover', icon: '&#127958;', label: 'Beach Lover', description: 'I love coastal living and being close to the beach.' },
-                { value: 'peace_seeker', icon: '&#127968;', label: 'Peace Seeker', description: 'I prefer a quiet and relaxing environment.' },
+                { value: 'nature_lover', icon: 'trees', label: 'Nature Lover', description: 'I enjoy peace, greenery, and open spaces.' },
+                { value: 'city_explorer', icon: 'building-2', label: 'City Explorer', description: 'I love the buzz of city life and convenient access to everything.' },
+                { value: 'family_oriented', icon: 'users-round', label: 'Family Oriented', description: 'I prioritize a safe, comfortable neighborhood for my family.' },
+                { value: 'work_business', icon: 'briefcase-business', label: 'Work & Business', description: 'I need easy access to business districts and work hubs.' },
+                { value: 'beach_lover', icon: 'waves', label: 'Beach Lover', description: 'I love coastal living and being close to the beach.' },
+                { value: 'peace_seeker', icon: 'house', label: 'Peace Seeker', description: 'I prefer a quiet and relaxing environment.' },
             ],
         },
         {
@@ -25,11 +25,11 @@
             title: 'Where do you prefer to live?',
             subtitle: 'Pick the setting that feels most like home.',
             options: [
-                { value: 'near_coast', icon: '&#127958;', label: 'Near the Coast', description: 'Close to the beach and waterfront living.' },
-                { value: 'city_center', icon: '&#127961;', label: 'City Center', description: 'Right where the action is, close to everything.' },
-                { value: 'quiet_suburb', icon: '&#127968;', label: 'Quiet Suburb', description: 'A calm neighborhood away from the noise.' },
-                { value: 'business_district', icon: '&#128188;', label: 'Business District', description: 'Close to offices and commercial hubs.' },
-                { value: 'countryside', icon: '&#127795;', label: 'Countryside', description: 'Wide open spaces and a slower pace of life.' },
+                { value: 'near_coast', icon: 'waves', label: 'Near the Coast', description: 'Close to the beach and waterfront living.' },
+                { value: 'city_center', icon: 'building-2', label: 'City Center', description: 'Right where the action is, close to everything.' },
+                { value: 'quiet_suburb', icon: 'house', label: 'Quiet Suburb', description: 'A calm neighborhood away from the noise.' },
+                { value: 'business_district', icon: 'briefcase-business', label: 'Business District', description: 'Close to offices and commercial hubs.' },
+                { value: 'countryside', icon: 'trees', label: 'Countryside', description: 'Wide open spaces and a slower pace of life.' },
             ],
         },
         {
@@ -38,10 +38,10 @@
             title: 'What type of property?',
             subtitle: 'What are you looking to move into?',
             options: [
-                { value: 'House', icon: '&#127968;', label: 'House', description: 'A standalone home with its own lot.' },
-                { value: 'Condo', icon: '&#127961;', label: 'Condo', description: 'A unit within a condominium building.' },
-                { value: 'Townhouse', icon: '&#127960;', label: 'Townhouse', description: 'A multi-level home sharing walls with neighbors.' },
-                { value: 'Lot', icon: '&#127793;', label: 'Lot', description: 'Vacant land, ready to build on.' },
+                { value: 'House', icon: 'house', label: 'House', description: 'A standalone home with its own lot.' },
+                { value: 'Condo', icon: 'building-2', label: 'Condo', description: 'A unit within a condominium building.' },
+                { value: 'Townhouse', icon: 'warehouse', label: 'Townhouse', description: 'A multi-level home sharing walls with neighbors.' },
+                { value: 'Lot', icon: 'trees', label: 'Lot', description: 'Vacant land, ready to build on.' },
             ],
         },
         {
@@ -50,11 +50,11 @@
             title: "What's your budget?",
             subtitle: 'Select the range that fits you best.',
             options: [
-                { value: 'under_1m', icon: '&#8369;', label: 'Under ₱1M', description: 'Budget-friendly options.' },
-                { value: '1m_5m', icon: '&#8369;', label: '₱1M - ₱5M', description: 'Mid-range properties.' },
-                { value: '5m_10m', icon: '&#8369;', label: '₱5M - ₱10M', description: 'Upscale properties.' },
-                { value: '10m_20m', icon: '&#8369;', label: '₱10M - ₱20M', description: 'Premium properties.' },
-                { value: 'over_20m', icon: '&#8369;', label: '₱20M+', description: 'Luxury properties.' },
+                { value: 'under_1m', icon: 'wallet-cards', label: 'Under ₱1M', description: 'Budget-friendly options.' },
+                { value: '1m_5m', icon: 'wallet-cards', label: '₱1M - ₱5M', description: 'Mid-range properties.' },
+                { value: '5m_10m', icon: 'landmark', label: '₱5M - ₱10M', description: 'Upscale properties.' },
+                { value: '10m_20m', icon: 'badge-dollar-sign', label: '₱10M - ₱20M', description: 'Premium properties.' },
+                { value: 'over_20m', icon: 'gem', label: '₱20M+', description: 'Luxury properties.' },
             ],
         },
         {
@@ -63,10 +63,10 @@
             title: 'Tell us about your family.',
             subtitle: 'This helps us find properties with enough space.',
             options: [
-                { value: 'just_me', icon: '&#128100;', label: 'Just Me', description: 'A cozy space for one.' },
-                { value: 'couple', icon: '&#128107;', label: 'Couple', description: 'A space to share with a partner.' },
-                { value: 'small_family', icon: '&#128106;', label: 'Small Family', description: '3-4 members, a bit more room.' },
-                { value: 'large_family', icon: '&#128103;&#8205;&#128106;&#8205;&#128102;&#8205;&#128102;', label: 'Large Family', description: '5+ members, plenty of space needed.' },
+                { value: 'just_me', icon: 'user-round', label: 'Just Me', description: 'A cozy space for one.' },
+                { value: 'couple', icon: 'heart', label: 'Couple', description: 'A space to share with a partner.' },
+                { value: 'small_family', icon: 'baby', label: 'Small Family', description: '3-4 members, a bit more room.' },
+                { value: 'large_family', icon: 'users-round', label: 'Large Family', description: '5+ members, plenty of space needed.' },
             ],
         },
         {
@@ -75,12 +75,12 @@
             title: 'What features are important?',
             subtitle: 'Select any that matter to you (optional).',
             options: [
-                { value: 'Ocean View', icon: '&#127754;', label: 'Ocean View', description: 'A view of the water.' },
-                { value: 'Outdoor Space', icon: '&#127794;', label: 'Outdoor Space', description: 'A yard, garden, or patio.' },
-                { value: 'Parking', icon: '&#128663;', label: 'Parking', description: 'Dedicated parking space.' },
-                { value: 'Home Office', icon: '&#128421;', label: 'Home Office', description: 'A dedicated room to work from home.' },
-                { value: 'Pet-Friendly', icon: '&#128054;', label: 'Pet-Friendly', description: 'Comfortable for pets.' },
-                { value: 'Accessible', icon: '&#9855;', label: 'Accessible', description: 'Step-free, accessible design.' },
+                { value: 'Ocean View', icon: 'waves', label: 'Ocean View', description: 'A view of the water.' },
+                { value: 'Outdoor Space', icon: 'trees', label: 'Outdoor Space', description: 'A yard, garden, or patio.' },
+                { value: 'Parking', icon: 'car-front', label: 'Parking', description: 'Dedicated parking space.' },
+                { value: 'Home Office', icon: 'briefcase-business', label: 'Home Office', description: 'A dedicated room to work from home.' },
+                { value: 'Pet-Friendly', icon: 'paw-print', label: 'Pet-Friendly', description: 'Comfortable for pets.' },
+                { value: 'Accessible', icon: 'accessibility', label: 'Accessible', description: 'Step-free, accessible design.' },
             ],
         },
         {
@@ -89,12 +89,12 @@
             title: 'What amenities do you prefer?',
             subtitle: 'Select any that matter to you (optional).',
             options: [
-                { value: 'Pool', icon: '&#127946;', label: 'Pool', description: 'Swimming pool access.' },
-                { value: 'Garden', icon: '&#127800;', label: 'Garden', description: 'Landscaped garden area.' },
-                { value: 'Gym', icon: '&#127947;', label: 'Gym', description: 'On-site fitness center.' },
-                { value: 'Security', icon: '&#128274;', label: 'Security', description: '24/7 security personnel.' },
-                { value: 'Playground', icon: '&#127942;', label: 'Playground', description: 'Kid-friendly play area.' },
-                { value: 'Clubhouse', icon: '&#127959;', label: 'Clubhouse', description: 'Shared community clubhouse.' },
+                { value: 'Pool', icon: 'waves', label: 'Pool', description: 'Swimming pool access.' },
+                { value: 'Garden', icon: 'flower-2', label: 'Garden', description: 'Landscaped garden area.' },
+                { value: 'Gym', icon: 'dumbbell', label: 'Gym', description: 'On-site fitness center.' },
+                { value: 'Security', icon: 'shield-check', label: 'Security', description: '24/7 security personnel.' },
+                { value: 'Playground', icon: 'gamepad-2', label: 'Playground', description: 'Kid-friendly play area.' },
+                { value: 'Clubhouse', icon: 'building-2', label: 'Clubhouse', description: 'Shared community clubhouse.' },
             ],
         },
         {
@@ -104,6 +104,22 @@
             subtitle: "Here's a quick summary of your answers.",
         },
     ];
+
+    var dynamicChoices = window.lifestyleMatchChoices || {};
+    STEPS.forEach(function (step) {
+        var additions = dynamicChoices[step.key] || [];
+        if (!step.options || !additions.length) return;
+
+        var existingValues = new Set(step.options.map(function (option) {
+            return String(option.value).toLowerCase();
+        }));
+        additions.forEach(function (option) {
+            var value = String(option.value || '').trim();
+            if (!value || existingValues.has(value.toLowerCase())) return;
+            existingValues.add(value.toLowerCase());
+            step.options.push(option);
+        });
+    });
 
     var STEP_META = [
         { label: 'Lifestyle', hint: 'Your daily lifestyle' },
@@ -202,7 +218,11 @@
                 }
 
                 var li = document.createElement('li');
-                li.innerHTML = '<strong>' + STEP_META[STEPS.indexOf(s)].label + ':</strong> <span>' + display + '</span>';
+                var label = document.createElement('strong');
+                label.textContent = STEP_META[STEPS.indexOf(s)].label + ':';
+                var answerText = document.createElement('span');
+                answerText.textContent = display;
+                li.append(label, document.createTextNode(' '), answerText);
                 list.appendChild(li);
             });
 
@@ -225,11 +245,26 @@
                 card.classList.add('is-selected');
             }
 
-            card.innerHTML =
-                '<span class="lifestyle-option-check">' + (step.type === 'multi' ? '&#10003;' : '&#10003;') + '</span>' +
-                '<span class="lifestyle-option-icon">' + option.icon + '</span>' +
-                '<strong class="lifestyle-option-label">' + option.label + '</strong>' +
-                '<span class="lifestyle-option-description">' + option.description + '</span>';
+            var check = document.createElement('span');
+            check.className = 'lifestyle-option-check';
+            check.textContent = '✓';
+
+            var iconWrap = document.createElement('span');
+            iconWrap.className = 'lifestyle-option-icon';
+            iconWrap.setAttribute('aria-hidden', 'true');
+            var icon = document.createElement('i');
+            icon.setAttribute('data-lucide', option.icon || 'sparkles');
+            iconWrap.appendChild(icon);
+
+            var label = document.createElement('strong');
+            label.className = 'lifestyle-option-label';
+            label.textContent = option.label || option.value;
+
+            var description = document.createElement('span');
+            description.className = 'lifestyle-option-description';
+            description.textContent = option.description || 'Available on a listed property.';
+
+            card.append(check, iconWrap, label, description);
 
             card.addEventListener('click', function () {
                 if (step.type === 'multi') {
@@ -241,6 +276,14 @@
             });
 
             optionsEl.appendChild(card);
+        });
+
+        window.lucide?.createIcons({
+            attrs: {
+                'stroke-width': 2,
+                'stroke-linecap': 'round',
+                'stroke-linejoin': 'round',
+            },
         });
     }
 
@@ -270,7 +313,7 @@
             nextBtn.textContent = 'Get My Matches';
             nextBtn.disabled = false;
         } else {
-            nextBtn.textContent = 'Next Question →';
+            nextBtn.textContent = 'Next Question';
             nextBtn.disabled = !canAdvance(step);
         }
     }

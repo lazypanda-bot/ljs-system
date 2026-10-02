@@ -29,7 +29,7 @@
     .home-about-section { padding: 0; }
     .home-about-container { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0; }
     .home-about-image-wrapper { min-width: 0; width: 100%; height: 280px; }
-    .home-about-fade { width: 38%; }
+    .home-about-img { -webkit-mask-image: none; mask-image: none; }
     .home-about-content { min-width: 0; padding: 32px 24px 38px; gap: 14px; }
     .home-about-content h2 { font-size: 32px; }
     .home-about-content p { font-size: 14px; }
@@ -41,10 +41,10 @@
     .properties .filter-form { align-items: stretch; gap: 12px; }
     .properties .filter-group, .properties .search-group { min-width: 0; width: 100%; }
     .properties-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-    .site-footer { padding: 12px; }
+    .site-footer { padding: 6px 12px; }
     .footer-container { min-height: 0; }
     .footer-col.brand-col { min-width: 0; max-width: none; align-items: center; }
-    .footer-logo { width: auto; height: 56px; }
+    .footer-logo { width: auto; height: 40px; }
 
     /* Admin, Broker, Lead Broker, and Agent dashboards use an icon-only rail. */
     .dashboard-container { min-height: 100vh; height: 100vh; }
@@ -72,7 +72,7 @@
 
     /* Admin, Broker, Lead Broker, and Agent page layouts collapse without clipping. */
     .staff-page-surface { margin: 12px 4px; padding: 20px; border-radius: 12px; }
-    .staff-page-heading h1, .listings-header h1, .appointments-page-header h1 { font-size: 24px; }
+    .staff-page-heading h1, .listings-header h1, .appointments-page-header h1, .live-page-header h1, .managed-agents-header h1, .notifications-page-header h1, .staff-property-header h1, .property-edit-heading h1 { font-size: 24px; line-height: 1.2; }
     .staff-page-actions, .listings-header, .appointments-page-header { align-items: flex-start; flex-wrap: wrap; }
     .property-cards-grid, .agents-grid, .profile-listings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .managed-agents-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -108,7 +108,7 @@
     .home-about-image-wrapper { height: 220px; }
     .home-about-content { padding: 26px 18px 32px; }
     .home-about-content h2 { font-size: 28px; }
-    .footer-logo { height: 48px; }
+    .footer-logo { height: 40px; }
     .hero-section { min-height: 76vh; padding: 56px 22px; }
     .hero-content { max-width: 100%; }
     .map-search-section { padding: 48px 12px 0; }
@@ -125,7 +125,7 @@
     .map-container-wrapper { min-height: 320px; }
     .property-map { min-height: 320px; }
     .top-agents-section { padding: 84px 12px 12px; }
-    .agents-directory-section { padding: 12px 12px 44px; }
+    .agents-directory-section { padding: 84px 12px 44px; }
     .properties { padding-top: 84px; }
     .top-agents-container { padding: 16px; }
     .top-agents-track { justify-content: flex-start; overflow-x: auto; }

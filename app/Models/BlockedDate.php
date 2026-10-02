@@ -18,6 +18,7 @@ class BlockedDate extends Model
         'start_time',
         'end_time',
         'reason',
+        'timezone',
     ];
 
     protected $dates = [

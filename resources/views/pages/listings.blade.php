@@ -4,6 +4,13 @@
 
 @section('content')
 	<div class="listings-management-container staff-page-surface">
+		<div class="listings-header staff-page-heading">
+			<div>
+				<h1>{{ $acting === 'broker' ? 'Team Listings' : 'My Listings' }}</h1>
+				<p>{{ $acting === 'broker' ? 'Manage listings from your team and your own portfolio.' : 'Manage the properties you have submitted.' }}</p>
+			</div>
+			<a href="{{ route('admin.subfiles.addproperty') }}" class="btn-add-property"><i class="fas fa-plus" aria-hidden="true"></i> Add Property</a>
+		</div>
 		<div class="staff-listing-tabs" role="tablist">
 			@if ($acting === 'broker')
 				<button class="staff-listing-tab active" type="button" data-listing-panel="my-listings">My Listings</button>
@@ -25,6 +32,7 @@
 					$firstImage = $property->images->first();
 					$imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
 					$status = $property->property_status ?? 'Available';
+					$referralCode = $property->referralCodes->firstWhere('user_id', auth()->id());
 				@endphp
 				<div class="property-card-item">
 					<div class="card-img-wrapper">
@@ -43,7 +51,7 @@
 						@elseif ($property->approval_status === 'Rejected')
 							<div class="listing-rejection-note"><strong>Returned for changes</strong><p>{{ $property->rejection_note }}</p></div>
 						@endif
-						<div class="card-footer-actions"><div class="action-buttons"><a href="{{ route('staff.properties.show', $property) }}" title="View" class="btn-action view" aria-label="View {{ $property->property_name }}"><i class="fas fa-eye"></i></a>@if($property->user_id === auth()->id())<span class="listing-owner-badge">Your listing</span><a href="{{ route('admin.properties.edit', $property) }}" class="btn-action edit" title="Edit and resubmit your listing" aria-label="Edit {{ $property->property_name }}"><i class="fas fa-pen"></i></a>@endif</div></div>
+						<div class="card-footer-actions"><div class="action-buttons"><a href="{{ route('staff.properties.show', $property) }}" title="View" class="btn-action view" aria-label="View {{ $property->property_name }}"><i class="fas fa-eye"></i></a>@if($property->user_id === auth()->id())<span class="listing-owner-badge">Your listing</span>@if($property->approval_status === 'Approved' && $referralCode)<span class="listing-referral-code">Referral: {{ $referralCode->code }}</span>@endif<a href="{{ route('admin.properties.edit', $property) }}" class="btn-action edit" title="Edit and resubmit your listing" aria-label="Edit {{ $property->property_name }}"><i class="fas fa-pen"></i></a>@endif</div></div>
 					</div>
 				</div>
 			@empty

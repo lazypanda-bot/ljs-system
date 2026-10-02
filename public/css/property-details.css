@@ -179,6 +179,9 @@
 .property-metrics > div { display: flex; min-width: 0; align-items: center; gap: 9px; padding: 11px; border-radius: 7px; background: var(--color-body); color: var(--color-text); font-size: 14px; }
 .property-metrics i,.property-amenities-list i { flex: 0 0 auto; color: var(--color-primary); }
 .property-description { margin: 0; color: var(--color-text-muted); line-height: 1.65; white-space: pre-line; overflow-wrap: anywhere; }
+.property-match-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.property-match-tags span { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-primary-soft); color: var(--color-text); font-size: 12px; font-weight: 700; }
+.property-match-tags i { color: var(--color-primary); }
 .property-amenities-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
 .property-amenities-list li { display: flex; min-width: 0; align-items: flex-start; gap: 9px; color: var(--color-text-muted); overflow-wrap: anywhere; }
 .professional-contact-card { position: sticky; top: 96px; }

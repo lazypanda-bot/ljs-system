@@ -13,6 +13,36 @@ class PropertyApprovalReferralTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_admin_properties_page_has_inventory_table_and_pending_submission_queue(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $professional = User::factory()->create(['role_name' => 'Agent']);
+        Property::create([
+            'user_id' => $professional->user_id,
+            'property_name' => 'Waiting House',
+            'property_description' => 'Awaiting Admin verification.',
+            'property_type' => 'House & Lot',
+            'street' => '1 Review Road',
+            'city' => 'Cebu City',
+            'province' => 'Cebu',
+            'price' => 4000000,
+            'property_status' => 'For Sale',
+            'approval_status' => 'Pending',
+            'listing_mode' => 'professional',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('app.page', ['page' => 'property']))
+            ->assertOk()
+            ->assertSee('Project Listings')
+            ->assertSee('Listing Requests')
+            ->assertSee('Image')
+            ->assertDontSee('Assigned professionals')
+            ->assertSee('Waiting House')
+            ->assertSee('Awaiting Admin verification.')
+            ->assertSee('Reject');
+    }
+
     public function test_professional_listing_stays_pending_until_admin_approves_and_then_gets_a_referral_code(): void
     {
         Http::fake();
@@ -42,6 +72,12 @@ class PropertyApprovalReferralTest extends TestCase
         ]);
 
         $code = ReferralCode::query()->where('property_id', $property->property_id)->firstOrFail();
+        $this->actingAs($professional)
+            ->get(route('app.page', ['page' => 'listings']))
+            ->assertOk()
+            ->assertSee('Add Property')
+            ->assertSee('Your listing')
+            ->assertSee('Referral: ' . $code->code);
         $this->get(route('referrals.open', $code->code))
             ->assertRedirect(route('properties.show', ['id' => $property->property_id, 'ref' => $code->code]));
     }

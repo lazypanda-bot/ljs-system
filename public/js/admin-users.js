@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tab switching
     const tabBtns = document.querySelectorAll('.au-tab-btn');
     const tabContents = document.querySelectorAll('.au-tab-content');
+    const usersSearchWrapper = document.getElementById('usersSearchWrapper');
 
     tabBtns.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -21,11 +22,23 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add active class to clicked button and corresponding content
             this.classList.add('active');
             document.getElementById(tabName).classList.add('active');
+            if (usersSearchWrapper) usersSearchWrapper.hidden = tabName !== 'all-users';
 
             closeModal(document.getElementById('addUserModalOverlay'));
             closeModal(document.getElementById('addTeamModalOverlay'));
         });
     });
+
+    const openAddUserBtn = document.getElementById('openAddUserModal');
+    const allUsersTab = document.querySelector('[data-tab="all-users"]');
+    const allUsersPanel = document.getElementById('all-users');
+    if (openAddUserBtn && allUsersTab && allUsersPanel) {
+        openAddUserBtn.addEventListener('click', function () {
+            if (!allUsersPanel.classList.contains('active')) {
+                allUsersTab.click();
+            }
+        });
+    }
 
     // Generic modal open/close helpers
     function openModal(overlay) {

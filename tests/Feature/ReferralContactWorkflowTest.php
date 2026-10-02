@@ -10,16 +10,19 @@ use App\Models\Property;
 use App\Models\PropertyAssign;
 use App\Models\ReferralCode;
 use App\Models\User;
+use App\Mail\ActivityMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class ReferralContactWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_listing_referral_can_message_another_approved_assignee(): void
+    public function test_admin_listing_messages_the_listing_owner(): void
     {
-        [$property, $referralOwner, $otherProfessional, $code] = $this->adminListingWithReferral();
+        Mail::fake();
+        [$property, $referralOwner, $otherProfessional, $code, , , $admin] = $this->adminListingWithReferral();
         $client = User::factory()->create(['role_name' => 'Client']);
 
         $response = $this->actingAs($client)->post(
@@ -28,7 +31,7 @@ class ReferralContactWorkflowTest extends TestCase
         );
 
         $response->assertRedirect();
-        $participant = ConversationParticipant::query()->where('user_id', $otherProfessional->user_id)->firstOrFail();
+        $participant = ConversationParticipant::query()->where('user_id', $admin->user_id)->firstOrFail();
         $this->assertDatabaseHas('conversation_participants', [
             'conversation_id' => $participant->conversation_id,
             'user_id' => $client->user_id,
@@ -37,12 +40,34 @@ class ReferralContactWorkflowTest extends TestCase
             'conversation_id' => $participant->conversation_id,
             'sender_id' => $client->user_id,
         ]);
-        $this->assertNotSame($referralOwner->user_id, $otherProfessional->user_id);
+        $this->assertDatabaseMissing('conversation_participants', ['user_id' => $referralOwner->user_id]);
+        $this->assertDatabaseMissing('conversation_participants', ['user_id' => $otherProfessional->user_id]);
+        Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->subjectLine === 'New message from ' . $client->name);
     }
 
-    public function test_referral_appointment_can_select_another_approved_assignee(): void
+    public function test_admin_listing_ignores_selected_message_recipient(): void
     {
-        [$property, , $otherProfessional, $code, $otherAssignment] = $this->adminListingWithReferral();
+        [$property, , $professional, , , , $admin] = $this->adminListingWithReferral();
+        $client = User::factory()->create(['role_name' => 'Client']);
+
+        $this->actingAs($client)->post(route('properties.message', $property), [
+            'recipient_id' => $professional->user_id,
+        ])->assertRedirect();
+
+        $conversationId = ConversationParticipant::query()
+            ->where('user_id', $admin->user_id)
+            ->value('conversation_id');
+        $this->assertNotNull($conversationId);
+        $this->assertDatabaseHas('conversation_participants', [
+            'conversation_id' => $conversationId,
+            'user_id' => $client->user_id,
+        ]);
+    }
+
+    public function test_admin_listing_appointment_is_assigned_to_the_listing_owner(): void
+    {
+        Mail::fake();
+        [$property, , $otherProfessional, $code, $otherAssignment, , $admin] = $this->adminListingWithReferral();
         $date = now()->addDays(3)->toDateString();
 
         $this->post(route('appointments.store', $property), [
@@ -56,23 +81,22 @@ class ReferralContactWorkflowTest extends TestCase
             'preferred_time' => '10:00',
         ])->assertRedirect(route('properties.show', $property));
 
-        $this->assertDatabaseHas('appointments', [
-            'assign_id' => $otherAssignment->assign_id,
-            'contact_email' => 'client@example.test',
-        ]);
+        $this->assertDatabaseHas('appointments', ['contact_email' => 'client@example.test']);
         $this->assertDatabaseHas('property_assign', [
             'property_id' => $property->property_id,
-            'user_id' => $otherProfessional->user_id,
+            'user_id' => $admin->user_id,
             'status' => 'Approved',
         ]);
+        $this->assertDatabaseMissing('appointments', ['assign_id' => $otherAssignment->assign_id]);
+        Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->subjectLine === 'New appointment request: ' . $property->property_name);
     }
 
-    public function test_appointments_respect_the_assigned_professionals_blocked_dates(): void
+    public function test_admin_listing_appointments_respect_the_listing_owners_blocked_dates(): void
     {
-        [$property, $referralOwner, , $code] = $this->adminListingWithReferral();
+        [$property, , , $code, , , $admin] = $this->adminListingWithReferral();
         $date = now()->addDays(4)->toDateString();
         BlockedDate::create([
-            'user_id' => $referralOwner->user_id,
+            'user_id' => $admin->user_id,
             'date' => $date,
             'start_time' => '09:00',
             'end_time' => '12:00',
@@ -81,7 +105,7 @@ class ReferralContactWorkflowTest extends TestCase
 
         $response = $this->post(route('appointments.store', $property), [
             'ref' => $code->code,
-            'assign_id' => $property->assignments()->where('user_id', $referralOwner->user_id)->value('assign_id'),
+            'assign_id' => $property->assignments()->where('user_id', $admin->user_id)->value('assign_id'),
             'contact_name' => 'Test Client',
             'contact_number' => '555-0100',
             'contact_email' => 'blocked@example.test',
@@ -90,7 +114,7 @@ class ReferralContactWorkflowTest extends TestCase
             'preferred_time' => '10:00',
         ]);
 
-        $response->assertStatus(422);
+        $response->assertSessionHasErrors('slot_start_utc');
         $this->assertDatabaseMissing('appointments', ['contact_email' => 'blocked@example.test']);
     }
 
@@ -131,6 +155,6 @@ class ReferralContactWorkflowTest extends TestCase
             'code' => 'LJS-TEST-REF',
         ]);
 
-        return [$property, $referralOwner, $otherProfessional, $code, $otherAssignment, $referralAssignment];
+        return [$property, $referralOwner, $otherProfessional, $code, $otherAssignment, $referralAssignment, $admin];
     }
 }

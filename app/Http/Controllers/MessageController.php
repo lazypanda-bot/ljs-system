@@ -6,19 +6,25 @@ use App\Models\Conversation;
 use App\Models\ConversationMessage;
 use App\Models\AppNotification;
 use App\Models\Property;
+use App\Models\PropertyInquiry;
 use App\Models\PropertyAssign;
 use App\Models\ReferralCode;
 use App\Models\Team;
 use App\Models\User;
+use App\Mail\ActivityMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
     public function index(Request $request)
     {
         $user = $this->user();
+        $panelMode = $request->boolean('panel');
+        abort_unless(! $panelMode || $user->normalizedRole() === 'client', 403);
         $this->ensureTeamConversations($user);
         AppNotification::where('user_id', $user->user_id)
             ->where('type', 'message')
@@ -26,8 +32,21 @@ class MessageController extends Controller
             ->update(['read_at' => now()]);
 
         $conversations = Conversation::query()
-            ->whereHas('participants', fn ($query) => $query->where('user_id', $user->user_id))
-            ->with(['participants.user', 'team', 'messages' => fn ($query) => $query->latest()->limit(1)])
+            ->whereHas('participants', fn ($query) => $query->where('user_id', $user->user_id)->whereNull('hidden_at'))
+            ->with(['participants.user', 'team', 'propertyInquiries.property', 'messages' => fn ($query) => $query->latest()->limit(1)])
+            ->when($request->filled('q'), function ($query) use ($request) {
+                $term = '%' . addcslashes($request->string('q')->toString(), '%_\\') . '%';
+                $query->where(function ($query) use ($term) {
+                    $query->whereHas('messages', fn ($messages) => $messages->where('body', 'like', $term)->orWhere('subject', 'like', $term))
+                        ->orWhereHas('participants.user', fn ($participants) => $participants->where('name', 'like', $term))
+                        ->orWhereHas('propertyInquiries.property', fn ($properties) => $properties->where('property_name', 'like', $term));
+                });
+            })
+            ->when(in_array($request->query('type'), ['direct', 'team'], true), fn ($query) => $query->where('type', $request->query('type')))
+            ->when($request->query('status') === 'unread', fn ($query) => $query->whereHas('messages', function ($messages) use ($user) {
+                $messages->where('sender_id', '!=', $user->user_id)
+                    ->whereRaw('conversation_messages.created_at > COALESCE((SELECT last_read_at FROM conversation_participants WHERE conversation_participants.conversation_id = conversation_messages.conversation_id AND conversation_participants.user_id = ?), ?)', [$user->user_id, '1970-01-01 00:00:00']);
+            }))
             ->latest('updated_at')
             ->get();
 
@@ -43,7 +62,9 @@ class MessageController extends Controller
         $contacts = $this->availableContacts($user);
         $isClient = $user->normalizedRole() === 'client';
 
-        return view('pages.messages', compact('conversations', 'conversation', 'contacts', 'isClient'));
+        $view = $panelMode ? 'pages.messages-panel' : 'pages.messages';
+
+        return view($view, compact('conversations', 'conversation', 'contacts', 'isClient', 'panelMode'));
     }
 
     public function direct(User $recipient)
@@ -90,38 +111,42 @@ class MessageController extends Controller
 
         $conversation = $this->findOrCreateDirectConversation($user, $recipient);
         $attachmentPath = $request->hasFile('attachment')
-            ? $request->file('attachment')->store('message-attachments', 'public')
+            ? $request->file('attachment')->store('message-attachments', 'local')
             : null;
 
         $this->createMessage($conversation, $user, $validated['body'], $validated['subject'] ?? null, $attachmentPath);
 
-        return redirect()->route('messages.inbox', ['conversation' => $conversation->conversation_id]);
+        return redirect()->route('messages.inbox', [
+            'conversation' => $conversation->conversation_id,
+            'panel' => $request->boolean('panel') ? 1 : null,
+        ]);
     }
 
     public function propertyDirect(Request $request, Property $property)
     {
         $user = $this->user();
+        $recipientId = $request->integer('recipient_id');
         $referralCode = $request->filled('ref')
             ? ReferralCode::query()->with('user')->where('code', $request->query('ref'))->where('property_id', $property->property_id)->firstOrFail()
             : null;
 
-        if ($referralCode && $property->listing_mode === 'admin') {
-            $recipientId = $request->integer('recipient_id') ?: $referralCode->user_id;
-            $assignment = $property->assignments()
-                ->where('user_id', $recipientId)
-                ->where('status', 'Approved')
-                ->whereHas('user', fn ($query) => $query->where('account_status', 'Active'))
-                ->with('user')
-                ->first();
-            $recipient = $assignment?->user;
+        if ($property->listing_mode === 'admin') {
+            $recipient = $property->user;
+        } else {
+            $recipient = $property->user;
 
-            if (! $recipient
-                && $recipientId === (int) $referralCode->user_id
-                && $property->assignments()->where('status', 'Approved')->doesntExist()) {
+            if ($recipientId && $recipientId !== (int) $property->user_id) {
+                $recipient = $property->assignments()
+                    ->where('user_id', $recipientId)
+                    ->where('status', 'Approved')
+                    ->whereHas('user', fn ($query) => $query->where('account_status', 'Active'))
+                    ->with('user')
+                    ->first()?->user;
+            }
+
+            if ($referralCode && $recipientId === $referralCode->user_id) {
                 $recipient = $referralCode->user;
             }
-        } else {
-            $recipient = $referralCode?->user ?? $property->user;
         }
 
         abort_unless(
@@ -129,11 +154,20 @@ class MessageController extends Controller
                 && $user->normalizedRole() === 'client'
                 && $recipient instanceof User
                 && $recipient->account_status === 'Active'
-                && ($referralCode !== null || in_array($recipient->role_name, ['Broker', 'Agent', 'Lead Broker'], true)),
+                && ($property->listing_mode === 'admin'
+                    || $referralCode !== null
+                    || in_array($recipient->role_name, ['Broker', 'Agent', 'Lead Broker'], true)),
             403
         );
 
         $conversation = $this->findOrCreateDirectConversation($user, $recipient);
+        PropertyInquiry::firstOrCreate([
+            'property_id' => $property->property_id,
+            'conversation_id' => $conversation->conversation_id,
+        ], [
+            'client_id' => $user->user_id,
+            'recipient_id' => $recipient->user_id,
+        ]);
 
         if (! $conversation->messages()->exists()) {
             $body = "Interested in this property:\n{$property->property_name}\nPHP "
@@ -157,6 +191,10 @@ class MessageController extends Controller
                 ->firstWhere('participants_count', 2);
 
             if ($conversation) {
+                $conversation->participants()
+                    ->whereIn('user_id', [$user->user_id, $recipient->user_id])
+                    ->update(['hidden_at' => null]);
+
                 return $conversation;
             }
 
@@ -179,7 +217,56 @@ class MessageController extends Controller
 
         $this->createMessage($conversation, $user, $validated['body']);
 
-        return redirect()->route('messages.inbox', ['conversation' => $conversation->conversation_id]);
+        return redirect()->route('messages.inbox', [
+            'conversation' => $conversation->conversation_id,
+            'panel' => $request->boolean('panel') ? 1 : null,
+        ]);
+    }
+
+    public function deleteConversation(Request $request, Conversation $conversation)
+    {
+        $user = $this->user();
+        $participant = $conversation->participants()->where('user_id', $user->user_id)->first();
+        abort_unless($participant, 403);
+
+        $participant->update(['hidden_at' => now()]);
+
+        return redirect()->route('messages.inbox', [
+            'panel' => $request->boolean('panel') ? 1 : null,
+        ])->with('success', 'Conversation removed from your messages.');
+    }
+
+    public function destroyMessage(Request $request, ConversationMessage $message)
+    {
+        $user = $this->user();
+        $conversation = Conversation::findOrFail($message->conversation_id);
+        abort_unless($this->participates($conversation, $user), 403);
+        abort_unless((int) $message->sender_id === (int) $user->user_id, 403);
+
+        $message->delete();
+        $conversation->touch();
+
+        return redirect()->route('messages.inbox', [
+            'conversation' => $conversation->conversation_id,
+            'panel' => $request->boolean('panel') ? 1 : null,
+        ])->with('success', 'Message deleted.');
+    }
+
+    public function updateMessage(Request $request, ConversationMessage $message)
+    {
+        $user = $this->user();
+        $conversation = Conversation::findOrFail($message->conversation_id);
+        abort_unless($this->participates($conversation, $user), 403);
+        abort_unless((int) $message->sender_id === (int) $user->user_id, 403);
+
+        $validated = $request->validate(['body' => ['required', 'string', 'max:4000']]);
+        $message->update(['body' => $validated['body']]);
+        $conversation->touch();
+
+        return redirect()->route('messages.inbox', [
+            'conversation' => $conversation->conversation_id,
+            'panel' => $request->boolean('panel') ? 1 : null,
+        ])->with('success', 'Message updated.');
     }
 
     public function updates(Request $request)
@@ -208,21 +295,71 @@ class MessageController extends Controller
         return response()->json(['messages' => $messages]);
     }
 
-    public function notificationCount()
+    public function downloadAttachment(ConversationMessage $message)
     {
         $user = $this->user();
+        $conversation = Conversation::findOrFail($message->conversation_id);
+        abort_unless($this->participates($conversation, $user), 403);
+
+        $path = $message->attachment_path;
+        abort_unless($path && str_starts_with($path, 'message-attachments/'), 404);
+        $absolutePath = Storage::disk('local')->path($path);
+        abort_unless(is_file($absolutePath), 404);
+
+        return response()->download($absolutePath, basename($path));
+    }
+
+    public function notificationCount(Request $request)
+    {
+        $user = $this->user();
+        $notifications = AppNotification::query()
+            ->where('user_id', $user->user_id)
+            ->whereNull('read_at');
+
+        if ($user->normalizedRole() === 'client') {
+            $notifications->when($request->query('type') === 'message', fn ($query) => $query->where('type', 'message'))
+                ->when($request->query('type') === 'other', fn ($query) => $query->where('type', '!=', 'message'));
+        }
 
         return response()->json([
-            'count' => AppNotification::where('user_id', $user->user_id)->whereNull('read_at')->count(),
+            'count' => $notifications->count(),
         ]);
     }
 
     public function notifications()
     {
         $user = $this->user();
-        $notifications = AppNotification::where('user_id', $user->user_id)->latest()->paginate(15);
+        $relations = [
+            'appointment',
+            'appointment.assignment.property',
+            'appointment.assignment.user',
+            'appointment.client',
+            'appointmentProposal.appointment.assignment.property',
+            'appointmentProposal.appointment.assignment.user',
+            'appointmentProposal.appointment.client',
+            'appointmentProposal.proposedBy',
+        ];
+        $notifications = AppNotification::query()
+            ->with($relations)
+            ->where('user_id', $user->user_id)
+            ->latest()
+            ->orderByDesc('notification_id')
+            ->paginate(5)
+            ->withQueryString();
 
-        return view('pages.notifications', compact('notifications'));
+        $selectedId = request()->integer('selected');
+        $selectedNotification = $selectedId
+            ? $notifications->getCollection()->firstWhere('notification_id', $selectedId)
+            : null;
+
+        if ($selectedNotification && ! $selectedNotification->read_at) {
+            $selectedNotification->update(['read_at' => now()]);
+            $notifications->getCollection()->firstWhere('notification_id', $selectedNotification->notification_id)?->setAttribute('read_at', now());
+        }
+
+        $selectedNotification ??= $notifications->getCollection()->first();
+
+        return view('pages.notifications', compact('notifications', 'selectedNotification'));
     }
 
     public function openNotification(AppNotification $notification)
@@ -231,6 +368,10 @@ class MessageController extends Controller
         abort_unless($notification->user_id === $user->user_id, 403);
 
         $notification->update(['read_at' => now()]);
+
+        if ($notification->appointment_proposal_id || $notification->appointment_id) {
+            return redirect()->route('notifications.index', ['selected' => $notification->notification_id]);
+        }
 
         return redirect($notification->url ?: route('messages.inbox'));
     }
@@ -265,9 +406,20 @@ class MessageController extends Controller
             'attachment_path' => $attachmentPath,
         ]);
         $conversation->touch();
+        $conversation->participants()->where('user_id', $sender->user_id)->update(['hidden_at' => null]);
 
-        $conversation->participants()->where('user_id', '!=', $sender->user_id)->pluck('user_id')->each(function ($recipientId) use ($conversation, $sender, $body) {
+        $conversation->participants()->where('user_id', '!=', $sender->user_id)->with('user')->get()->each(function ($participant) use ($conversation, $sender, $body) {
+            $recipientId = $participant->user_id;
+            if ($participant->hidden_at !== null) {
+                $participant->update(['hidden_at' => null]);
+            }
             AppNotification::create(['user_id' => $recipientId, 'type' => 'message', 'title' => 'New message from ' . $sender->name, 'body' => str($body)->limit(120), 'url' => route('messages.inbox', ['conversation' => $conversation->conversation_id])]);
+            if ($participant->user) {
+                Mail::to($participant->user->email, $participant->user->name)->queue(new ActivityMail(
+                    'New message from ' . $sender->name,
+                    str($body)->limit(120)->toString() . "\n\nOpen Messages in LJS Realty to reply."
+                ));
+            }
         });
     }
 
@@ -276,7 +428,7 @@ class MessageController extends Controller
         return User::query()
             ->where('account_status', 'Active')
             ->whereKeyNot($user->user_id)
-            ->when($user->normalizedRole() === 'client', fn ($query) => $query->whereIn('role_name', ['Broker', 'Agent']))
+            ->when($user->normalizedRole() === 'client', fn ($query) => $query->whereIn('role_name', ['Broker', 'Agent', 'Lead Broker']))
             ->orderBy('name')
             ->get(['user_id', 'name', 'role_name']);
     }
@@ -288,7 +440,7 @@ class MessageController extends Controller
         }
 
         return $sender->normalizedRole() !== 'client'
-            || in_array($recipient->role_name, ['Broker', 'Agent'], true);
+            || in_array($recipient->role_name, ['Broker', 'Agent', 'Lead Broker'], true);
     }
 
     private function participates(Conversation $conversation, User $user): bool

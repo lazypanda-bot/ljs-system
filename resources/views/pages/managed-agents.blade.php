@@ -4,6 +4,11 @@
 
 @section('content')
     <div class="managed-agents-page staff-page-surface">
+        <div class="managed-agents-header">
+            <span>Team</span>
+            <h1>My Agents</h1>
+            <p>View the approved professionals in your team.</p>
+        </div>
         <div class="managed-agents-grid">
             @forelse ($managedAgents as $agent)
                 @php $photo = $agent->profile_photo ? asset('storage/' . $agent->profile_photo) : asset('images/ljs-logo.jpg'); @endphp

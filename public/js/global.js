@@ -183,8 +183,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const authPanels = document.querySelectorAll('.auth-panel');
     const authTabsContainer = document.querySelector('[data-auth-tabs]');
     const modalLoginForm = document.getElementById('modal-login-panel');
+    const modalRegisterForm = document.getElementById('modal-register-panel');
     const modalOtpForm = document.getElementById('modal-otp-panel');
     const modalLoginStatus = document.getElementById('authLoginStatus');
+    const modalRegisterStatus = document.getElementById('authRegisterStatus');
     const modalOtpStatus = document.getElementById('authOtpStatus');
     const modalOtpResend = document.getElementById('authOtpResend');
     const modalOtpBack = document.getElementById('authOtpBack');
@@ -208,6 +210,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const setLoginStatus = (message) => {
         if (modalLoginStatus) modalLoginStatus.textContent = message;
+    };
+
+    const setRegisterStatus = (message) => {
+        if (modalRegisterStatus) modalRegisterStatus.textContent = message;
     };
 
     const submitModalForm = async (form, onSuccess) => {
@@ -245,6 +251,29 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             button.disabled = false;
             button.textContent = 'Login';
+        }
+    });
+
+    modalRegisterForm?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = modalRegisterForm.querySelector('button[type="submit"]');
+        button.disabled = true;
+        button.textContent = 'Sending code...';
+        try {
+            await submitModalForm(modalRegisterForm, (data) => {
+                setRegisterStatus('');
+                const otpToken = modalOtpForm?.querySelector('input[name="_token"]');
+                if (otpToken && data.csrf_token) otpToken.value = data.csrf_token;
+                document.getElementById('loginModalTitle').textContent = 'Verify email';
+                document.getElementById('authModalSubtitle').textContent = data.message;
+                showModalPanel('modal-otp-panel');
+                document.getElementById('modalOtpCode')?.focus();
+            });
+        } catch (error) {
+            setRegisterStatus(error.message);
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Create Account';
         }
     });
 
@@ -325,30 +354,118 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('[data-auth-panel="modal-register-panel"]')?.click();
     }
 
-    const notificationButton = document.querySelector('[data-notification-count-url]');
-    if (notificationButton) {
-        const notificationMenu = document.getElementById('notificationMenu');
-        notificationButton.addEventListener('click', () => {
-            const isOpen = notificationMenu?.classList.toggle('open');
-            notificationMenu?.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-            notificationButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    const notificationButtons = [...document.querySelectorAll('[data-notification-count-url]')];
+    const closeNotificationMenus = (except = null) => {
+        notificationButtons.forEach((button) => {
+            const menu = document.getElementById(button.dataset.notificationMenu || 'notificationMenu');
+            if (button === except) return;
+            menu?.classList.remove('open');
+            menu?.setAttribute('aria-hidden', 'true');
+            button.setAttribute('aria-expanded', 'false');
+        });
+    };
+
+    notificationButtons.forEach((button) => {
+        const menu = document.getElementById(button.dataset.notificationMenu || 'notificationMenu');
+        button.addEventListener('click', () => {
+            const isOpen = menu?.classList.contains('open') || false;
+            closeNotificationMenus(button);
+            menu?.classList.toggle('open', !isOpen);
+            menu?.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+            button.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.floating-notification-wrap, .notification-menu-wrap')) closeNotificationMenus();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeNotificationMenus();
+    });
+
+    if (notificationButtons.length) {
+        window.setInterval(async () => {
+            for (const button of notificationButtons) {
+                try {
+                    const response = await fetch(button.dataset.notificationCountUrl, { headers: { Accept: 'application/json' } });
+                    if (!response.ok) continue;
+
+                    const { count } = await response.json();
+                    let badge = button.querySelector('[data-notification-count]');
+                    if (count > 0 && !badge) {
+                        badge = document.createElement('span');
+                        badge.className = button.classList.contains('floating-action') ? 'public-notification-badge' : 'notification-count';
+                        badge.dataset.notificationCount = '';
+                        button.prepend(badge);
+                    }
+                    if (badge) {
+                        badge.textContent = count;
+                        badge.hidden = count === 0;
+                    }
+                } catch (error) {
+                    console.error('Unable to refresh notification count.', error);
+                }
+            }
+        }, 10000);
+    }
+
+    const clientMessagesButton = document.getElementById('clientMessagesButton');
+    const clientMessagesModal = document.getElementById('clientMessagesModal');
+    const clientMessagesFrame = document.getElementById('clientMessagesFrame');
+    const closeClientMessages = () => {
+        clientMessagesModal?.classList.remove('open');
+        clientMessagesModal?.setAttribute('aria-hidden', 'true');
+        clientMessagesButton?.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('client-messages-open');
+    };
+
+    if (clientMessagesButton && clientMessagesModal) {
+        clientMessagesButton.addEventListener('click', () => {
+            if (clientMessagesModal.classList.contains('open')) {
+                closeClientMessages();
+                return;
+            }
+
+            closeNotificationMenus();
+            clientMessagesModal.classList.add('open');
+            clientMessagesModal.setAttribute('aria-hidden', 'false');
+            clientMessagesButton.setAttribute('aria-expanded', 'true');
+            document.body.classList.add('client-messages-open');
+            if (clientMessagesFrame && !clientMessagesFrame.src) {
+                clientMessagesFrame.src = clientMessagesFrame.dataset.src;
+            }
+            document.getElementById('closeClientMessages')?.focus();
+        });
+
+        document.getElementById('closeClientMessages')?.addEventListener('click', closeClientMessages);
+        clientMessagesModal.addEventListener('click', (event) => {
+            if (event.target.matches('[data-close-client-messages]')) closeClientMessages();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && clientMessagesModal.classList.contains('open')) {
+                closeClientMessages();
+                clientMessagesButton.focus();
+            }
         });
 
         window.setInterval(async () => {
-            const response = await fetch(notificationButton.dataset.notificationCountUrl, { headers: { Accept: 'application/json' } });
-            if (!response.ok) return;
-
-            const { count } = await response.json();
-            let badge = notificationButton.querySelector('[data-notification-count]');
-            if (count > 0 && !badge) {
-                badge = document.createElement('span');
-                badge.className = notificationButton.classList.contains('floating-action') ? 'public-notification-badge' : 'notification-count';
-                badge.dataset.notificationCount = '';
-                notificationButton.prepend(badge);
-            }
-            if (badge) {
-                badge.textContent = count;
-                badge.hidden = count === 0;
+            try {
+                const response = await fetch(clientMessagesButton.dataset.clientMessageCountUrl, { headers: { Accept: 'application/json' } });
+                if (!response.ok) return;
+                const { count } = await response.json();
+                let badge = clientMessagesButton.querySelector('[data-client-message-count]');
+                if (count > 0 && !badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'public-notification-badge';
+                    badge.dataset.clientMessageCount = '';
+                    clientMessagesButton.prepend(badge);
+                }
+                if (badge) {
+                    badge.textContent = count;
+                    badge.hidden = count === 0;
+                }
+            } catch (error) {
+                console.error('Unable to refresh message notification count.', error);
             }
         }, 10000);
     }

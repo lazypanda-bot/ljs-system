@@ -3,7 +3,7 @@
 @section('title', 'LJS Realty and Brokerage - Meet Our Agents')
 
 @section('content')
-    <section class="top-agents-section">
+    {{-- <section class="top-agents-section">
         <div class="top-agents-container">
             <div class="top-agents-header">
                 <span class="top-agents-tag">MEET OUR TOP-PERFORMING PROFESSIONALS</span>
@@ -43,7 +43,7 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section> --}}
 
     <section class="agents-directory-section">
         <div class="agents-directory-container">
@@ -61,6 +61,7 @@
                     <option value="all">All Professionals</option>
                     <option value="Broker" {{ request('role') === 'Broker' ? 'selected' : '' }}>Brokers</option>
                     <option value="Agent" {{ request('role') === 'Agent' ? 'selected' : '' }}>Agents</option>
+                    <option value="Lead Broker" {{ request('role') === 'Lead Broker' ? 'selected' : '' }}>Lead Brokers</option>
                 </select>
                 <button type="submit" class="agent-search-btn">Search</button>
             </form>
@@ -68,7 +69,9 @@
             <div class="agents-grid">
                 @forelse ($allProfessionals as $professional)
                     @php
-                        $directoryImage = $professional->profile_photo ? asset('storage/' . $professional->profile_photo) : asset('images/ljs-logo.jpg');
+                        $directoryImage = $professional->profile_photo
+                            ? (str_starts_with($professional->profile_photo, 'http') ? $professional->profile_photo : asset('storage/' . $professional->profile_photo))
+                            : asset('images/ljs-logo.jpg');
                         $rating = $professional->received_reviews_avg_rating ? number_format($professional->received_reviews_avg_rating, 1) : 'New';
                     @endphp
                     <article class="agent-highlight-card">

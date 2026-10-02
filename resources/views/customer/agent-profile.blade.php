@@ -4,7 +4,9 @@
 
 @section('content')
     @php
-        $photo = $professional->profile_photo ? asset('storage/' . $professional->profile_photo) : asset('images/ljs-logo.jpg');
+        $photo = $professional->profile_photo
+            ? (str_starts_with($professional->profile_photo, 'http') ? $professional->profile_photo : asset('storage/' . $professional->profile_photo))
+            : asset('images/ljs-logo.jpg');
         $rating = $professional->received_reviews_avg_rating ? number_format($professional->received_reviews_avg_rating, 1) : 'New';
     @endphp
     <section class="professional-profile-page">

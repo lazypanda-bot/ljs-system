@@ -167,29 +167,14 @@
     text-decoration: none;
     width: fit-content;
     overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, padding-right 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
     margin-top: 20px;
-}
-
-.lifestyle-action::after {
-    content: '→';
-    position: absolute;
-    right: 15px;
-    opacity: 0;
-    transform: translateX(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .lifestyle-action:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25);
     color: #ffffff; 
-    padding-right: 40px; 
-}
-
-.lifestyle-action:hover::after {
-    opacity: 1;
-    transform: translateX(0);
 }
 
 .lifestyle-action:active {

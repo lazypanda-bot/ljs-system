@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Appointment;
 use App\Models\Property;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReferralController;
+use App\Http\Controllers\ContactController;
 
 // HOME / LANDING PAGE
 Route::get('/', function () {
@@ -34,15 +36,52 @@ Route::get('/', function () {
         ->where('featured', true)
         ->where('approval_status', 'Approved')
         ->latest()
+        ->take(5)
         ->get();
 
-    return view('customer.home', compact('properties', 'collection', 'featuredProperties'));
+    $topProfessionals = User::query()
+        ->with('professionalProfile')
+        ->withCount('receivedReviews')
+        ->withAvg('receivedReviews', 'rating')
+        ->where('account_status', 'Active')
+        ->whereIn('role_name', ['Broker', 'Agent', 'Lead Broker'])
+        ->orderByDesc('received_reviews_count')
+        ->orderByDesc('received_reviews_avg_rating')
+        ->take(5)
+        ->get();
+
+    return view('customer.home', compact('properties', 'collection', 'featuredProperties', 'topProfessionals'));
 })->name('home');
 
 // PROPERTIES CATALOG
 Route::get('/properties', function (Request $request) {
-    $properties = Property::with(['images', 'details'])
-        ->where('approval_status', 'Approved')
+    $approvedProperties = Property::query()->where('approval_status', 'Approved');
+    $propertyTypes = (clone $approvedProperties)
+        ->whereNotNull('property_type')
+        ->whereRaw("TRIM(property_type) != ''")
+        ->distinct()
+        ->orderBy('property_type')
+        ->pluck('property_type');
+    $propertyLocations = (clone $approvedProperties)
+        ->select('city as location')
+        ->whereNotNull('city')
+        ->whereRaw("TRIM(city) != ''")
+        ->distinct()
+        ->pluck('location')
+        ->merge((clone $approvedProperties)
+            ->select('province as location')
+            ->whereNotNull('province')
+            ->whereRaw("TRIM(province) != ''")
+            ->distinct()
+            ->pluck('location'))
+        ->map(fn ($location) => trim($location))
+        ->filter()
+        ->unique()
+        ->sort(SORT_NATURAL | SORT_FLAG_CASE)
+        ->values();
+
+    $properties = (clone $approvedProperties)
+        ->with(['images', 'details'])
         ->when($request->filled('type'), fn ($query) => $query->where('property_type', $request->string('type')))
         ->when($request->filled('location'), fn ($query) => $query->where(function ($query) use ($request) {
             $location = $request->string('location');
@@ -62,7 +101,7 @@ Route::get('/properties', function (Request $request) {
         ->when($request->sort === 'latest', fn ($query) => $query->latest())
         ->when($request->sort === 'featured' || ! $request->filled('sort'), fn ($query) => $query->orderByDesc('featured')->latest())
         ->get();
-    return view('customer.properties', compact('properties'));
+    return view('customer.properties', compact('properties', 'propertyTypes', 'propertyLocations'));
 })->name('properties');
 
 // ABOUT
@@ -73,17 +112,17 @@ Route::get('/about', function () {
 Route::get('/contact', function () {
     return view('customer.contact');
 })->name('contact');
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('contact.submit');
 
 // ADMIN PROPERTY MANAGEMENT ACTIONS
-Route::post('/admin/properties', [PropertyController::class, 'store'])->name('admin.properties.store');
-Route::post('/admin/properties/{property}/assign', [PropertyController::class, 'assign'])->name('admin.properties.assign');
-Route::post('/admin/property-assignments/{assignment}/review', [PropertyController::class, 'reviewAssignment'])->name('admin.property-assignments.review');
-Route::post('/admin/properties/{property}/review', [PropertyController::class, 'reviewListing'])->name('admin.properties.review');
-Route::patch('/admin/properties/{property}/status', [PropertyController::class, 'updateStatus'])->name('admin.properties.status');
-Route::delete('/admin/properties/{property}', [PropertyController::class, 'destroy'])->name('admin.properties.destroy');
-Route::get('/admin/properties/{property}/edit', [PropertyController::class, 'edit'])->name('admin.properties.edit');
-Route::put('/admin/properties/{property}', [PropertyController::class, 'update'])->name('admin.properties.update');
-Route::post('/app/listings/{property}/request', [PropertyController::class, 'requestAssignment'])->middleware('auth')->name('staff.properties.request');
+Route::middleware('auth')->group(function () {
+    Route::post('/admin/properties', [PropertyController::class, 'store'])->name('admin.properties.store');
+    Route::post('/admin/properties/{property}/review', [PropertyController::class, 'reviewListing'])->name('admin.properties.review');
+    Route::patch('/admin/properties/{property}/status', [PropertyController::class, 'updateStatus'])->name('admin.properties.status');
+    Route::delete('/admin/properties/{property}', [PropertyController::class, 'destroy'])->name('admin.properties.destroy');
+    Route::get('/admin/properties/{property}/edit', [PropertyController::class, 'edit'])->name('admin.properties.edit');
+    Route::put('/admin/properties/{property}', [PropertyController::class, 'update'])->name('admin.properties.update');
+});
 
 Route::post('/admin/properties/{id}/generate-referral', [PropertyController::class, 'generateReferral'])
     ->middleware('auth')
@@ -94,7 +133,7 @@ Route::get('/lifestyle-match', [LifestyleController::class, 'index'])->name('lif
 Route::post('/lifestyle-match/results', [LifestyleController::class, 'results'])->name('lifestyle.match.results');
 
 // ADD PROPERTY
-Route::get('/admin/properties/create', [PropertyController::class, 'create'])->name('admin.subfiles.addproperty');
+Route::get('/admin/properties/create', [PropertyController::class, 'create'])->middleware('auth')->name('admin.subfiles.addproperty');
 
 // VIEW DETAILS
 Route::get('/r/{code}', [ReferralController::class, 'open'])->name('referrals.open');
@@ -106,15 +145,23 @@ Route::get('/agents', [AgentController::class, 'agents'])->name('agents');
 Route::get('/agents/{professional}', [AgentController::class, 'show'])->name('agents.show');
 Route::get('/app/appointments', [AppointmentController::class, 'index'])->middleware('auth')->name('appointments.index');
 Route::patch('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->middleware('auth')->name('appointments.status');
+Route::post('/appointments/{appointment}/proposals', [AppointmentController::class, 'proposeTime'])->middleware('auth')->name('appointments.proposals.store');
+Route::get('/appointments/{appointment}/availability', [AppointmentController::class, 'proposalAvailability'])->middleware('auth')->name('appointments.proposals.availability');
+Route::patch('/appointment-proposals/{proposal}', [AppointmentController::class, 'respondToProposal'])->middleware('auth')->name('appointments.proposals.respond');
 Route::post('/appointments/block-date', [AppointmentController::class, 'blockDate'])->middleware('auth')->name('appointments.block-date');
 Route::get('/properties/{property}/appointments/create', [AppointmentController::class, 'create'])->name('appointments.create');
+Route::get('/properties/{property}/appointments/availability', [AppointmentController::class, 'availability'])->name('appointments.availability');
 Route::post('/properties/{property}/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
 Route::get('/app/reports/export', [ReportController::class, 'export'])->middleware('auth')->name('reports.export');
 Route::get('/messages', [MessageController::class, 'index'])->middleware('auth')->name('messages.inbox');
+Route::delete('/messages/conversations/{conversation}', [MessageController::class, 'deleteConversation'])->middleware('auth')->name('messages.conversations.delete');
+Route::get('/messages/attachments/{message}', [MessageController::class, 'downloadAttachment'])->middleware('auth')->name('messages.attachments.download');
 Route::get('/messages/direct/{recipient}', [MessageController::class, 'direct'])->middleware('auth')->name('messages.direct');
 Route::post('/messages/compose', [MessageController::class, 'compose'])->middleware('auth')->name('messages.compose');
 Route::post('/properties/{property}/message', [MessageController::class, 'propertyDirect'])->middleware('auth')->name('properties.message');
 Route::post('/messages/{conversation}', [MessageController::class, 'store'])->middleware('auth')->name('messages.store');
+Route::delete('/messages/{message}', [MessageController::class, 'destroyMessage'])->middleware('auth')->name('messages.destroy');
+Route::patch('/messages/{message}', [MessageController::class, 'updateMessage'])->middleware('auth')->name('messages.update');
 Route::get('/messages/{conversation}/updates', [MessageController::class, 'updates'])->middleware('auth')->name('messages.updates');
 Route::get('/notifications/count', [MessageController::class, 'notificationCount'])->middleware('auth')->name('notifications.count');
 Route::get('/notifications', [MessageController::class, 'notifications'])->middleware('auth')->name('notifications.index');
@@ -132,15 +179,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/login/otp', [AuthController::class, 'showOtp'])->name('login.otp');
 Route::post('/login/otp', [AuthController::class, 'verifyOtp'])->name('login.otp.verify');
 Route::post('/login/otp/resend', [AuthController::class, 'resendOtp'])->name('login.otp.resend');
-Route::get('/account/password-setup/{user}/{token}', [AuthController::class, 'showPasswordSetup'])
-    ->middleware('signed')
-    ->name('account.password-setup.show');
-Route::post('/account/password-setup/{user}/{token}', [AuthController::class, 'storePasswordSetup'])
-    ->middleware('signed')
-    ->name('account.password-setup.store');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 Route::post('/settings/profile', [AuthController::class, 'updateProfile'])->name('settings.profile.update')->middleware('auth');
+Route::get('/settings/credentials', [AuthController::class, 'downloadOwnCredentials'])->name('settings.credentials.download')->middleware('auth');
 Route::post('/settings/password', [AuthController::class, 'updatePassword'])->name('settings.password.update')->middleware('auth');
 Route::delete('/settings/account', [AuthController::class, 'destroyAccount'])->name('settings.account.destroy')->middleware('auth');
 
@@ -189,6 +231,10 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
 
     $acting = $user->actingRole();
 
+    if ($page === 'client-profile') {
+        return redirect()->route('app.page', ['page' => 'settings']);
+    }
+
     $rolePages = config('roles.pages');
 
     if (! isset($rolePages[$acting]) || ! in_array($page, $rolePages[$acting], true)) {
@@ -204,7 +250,7 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
         return app(AppointmentController::class)->index(request());
     }
     if ($page === 'review') return app(ReviewController::class)->index();
-    if ($page === 'report') return app(ReportController::class)->index();
+    if ($page === 'report') return app(ReportController::class)->index(request());
 
     if ($page === 'agents') {
         $teamIds = $user->teams()->pluck('team_id');
@@ -220,19 +266,51 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
     if ($page === 'dashboard') {
         $calendarMonth = (int) request('month', now()->month);
         $calendarYear = (int) request('year', now()->year);
-        $calendarStart = \Carbon\Carbon::createFromDate($calendarYear, $calendarMonth, 1)->startOfDay();
-        $calendarEnd = (clone $calendarStart)->endOfMonth()->endOfDay();
+        $calendarTimezone = $user->timezone ?: config('appointments.default_timezone');
+        $calendarStart = \Carbon\CarbonImmutable::create($calendarYear, $calendarMonth, 1, 0, 0, 0, $calendarTimezone);
+        $calendarEnd = $calendarStart->endOfMonth();
         $properties = Property::visibleTo($user)->with('details')->get();
         $totalProperties = $properties->count();
 
-        $calendarAppointments = \App\Models\Appointment::query()
+        $calendarAppointmentsQuery = \App\Models\Appointment::query()
             ->with(['assignment.property', 'assignment.user'])
-            ->whereBetween('preferred_date', [$calendarStart->toDateString(), $calendarEnd->toDateString()])
-            ->when($acting !== 'admin', fn ($query) => $query->whereHas('assignment', fn ($query) => $query->where('user_id', $user->user_id)))
-            ->get();
-        $calendarBlockedDates = $user->blockedDates()
-            ->whereBetween('date', [$calendarStart->toDateString(), $calendarEnd->toDateString()])
-            ->get();
+            ->where(function ($query) use ($calendarStart, $calendarEnd) {
+                $query->whereBetween('starts_at_utc', [$calendarStart->utc()->format('Y-m-d H:i:s'), $calendarEnd->utc()->format('Y-m-d H:i:s')])
+                    ->orWhere(function ($query) use ($calendarStart, $calendarEnd) {
+                        $query->whereNull('starts_at_utc')
+                            ->whereBetween('preferred_date', [$calendarStart->subDay()->toDateString(), $calendarEnd->addDay()->toDateString()]);
+                    });
+            });
+
+        if ($acting === 'client') {
+            $calendarAppointmentsQuery->where(function ($query) use ($user) {
+                $query->where('client_id', $user->user_id)
+                    ->orWhere(function ($query) use ($user) {
+                        $query->whereNull('client_id')->where('contact_email', $user->email);
+                    });
+            });
+        } elseif ($acting !== 'admin') {
+            $calendarAppointmentsQuery->whereHas('assignment', fn ($query) => $query->where('user_id', $user->user_id));
+        }
+
+        $calendarAppointments = $calendarAppointmentsQuery->get()->map(function ($appointment) use ($calendarTimezone) {
+            $localStart = $appointment->startInTimezone($calendarTimezone);
+
+            return [
+                'preferred_date' => $localStart->toDateString(),
+                'preferred_time' => $localStart->format('H:i'),
+                'contact_name' => $appointment->contact_name,
+                'property_name' => $appointment->assignment?->property?->property_name ?? 'Property appointment',
+                'appointment_status' => $appointment->appointment_status,
+            ];
+        });
+
+        $calendarBlockedDates = $acting === 'client'
+            ? collect()
+            : \App\Models\BlockedDate::query()
+                ->whereBetween('date', [$calendarStart->toDateString(), $calendarEnd->toDateString()])
+                ->when($acting !== 'admin', fn ($query) => $query->where('user_id', $user->user_id))
+                ->get();
         $recentActivities = \App\Models\AppNotification::query()
             ->where('user_id', $user->user_id)
             ->latest()
@@ -285,11 +363,32 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
         ));
     }
 
+    if ($page === 'settings') {
+        $user->loadMissing('professionalProfile');
+        $appointments = $user->normalizedRole() === 'client'
+            ? \App\Models\Appointment::query()
+                ->with(['assignment.property', 'assignment.user'])
+                ->where(function ($query) use ($user) {
+                    $query->where('client_id', $user->user_id)
+                        ->orWhere(function ($query) use ($user) {
+                            $query->whereNull('client_id')->where('contact_email', $user->email);
+                        });
+                })
+                ->orderBy('starts_at_utc')
+                ->get()
+            : collect();
+
+        return view('pages.settings', compact('acting', 'page', 'pageTitle', 'appointments'));
+    }
+
     $assignableUsers = $page === 'property'
         ? User::where('account_status', 'Active')->whereIn('role_name', ['Broker', 'Agent', 'Lead Broker'])->orderBy('name')->get()
         : collect();
 
-    $properties = Property::visibleTo($user)->with(['images', 'details', 'assignments'])->latest()->get();
+    $properties = Property::visibleTo($user)->with(['images', 'details', 'user', 'assignments.user', 'referralCodes'])->latest()->get();
+    $pendingListings = $page === 'property'
+        ? $properties->where('approval_status', 'Pending')->values()
+        : collect();
     $myProperties = $page === 'listings'
         ? $properties->filter(fn ($property) => $property->user_id === $user->user_id || $property->assignments->contains(fn ($assignment) => $assignment->user_id === $user->user_id && $assignment->status === 'Approved'))->values()
         : collect();
@@ -302,13 +401,12 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
         'appointments' => 'pages.appointments',
         'review' => 'pages.reviews',
         'settings' => 'pages.settings',
-        'client-profile' => 'customer.client-profile',
     ];
     $pageView = $sharedPageViews[$page] ?? $acting . '.' . $acting . '-' . str_replace('_', '-', $page);
 
     abort_unless(view()->exists($pageView), 404);
 
-    return view($pageView, compact('acting', 'page', 'pageTitle', 'properties', 'myProperties', 'teamProperties', 'assignableUsers'));
+    return view($pageView, compact('acting', 'page', 'pageTitle', 'properties', 'myProperties', 'teamProperties', 'assignableUsers', 'pendingListings'));
 })->name('app.page');
 
 Route::post('/lead/toggle', function () {

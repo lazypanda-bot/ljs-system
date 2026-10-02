@@ -1,17 +1,56 @@
 .rush-properties-section {
-    padding: 100px 20px;
+    padding: 64px 20px;
     background-color: #f8fafc;
     font-family: system-ui, -apple-system, sans-serif;
 }
 
 .rush-container {
     max-width: 1300px;
+    padding: 26px;
     margin: 0 auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, .04);
 }
 
 .rush-header {
     text-align: center;
     margin-bottom: 30px;
+}
+
+.rush-header.home-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    text-align: left;
+}
+
+.home-section-link {
+    display: inline-flex;
+    min-height: 40px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 13px;
+    border: 1px solid #cad7d0;
+    border-radius: 6px;
+    color: #1b7e59;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.home-section-link:hover {
+    border-color: #1b7e59;
+    background: #edf7f1;
+}
+
+.home-section-link svg {
+    width: 15px;
+    height: 15px;
 }
 
 .rush-tag {
@@ -68,6 +107,16 @@
 
 .rush-slider-track::-webkit-scrollbar {
     display: none;
+}
+
+.rush-property-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.rush-property-grid .rush-empty {
+    grid-column: 1 / -1;
 }
 
 .rush-card {
@@ -280,4 +329,50 @@
 
 .dot.active {
     background: #2563eb;
+}
+
+@media (max-width: 1024px) {
+    .rush-property-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .rush-properties-section {
+        padding: 48px 16px;
+    }
+
+    .rush-container {
+        padding: 16px;
+    }
+
+    .rush-property-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .rush-card-img-container {
+        height: 170px;
+    }
+}
+
+@media (max-width: 520px) {
+    .rush-header.home-section-header {
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .rush-header.home-section-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .home-section-link {
+        min-height: 36px;
+        padding-inline: 9px;
+        font-size: 12px;
+    }
+
+    .rush-property-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

@@ -18,7 +18,7 @@ class AgentController extends Controller
             ->withCount('receivedReviews')
             ->withAvg('receivedReviews', 'rating')
             ->where('account_status', 'Active')
-            ->whereIn('role_name', ['Broker', 'Agent']);
+            ->whereIn('role_name', ['Broker', 'Agent', 'Lead Broker']);
 
         $topProfessionals = (clone $professionals)
             ->orderByDesc('received_reviews_count')
@@ -46,7 +46,7 @@ class AgentController extends Controller
     {
         abort_unless(
             $professional->account_status === 'Active'
-                && in_array($professional->role_name, ['Broker', 'Agent'], true),
+                && in_array($professional->role_name, ['Broker', 'Agent', 'Lead Broker'], true),
             404
         );
 

@@ -18,6 +18,22 @@ document.addEventListener('DOMContentLoaded', function () {
     propertySearch?.addEventListener('input', filterProperties);
     propertyStatusFilter?.addEventListener('change', filterProperties);
 
+    const propertyTabs = document.querySelectorAll('[data-admin-property-tab]');
+    const propertyPanels = document.querySelectorAll('[data-admin-property-panel]');
+    propertyTabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+            propertyTabs.forEach((item) => {
+                const active = item === tab;
+                item.classList.toggle('active', active);
+                item.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            propertyPanels.forEach((panel) => {
+                panel.hidden = panel.dataset.adminPropertyPanel !== tab.dataset.adminPropertyTab;
+                panel.classList.toggle('active', !panel.hidden);
+            });
+        });
+    });
+
     const modal = document.getElementById('addPropertyModal');
     const openBtn = document.getElementById('openAddModalBtn');
     const closeBtn = document.getElementById('closeAddModalBtn');

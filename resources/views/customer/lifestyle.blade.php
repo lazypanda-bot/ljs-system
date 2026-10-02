@@ -35,8 +35,8 @@
                     <div id="lifestyleOptions" class="lifestyle-options"></div>
 
                     <div class="lifestyle-question-actions">
-                        <button type="button" id="lifestyleBackBtn" class="lifestyle-btn-secondary">&larr; Back</button>
-                        <button type="button" id="lifestyleNextBtn" class="lifestyle-btn-primary">Next Question &rarr;</button>
+                        <button type="button" id="lifestyleBackBtn" class="lifestyle-btn-secondary">Back</button>
+                        <button type="button" id="lifestyleNextBtn" class="lifestyle-btn-primary">Next Question</button>
                     </div>
                 </div>
             </div>
@@ -57,7 +57,7 @@
                             <h3>Your Top Lifestyle Matches</h3>
                             <p>These properties match your lifestyle and preferences the most.</p>
                         </div>
-                        <a href="{{ route('properties') }}" class="lifestyle-btn-secondary lifestyle-view-all">View All Properties &rarr;</a>
+                        <a href="{{ route('properties') }}" class="lifestyle-btn-secondary lifestyle-view-all">View All Properties</a>
                     </div>
 
                     <div id="lifestyleMatchesGrid" class="properties-grid lifestyle-matches-grid"></div>
@@ -91,7 +91,7 @@
 
                     <div class="lifestyle-retake-card">
                         <p>Not exactly what you were looking for?</p>
-                        <button type="button" id="lifestyleRetakeBtn" class="lifestyle-btn-secondary"><i data-lucide="rotate-ccw" aria-hidden="true"></i> Retake Lifestyle Quiz</button>
+                        <button type="button" id="lifestyleRetakeBtn" class="lifestyle-btn-secondary">Retake Lifestyle Quiz</button>
                     </div>
                 </aside>
             </div>
@@ -100,3 +100,7 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>window.lifestyleMatchChoices = @json($matchChoices);</script>
+@endpush

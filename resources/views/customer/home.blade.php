@@ -76,21 +76,15 @@
 
     <section class="rush-properties-section">
         <div class="rush-container">
-            <div class="rush-header">
-                <span class="rush-tag">Featured Properties</span>
-                <h2>Featured Properties</h2>
+            <div class="rush-header home-section-header">
+                <div>
+                    <span class="rush-tag">Featured Properties</span>
+                    <h2>Featured Properties</h2>
+                </div>
+                <a class="home-section-link" href="{{ route('properties') }}">All properties</a>
             </div>
 
-            <!-- Slider Wrapper -->
-            <div class="rush-slider-wrapper">
-                
-                <!-- Left Arrow -->
-                <button type="button" id="slideLeft" class="slider-arrow slider-left" aria-label="Previous">
-                    ❮
-                </button>
-
-                <!-- Scrollable Track / Grid -->
-                <div id="rushSliderTrack" class="rush-slider-track">
+            <div class="rush-property-grid">
                     @forelse ($featuredProperties as $item)
                         @php
                             $firstImage = $item->images->first();
@@ -158,21 +152,46 @@
                     @empty
                         <p class="rush-empty">No featured properties available at the moment.</p>
                     @endforelse
+            </div>
+        </div>
+    </section>
+
+    <section class="top-agents-section home-professionals-section" aria-labelledby="homeProfessionalsTitle">
+        <div class="top-agents-container home-professionals-container">
+            <div class="top-agents-header home-professionals-header">
+                <div>
+                    <span class="top-agents-tag">MEET OUR TOP-PERFORMING PROFESSIONALS</span>
+                    <h2 id="homeProfessionalsTitle">Most <span class="highlight-green">Reviewed</span> Brokers &amp; Agents</h2>
                 </div>
-
-                <!-- Right Arrow -->
-                <button type="button" id="slideRight" class="slider-arrow slider-right" aria-label="Next">
-                    ❯
-                </button>
+                <a class="home-section-link" href="{{ route('agents') }}">View all professionals</a>
             </div>
 
-            <!-- Pagination Dots -->
-            <div class="rush-dots">
-                <span class="dot active"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
+            <div class="top-agents-track home-professionals-grid">
+                @forelse ($topProfessionals as $professional)
+                    @php
+                        $agentImage = $professional->profile_photo ? asset('storage/' . $professional->profile_photo) : asset('images/ljs-logo.jpg');
+                        $rating = $professional->received_reviews_avg_rating ? number_format($professional->received_reviews_avg_rating, 1) : 'New';
+                    @endphp
+                    <article class="agent-highlight-card">
+                        <div class="agent-avatar-container">
+                            <img src="{{ $agentImage }}" alt="{{ $professional->name }}" data-fallback-src="{{ asset('images/ljs-logo.jpg') }}">
+                        </div>
+                        <div class="agent-card-info">
+                            <h3>{{ $professional->name }}</h3>
+                            <p class="agent-role">{{ $professional->role_name }}</p>
+                            <div class="agent-rating">
+                                <span class="stars" aria-label="5 stars">@for ($star = 0; $star < 5; $star++)<i data-lucide="star" aria-hidden="true"></i>@endfor</span>
+                                <span class="rating-score">{{ $rating }}</span>
+                                <span class="review-count">({{ $professional->received_reviews_count }} reviews)</span>
+                            </div>
+                            <div class="agent-sold-stat">{{ $professional->professionalProfile?->years_experience ?? 0 }} Years Experience</div>
+                            <a href="{{ route('agents.show', $professional) }}" class="agent-view-btn">View details</a>
+                        </div>
+                    </article>
+                @empty
+                    <p class="no-agents-text">No professionals found.</p>
+                @endforelse
             </div>
-
         </div>
     </section>
 
@@ -181,7 +200,6 @@
             <!-- Left Side: Group Photo with Fade Overlay -->
             <div class="home-about-image-wrapper">
                 <img src="{{ asset('images/ljs-family.jpg') }}" alt="LJS Team and People" class="home-about-img">
-                <div class="home-about-fade"></div>
             </div>
 
             <!-- Right Side: Content & Action -->

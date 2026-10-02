@@ -27,14 +27,26 @@ svg.lucide {
 
 .content-area,
 .landing-page main { color: var(--color-text); }
-.content-area { padding: 24px; }
+.content-area { padding: 12px 24px 24px; }
+.dashboard-container > .main-content { gap: 0; }
+.dashboard-container .content-area { padding-top: 20px; }
+.content-area .appointments-page-header h1,
+.content-area .live-page-header h1,
+.content-area .managed-agents-header h1,
+.content-area .notifications-page-header h1,
+.content-area .staff-property-header h1,
+.content-area .property-edit-heading h1,
+.content-area .staff-page-heading h1,
+.content-area .listings-header h1,
+.content-area .staff-property-admin-header h2 { font-size: 24px; line-height: 1.2; }
 .content-area > .staff-page-surface,
 .content-area > .listings-management-container { margin: 0 !important; }
 .content-area > .live-report-page,
 .content-area > .settings-page-wrapper { max-width: none; margin: 0; padding: 0; }
 .content-area > .reviews-wrapper { margin: 0; }
 .content-area > .appointments-page.staff-page-surface,
-.content-area > .live-report-page.staff-page-surface { width: 100%; max-width: none; margin: 0 !important; padding: 28px; }
+.content-area > .live-report-page.staff-page-surface,
+.content-area > .notifications-page.staff-page-surface { width: 100%; max-width: none; margin: 0 !important; padding: 28px; }
 .content-area .live-review-list { margin-top: 0; }
 .content-area button,
 .content-area input,
@@ -59,6 +71,7 @@ svg.lucide {
 .landing-page main input:not([type="checkbox"]):not([type="radio"]):focus,
 .landing-page main select:focus,
 .landing-page main textarea:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
+.content-area .au-tabs-search-row .au-search-wrapper{display:flex;align-items:center;gap:9px;width:min(300px,42%);margin:0;padding:6px 12px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-surface);color:var(--color-text-muted)}.content-area .au-tabs-search-row .au-search-input,.content-area .au-tabs-search-row .au-search-input:focus{width:100%;min-height:28px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;outline:0;font:inherit;font-size:14px}.content-area .au-tabs-search-row .au-search-wrapper>i{flex:0 0 auto;font-size:14px}
 .content-area .listings-toolbar .search-box input:not([type="checkbox"]):not([type="radio"]),
 .landing-page main .agent-search-box input:not([type="checkbox"]):not([type="radio"]),
 .landing-page main .map-search-box input:not([type="checkbox"]):not([type="radio"]),
@@ -79,7 +92,40 @@ svg.lucide {
 .content-area .btn-add-property,
 .content-area .btn-assign-property,
 .content-area .btn-request-listing,
-.landing-page main button[type="submit"] { border: 0; background: var(--color-primary); color: #fff; cursor: pointer; padding: 9px 16px; text-decoration: none; }
+.landing-page main button[type="submit"],
+.content-area .compose-message-btn,
+.content-area .compose-send,
+.content-area .report-export-btn,
+.content-area .report-filter-button,
+.content-area .staff-referral-copy,
+.content-area .staff-approve-button,
+.content-area .au-adduser-toggle-btn,
+.content-area .au-addteam-toggle-btn,
+.content-area .au-saveuser-btn,
+.content-area .au-saveteam-btn,
+.content-area .au-edituser-btn,
+.content-area .au-editteam-btn,
+.content-area .block-calendar-btn,
+.content-area .property-add-choice button,
+.content-area .property-create-actions .btn-save,
+.content-area .property-edit-actions .btn-save,
+.content-area .lifestyle-btn-primary,
+.content-area .compose-message-btn,
+.landing-page main .login-submit-btn,
+.landing-page main .property-btn,
+.landing-page main .agent-view-btn,
+.landing-page main .agent-search-btn,
+.landing-page .signin-btn,
+.landing-page main .hero-btn,
+.landing-page main .home-about-btn,
+.landing-page main .lifestyle-btn-primary,
+.landing-page main .contact-action-primary,
+.landing-page main .contact-action-secondary,
+.landing-page main .business-contact-form button,
+.login-modal .login-submit-btn,
+.auth-page .btn-login,
+.client-review-form button,
+.profile-submit-btn { border: 0; border-radius: 999px; background: var(--color-primary); color: #fff; cursor: pointer; padding: 9px 16px; text-decoration: none; }
 .content-area button[type="submit"]:hover,
 .content-area .btn-primary:hover,
 .content-area .btn-save:hover,
@@ -89,12 +135,66 @@ svg.lucide {
 .content-area .btn-add-property:hover,
 .content-area .btn-assign-property:hover,
 .content-area .btn-request-listing:hover,
-.landing-page main button[type="submit"]:hover { background: var(--color-success); transform: translateY(-1px); }
+.landing-page main button[type="submit"]:hover,
+.content-area .compose-message-btn:hover,
+.content-area .compose-send:hover,
+.content-area .report-export-btn:hover,
+.content-area .report-filter-button:hover,
+.content-area .staff-referral-copy:hover,
+.content-area .staff-approve-button:hover,
+.content-area .au-adduser-toggle-btn:hover,
+.content-area .au-addteam-toggle-btn:hover,
+.content-area .au-saveuser-btn:hover,
+.content-area .au-saveteam-btn:hover,
+.content-area .au-edituser-btn:hover,
+.content-area .au-editteam-btn:hover,
+.content-area .block-calendar-btn:hover,
+.content-area .property-add-choice button:hover,
+.content-area .property-create-actions .btn-save:hover,
+.content-area .property-edit-actions .btn-save:hover,
+.content-area .lifestyle-btn-primary:hover,
+.landing-page main .login-submit-btn:hover,
+.landing-page main .property-btn:hover,
+.landing-page main .agent-view-btn:hover,
+.landing-page main .agent-search-btn:hover,
+.landing-page .signin-btn:hover,
+.landing-page main .hero-btn:hover,
+.landing-page main .home-about-btn:hover,
+.landing-page main .lifestyle-btn-primary:hover,
+.landing-page main .contact-action-primary:hover,
+.landing-page main .contact-action-secondary:hover,
+.landing-page main .business-contact-form button:hover,
+.login-modal .login-submit-btn:hover,
+.auth-page .btn-login:hover,
+.client-review-form button:hover,
+.profile-submit-btn:hover { background: var(--color-success); color: #fff; transform: translateY(-1px); }
 .content-area .btn-secondary,
 .content-area .btn-cancel,
 .content-area .au-canceluser-btn,
 .content-area .au-cancelteam-btn,
-.content-area .compose-cancel { display: inline-flex; align-items: center; justify-content: center; min-height: var(--ui-control-height); border: 1px solid var(--color-border); border-radius: var(--ui-radius); background: var(--color-primary-soft); color: var(--color-text-muted); cursor: pointer; padding: 9px 16px; text-decoration: none; }
+.content-area .compose-cancel,
+.content-area .property-create-actions > a,
+.content-area .property-edit-actions > a,
+.content-area .business-secondary-link,
+.landing-page main .btn-secondary { display: inline-flex; align-items: center; justify-content: center; min-height: var(--ui-control-height); border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-primary-soft); color: var(--color-primary); cursor: pointer; padding: 9px 16px; text-decoration: none; }
+.content-area .btn-secondary:hover,
+.content-area .btn-cancel:hover,
+.content-area .au-canceluser-btn:hover,
+.content-area .au-cancelteam-btn:hover,
+.content-area .compose-cancel:hover,
+.content-area .property-create-actions > a:hover,
+.content-area .property-edit-actions > a:hover,
+.content-area .business-secondary-link:hover,
+.landing-page main .btn-secondary:hover { border-color: var(--color-success); background: var(--color-success); color: #fff; }
+.content-area .btn-secondary,
+.content-area .btn-cancel,
+.content-area .au-canceluser-btn,
+.content-area .au-cancelteam-btn,
+.content-area .compose-cancel,
+.content-area .property-create-actions > a,
+.content-area .property-edit-actions > a,
+.content-area .business-secondary-link,
+.landing-page main .btn-secondary { min-height: 38px; }
 .content-area .btn-action,
 .content-area .btn-icon,
 .content-area .btn-delete { display: inline-grid; width: 36px; height: 36px; min-height: 36px; place-items: center; border: 0; border-radius: 50%; background: var(--color-primary-soft); color: var(--color-primary); cursor: pointer; padding: 0; text-decoration: none; }
@@ -105,12 +205,62 @@ svg.lucide {
 .content-area .btn-delete { color: var(--color-danger); }
 .content-area .btn-action.delete:hover,
 .content-area .btn-delete:hover { background: var(--color-danger); color: #fff; }
+.content-area .btn-delete:not(.btn-action),
+.content-area .au-deleteuser-btn,
+.content-area .au-deleteteam-btn,
+.content-area .staff-reject-button,
+.content-area .btn-danger-outline,
+.landing-page main .btn-danger,
+.landing-page main .btn-delete { border-color: var(--color-danger); background: var(--color-danger); color: #fff; border-radius: 999px; }
+.content-area .btn-delete:not(.btn-action):hover,
+.content-area .au-deleteuser-btn:hover,
+.content-area .au-deleteteam-btn:hover,
+.content-area .staff-reject-button:hover,
+.content-area .btn-danger-outline:hover,
+.landing-page main .btn-danger:hover,
+.landing-page main .btn-delete:hover { border-color: #b91c1c; background: #b91c1c; color: #fff; }
+.content-area .btn-delete:not(.btn-action) { border-radius: 50%; }
+.content-area .staff-property-admin-header .btn-add-property,
+.content-area .staff-property-referral-cell .staff-referral-copy { border-radius: 999px; background: var(--color-primary); color: #fff; }
+.content-area .staff-property-admin-header .btn-add-property:hover,
+.content-area .staff-property-referral-cell .staff-referral-copy:hover { background: var(--color-success); color: #fff; }
+.content-area .au-adduser-toggle-btn,
+.content-area .au-addteam-toggle-btn,
+.content-area .au-saveuser-btn,
+.content-area .au-saveteam-btn { border-radius: 999px; background: var(--color-primary) !important; color: #fff !important; }
+.content-area .au-adduser-toggle-btn:hover,
+.content-area .au-addteam-toggle-btn:hover,
+.content-area .au-saveuser-btn:hover,
+.content-area .au-saveteam-btn:hover { background: var(--color-success) !important; color: #fff !important; }
+.content-area #openAddUserModal { border-radius: 999px; background: var(--color-primary) !important; color: #fff !important; }
+.content-area #openAddUserModal:hover { background: var(--color-success) !important; color: #fff !important; }
+.content-area .staff-property-actions .btn-action.delete { background: var(--color-danger); color: #fff; }
+.content-area .staff-property-actions .btn-action.delete:hover { background: #b91c1c; color: #fff; }
+.message-delete-form{display:flex;justify-content:flex-end;margin-top:5px}.content-area .message-delete-button,.client-messages-embed .message-delete-button{display:inline-grid;width:27px;height:27px;min-height:27px;place-items:center;padding:0;border:0;border-radius:50%;background:transparent;color:#b91c1c;cursor:pointer}.content-area .message-delete-button:hover,.client-messages-embed .message-delete-button:hover{background:#fee2e2;color:#991b1b}
+.content-area .message-send-button{min-width:76px;min-height:42px;padding:9px 17px;border:0;border-radius:999px;background:var(--color-primary);color:#fff;font-size:13px;font-weight:800}.content-area .message-send-button:hover{background:var(--color-success)}
+.content-area .message-menu-toggle{display:grid;width:30px;height:30px;min-width:30px;min-height:30px;place-items:center;padding:0;border:1px solid transparent;border-radius:50%;background:transparent;color:var(--color-text-muted)}.content-area .message-menu-toggle:hover,.content-area .message-menu-toggle[aria-expanded="true"]{border-color:var(--color-border);background:var(--color-surface);color:var(--color-primary)}.content-area .message-action-menu button{width:100%;min-height:34px;justify-content:flex-start;padding:7px 9px;border:0;border-radius:5px;background:transparent;color:var(--color-text);font-size:12px;text-align:left}.content-area .message-action-menu button:hover{background:var(--color-primary-soft);color:var(--color-primary)}.content-area .message-action-menu .message-action-delete,.content-area .message-action-menu .message-action-delete:hover{color:var(--color-danger)}
+.content-area .thread-action-menu button{display:flex;width:100%;min-height:34px;align-items:center;justify-content:flex-start;gap:8px;padding:7px 9px;border:0;border-radius:5px;background:transparent!important;color:var(--color-danger);font-size:12px;font-weight:700;text-align:left}
+.content-area .thread-action-menu button:hover{background:#fee2e2!important;color:#991b1b}
 .content-area .staff-listing-tab,
 .content-area .au-tab-btn,
 .content-area .settings-tab-btn { min-height: 40px; border: 0; border-radius: var(--ui-radius); background: transparent; color: var(--color-text-muted); cursor: pointer; padding: 9px 14px; }
 .content-area .staff-listing-tab.active,
 .content-area .au-tab-btn.active,
 .content-area .settings-tab-btn.active { background: var(--color-primary-soft); color: var(--color-primary); }
+.content-area .staff-property-tabs { gap: 8px; padding: 0; border: 0; }
+.content-area .staff-property-tabs .au-tab-btn { min-height: 42px; padding: 9px 16px; border: 0; border-radius: 999px; background: transparent; color: var(--color-text-muted); font-weight: 700; transition: background-color .16s ease, color .16s ease; }
+.content-area .staff-property-tabs .au-tab-btn:hover { background: var(--color-success); color: #fff; }
+.content-area .staff-property-tabs .au-tab-btn.active { background: var(--color-success); color: #fff; }
+.content-area .staff-property-tabs .au-tab-btn:focus-visible { outline: 3px solid var(--color-primary-soft); outline-offset: 2px; }
+.content-area .staff-user-tabs { gap: 8px; padding: 0; border: 0; }
+.content-area .staff-user-tabs .au-tab-btn { min-height: 42px; padding: 9px 16px; border: 0; border-radius: 999px; background: transparent; color: var(--color-text-muted); font-weight: 700; transition: background-color .16s ease, color .16s ease; }
+.content-area .staff-user-tabs .au-tab-btn:hover { background: var(--color-success); color: #fff; }
+.content-area .staff-user-tabs .au-tab-btn.active { background: var(--color-success); color: #fff; }
+.content-area .staff-user-tabs .au-tab-btn:focus-visible { outline: 3px solid var(--color-primary-soft); outline-offset: 2px; }
+.content-area .staff-property-admin-header .btn-add-property,
+.content-area .staff-property-referral-cell .staff-referral-copy { border-radius: 999px; background: var(--color-primary); color: #fff; }
+.content-area .staff-property-admin-header .btn-add-property:hover,
+.content-area .staff-property-referral-cell .staff-referral-copy:hover { background: var(--color-success); color: #fff; }
 .content-area .property-card-item,
 .content-area .card,
 .content-area .page-card,
@@ -122,4 +272,45 @@ svg.lucide {
 .content-area .live-empty,
 .content-area .notifications-empty { color: var(--color-text-muted); padding: 28px; text-align: center; }
 .content-area a:not(.btn-action):not(.btn-icon):not(.staff-action-button):not(.btn-add-property):not(.btn-request-listing) { text-decoration: none; }
-@media (max-width: 700px) { .staff-page-surface { margin: 14px 12px; padding: 20px; }.content-area > .appointments-page.staff-page-surface,.content-area > .live-report-page.staff-page-surface { padding: 20px; } }
+@media (max-width: 700px) { .staff-page-surface { margin: 14px 12px; padding: 20px; }.content-area > .appointments-page.staff-page-surface,.content-area > .live-report-page.staff-page-surface,.content-area > .notifications-page.staff-page-surface { padding: 20px; } }
+@media(max-width:600px){.content-area .au-tabs-search-row .au-search-wrapper{width:100%}}
+
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main button:not([aria-label]):not(.gallery-nav-button):not(.about-contact-dialog-close):not([onclick*="close"]),
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main a[class*="btn"],
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main a[class*="button"],
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main .home-section-link,
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main .business-primary-link,
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main .business-secondary-link,
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main .about-contact-option {
+    border-radius: 999px !important;
+}
+
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main button:not([aria-label]):not(.gallery-nav-button):not(.about-contact-dialog-close):not([onclick*="close"]):hover,
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main a[class*="btn"]:hover,
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main a[class*="button"]:hover,
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main .home-section-link:hover,
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main .business-primary-link:hover,
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main .business-secondary-link:hover,
+body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main .about-contact-option:hover {
+    border-color: var(--color-success) !important;
+    background-color: var(--color-success) !important;
+    color: #fff !important;
+}
+
+body.landing-page:not(:has(.dashboard-container)) main :is(a, button) > svg[class*="lucide-arrow"] {
+    display: none;
+}
+
+body.landing-page .login-btn {
+    border-radius: 999px;
+}
+
+body.landing-page .login-btn:hover {
+    background-color: var(--color-success);
+    color: #fff;
+}
+
+body.landing-page .lifestyle-page .lifestyle-btn-primary,
+body.landing-page .lifestyle-page .lifestyle-btn-secondary {
+    border-radius: 8px !important;
+}

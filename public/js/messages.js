@@ -5,6 +5,88 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.compose-close')?.addEventListener('click', closeCompose);
     document.querySelector('.compose-cancel')?.addEventListener('click', closeCompose);
     composeModal?.addEventListener('click', (event) => { if (event.target === composeModal) closeCompose(); });
+
+    const closeMessageMenus = (except = null) => {
+        document.querySelectorAll('[data-message-menu-toggle]').forEach((button) => {
+            const menu = button.parentElement?.querySelector('.message-action-menu');
+            if (button === except) return;
+            if (menu) menu.hidden = true;
+            button.setAttribute('aria-expanded', 'false');
+        });
+    };
+
+    document.querySelectorAll('[data-message-menu-toggle]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const menu = button.parentElement?.querySelector('.message-action-menu');
+            const shouldOpen = menu?.hidden ?? false;
+            closeMessageMenus(button);
+            if (menu) menu.hidden = !shouldOpen;
+            button.setAttribute('aria-expanded', String(shouldOpen));
+        });
+    });
+
+    document.querySelectorAll('[data-edit-message]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const row = button.closest('.message-row');
+            const menu = button.closest('.message-action-menu');
+            const toggle = button.closest('.message-actions')?.querySelector('[data-message-menu-toggle]');
+            const display = row?.querySelector('[data-message-display]');
+            const form = row?.querySelector('[data-message-edit-form]');
+            if (!form || !display) return;
+            if (menu) menu.hidden = true;
+            toggle?.setAttribute('aria-expanded', 'false');
+            display.hidden = true;
+            form.hidden = false;
+            form.querySelector('textarea')?.focus();
+        });
+    });
+
+    document.querySelectorAll('[data-cancel-message-edit]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const row = button.closest('.message-row');
+            const display = row?.querySelector('[data-message-display]');
+            const form = row?.querySelector('[data-message-edit-form]');
+            if (form) form.hidden = true;
+            if (display) display.hidden = false;
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.message-actions')) closeMessageMenus();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeMessageMenus();
+    });
+
+    const closeThreadMenus = (except = null) => {
+        document.querySelectorAll('[data-thread-menu-toggle]').forEach((button) => {
+            const menu = button.parentElement?.querySelector('.thread-action-menu');
+            if (button === except) return;
+            if (menu) menu.hidden = true;
+            button.setAttribute('aria-expanded', 'false');
+        });
+    };
+
+    document.querySelectorAll('[data-thread-menu-toggle]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const menu = button.parentElement?.querySelector('.thread-action-menu');
+            const shouldOpen = menu?.hidden ?? false;
+            closeThreadMenus(button);
+            if (menu) menu.hidden = !shouldOpen;
+            button.setAttribute('aria-expanded', String(shouldOpen));
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.thread-menu-wrap')) closeThreadMenus();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeThreadMenus();
+    });
+
     const chatMessages = document.querySelector('.chat-messages');
     const replyInput = document.querySelector('.reply-input');
 

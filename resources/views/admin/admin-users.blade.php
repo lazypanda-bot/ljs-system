@@ -2,8 +2,12 @@
 
 @section('title', 'Admin Users')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/admin-users.css') }}?v={{ filemtime(public_path('css/admin-users.css')) }}">
+@endpush
+
 @section('content')
-    <div class="au-page-card">
+    <div class="listings-management-container staff-page-surface au-page-card">
         @if ($errors->any())
             <div class="alert alert-danger" role="alert">
                 @foreach ($errors->all() as $error)
@@ -24,28 +28,24 @@
                 </form>
             </div>
         @endif
-        <!-- Toggle Tabs -->
-        <div class="au-tabs-container">
-            <button class="au-tab-btn active" data-tab="all-users">
-                <i class="fas fa-users me-2"></i>All Users
-            </button>
-            <button class="au-tab-btn" data-tab="teams">
-                <i class="fas fa-layer-group me-2"></i>Teams
-            </button>
+        <header class="staff-property-admin-header">
+            <div><h2>Staff management</h2><p>Manage staff accounts and teams.</p></div>
+            <button type="button" class="btn-add-property" id="openAddUserModal"><i class="fas fa-plus" aria-hidden="true"></i> Add User</button>
+        </header>
+
+        <div class="au-tabs-container staff-property-tabs staff-user-tabs" role="tablist" aria-label="Staff management views">
+            <button type="button" class="au-tab-btn {{ isset($team) ? '' : 'active' }}" data-tab="all-users">All Users</button>
+            <button type="button" class="au-tab-btn {{ isset($team) ? 'active' : '' }}" data-tab="teams">Teams</button>
         </div>
 
         <!-- All Users Section -->
-        <div class="au-tab-content active" id="all-users">
-            <div class="au-section-header">
-                <div>
-                    <h2>Staff accounts</h2>
-                    <p class="text-muted mb-0">You can manage your system users here.</p>
+        <div class="au-tab-content {{ isset($team) ? '' : 'active' }}" id="all-users">
+            <div class="listings-toolbar" id="usersSearchWrapper" @if(isset($team)) hidden @endif>
+                <div class="search-box">
+                    <span class="search-icon"><i class="fas fa-magnifying-glass" aria-hidden="true"></i></span>
+                    <input id="searchUsers" type="search" aria-label="Search staff accounts by name" placeholder="Search by name...">
                 </div>
-                <button class="au-adduser-toggle-btn" id="openAddUserModal">
-                    <i class="fas fa-plus me-1"></i> Add User
-                </button>
             </div>
-
             <!-- Add New User Modal -->
             <div class="au-modal-overlay" id="addUserModalOverlay">
                 {{-- @if ($errors->any())
@@ -122,11 +122,8 @@
 
             <!-- Users Table -->
             <div class="au-table-container">
-                <div class="au-search-wrapper">
-                    <input type="text" class="form-control au-search-input" id="searchUsers" placeholder="🔍 Search by name...">
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                <div class="staff-property-table-wrap">
+                    <table class="staff-property-table au-users-table">
                         <thead>
                             <tr>
                                 <th>USER</th>
@@ -205,7 +202,28 @@
         </div>
 
         <!-- Teams Section -->
-        <div class="au-tab-content" id="teams">
+        <div class="au-tab-content {{ isset($team) ? 'active' : '' }}" id="teams">
+            @if (isset($team))
+                @php($selectedMemberIds = old('member_ids', $team->members->pluck('user_id')->all()))
+                <div class="au-modal-overlay au-team-edit-modal open" role="presentation">
+                    <section class="au-form-card" role="dialog" aria-modal="true" aria-labelledby="editTeamHeading">
+                        <a href="{{ route('admin.teams.index') }}" class="au-modal-close" aria-label="Close">&times;</a>
+                        <h3 id="editTeamHeading">Edit Team</h3>
+                        <p class="au-team-edit-description">Update the team name, leader, and members.</p>
+                        <form method="POST" action="{{ route('admin.teams.update', $team->team_id) }}">
+                            @csrf @method('PUT')
+                            <label class="au-team-field"><span>Team name</span><input class="form-control" name="team_name" value="{{ old('team_name', $team->team_name) }}" maxlength="255" required></label>
+                            <label class="au-team-field"><span>Team leader</span><select class="form-select" name="user_id" required>@foreach($allUsers as $user)<option value="{{ $user->user_id }}" @selected((int) old('user_id', $team->user_id) === (int) $user->user_id)>{{ $user->name }} ({{ $user->role_name }})</option>@endforeach</select></label>
+                            <fieldset class="au-member-picker-fieldset"><legend>Team members</legend><div class="au-member-picker">
+                                @foreach($allUsers as $user)
+                                    <label class="au-member-choice"><input type="checkbox" name="member_ids[]" value="{{ $user->user_id }}" @checked(in_array($user->user_id, $selectedMemberIds))><span>{{ $user->name }}</span><small>{{ $user->role_name }}</small></label>
+                                @endforeach
+                            </div></fieldset>
+                            <div class="au-form-actions"><button class="au-saveteam-btn" type="submit">Save Team</button><a class="au-cancelteam-btn" href="{{ route('admin.teams.index') }}">Cancel</a></div>
+                        </form>
+                    </section>
+                </div>
+            @endif
             <div class="au-section-header">
                 <div>
                     <h2>Teams Management</h2>
@@ -243,14 +261,11 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="teamMembers" class="form-label">Team Members</label>
-                            <select class="form-select" id="teamMembers" name="member_ids[]" multiple size="5">
-                                @foreach($allUsers as $user)
-                                    <option value="{{ $user->user_id }}">{{ $user->name }} ({{ $user->role_name }})</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <fieldset class="au-member-picker-fieldset"><legend>Team Members</legend><div class="au-member-picker">
+                            @foreach($allUsers as $user)
+                                <label class="au-member-choice"><input type="checkbox" name="member_ids[]" value="{{ $user->user_id }}"><span>{{ $user->name }}</span><small>{{ $user->role_name }}</small></label>
+                            @endforeach
+                        </div></fieldset>
 
                         <div class="au-form-actions">
                             <button type="submit" class="au-saveteam-btn">Create Team</button>
@@ -262,8 +277,8 @@
 
             <!-- Teams Table -->
             <div class="au-table-container">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                <div class="staff-property-table-wrap">
+                    <table class="staff-property-table au-team-table">
                         <thead>
                             <tr>
                                 <th>TEAM ID</th>
@@ -313,6 +328,5 @@
         </div>
     </div>
 
-    <link rel="stylesheet" href="{{ asset('css/admin-users.css') }}">
     <script src="{{ asset('js/admin-users.js') }}?v={{ filemtime(public_path('js/admin-users.js')) }}"></script>
 @endsection

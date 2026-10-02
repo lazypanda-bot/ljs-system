@@ -27,11 +27,9 @@
                 <label>Type</label>
                 <select name="type" class="filter-select">
                     <option value="">All Property</option>
-                    <option value="Condominium">Condominium</option>
-                    <option value="Commercial">Commercial</option>
-                    <option value="House">House & Lot</option>
-                    <option value="Townhouse">Townhouse</option>
-                    <option value="Lot">Lot Only</option>
+                    @foreach ($propertyTypes as $propertyType)
+                        <option value="{{ $propertyType }}" {{ request('type') === $propertyType ? 'selected' : '' }}>{{ $propertyType }}</option>
+                    @endforeach
                 </select>
             </div>
 
@@ -40,9 +38,9 @@
                 <label>Location</label>
                 <select name="location" class="filter-select">
                     <option value="">All Locations</option>
-                    <option value="Cebu City">Cebu City</option>
-                    <option value="Mandaue">Mandaue City</option>
-                    <option value="Lapu-Lapu">Lapu-Lapu City</option>
+                    @foreach ($propertyLocations as $propertyLocation)
+                        <option value="{{ $propertyLocation }}" {{ request('location') === $propertyLocation ? 'selected' : '' }}>{{ $propertyLocation }}</option>
+                    @endforeach
                 </select>
             </div>
 

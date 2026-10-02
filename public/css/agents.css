@@ -57,6 +57,45 @@
     position: relative;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
+
+.landing-page .home-professionals-section {
+    padding: 32px 20px 56px;
+}
+
+.home-professionals-section .top-agents-container {
+    max-width: 1300px;
+    padding: 26px;
+    border-radius: 8px;
+}
+
+.home-professionals-section .home-professionals-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    text-align: left;
+}
+
+.home-professionals-header h2 {
+    margin-top: 5px;
+}
+
+.home-professionals-section .home-professionals-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    justify-content: stretch;
+    gap: 15px;
+    overflow: visible;
+}
+
+.home-professionals-section .home-professionals-grid .agent-highlight-card {
+    width: 100%;
+    min-width: 0;
+}
+
+.home-professionals-grid .agent-card-info h3 {
+    overflow-wrap: anywhere;
+}
 .agent-fav-btn {
     position: absolute;
     top: 12px;
@@ -129,7 +168,7 @@
     text-decoration: underline;
 }
 .agents-directory-section {
-    padding: 10px 20px 40px 20px;
+    padding: 104px 20px 56px;
     background: #f8fafc;
 }
 .agents-directory-container {
@@ -361,6 +400,7 @@
     .top-agents-track { justify-content: flex-start; overflow-x: auto; }
     .top-agents-track .agent-highlight-card { min-width: 230px; }
     .professional-profile-layout { grid-template-columns: 1fr; }
+    .home-professionals-section .home-professionals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 560px) {
@@ -368,5 +408,10 @@
     .agents-grid { grid-template-columns: 1fr; }
     .agent-search-toolbar { align-items: stretch; flex-direction: column; }
     .agent-search-btn { width: 100%; }
+    .landing-page .home-professionals-section { padding: 24px 12px 40px; }
+    .home-professionals-section .top-agents-container { padding: 16px; }
+    .home-professionals-section .home-professionals-header { align-items: flex-start; gap: 10px; }
+    .home-professionals-header h2 { font-size: 21px; }
+    .home-professionals-section .home-professionals-grid { grid-template-columns: minmax(0, 1fr); }
 }
 .agent-role-filter { height: 48px; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: #1f2937; font-size: 14px; }

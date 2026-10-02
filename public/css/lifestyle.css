@@ -231,6 +231,7 @@
 
 .lifestyle-option-card {
     position: relative;
+    overflow: hidden;
     text-align: left;
     background: #fff;
     border: 1.5px solid #e2e8f0;
@@ -241,11 +242,12 @@
     flex-direction: column;
     gap: 6px;
     font-family: inherit;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 
 .lifestyle-option-card:hover {
     border-color: var(--color-success);
+    transform: translateY(-2px);
 }
 
 .lifestyle-option-card.is-selected {
@@ -267,6 +269,7 @@
     align-items: center;
     justify-content: center;
     font-size: 0.7rem;
+    z-index: 2;
 }
 
 .lifestyle-option-card.is-selected .lifestyle-option-check {
@@ -276,15 +279,29 @@
 }
 
 .lifestyle-option-icon {
-    font-size: 1.6rem;
+    position: absolute;
+    right: -0.8rem;
+    bottom: -1.1rem;
+    color: var(--color-primary, #1f6cff);
+    opacity: 0.09;
+    pointer-events: none;
+    z-index: 0;
 }
 
+.lifestyle-option-icon svg.lucide { width: 7.5rem; height: 7.5rem; stroke-width: 1.6; }
+
+.lifestyle-option-card.is-selected .lifestyle-option-icon { color: var(--color-success); opacity: 0.14; }
+
 .lifestyle-option-label {
+    position: relative;
+    z-index: 1;
     font-size: 0.95rem;
     color: #1f2937;
 }
 
 .lifestyle-option-description {
+    position: relative;
+    z-index: 1;
     font-size: 0.8rem;
     color: #64748b;
     line-height: 1.4;
@@ -573,9 +590,49 @@
         flex-basis: 100%;
         max-width: 100%;
     }
+
+    .lifestyle-progress {
+        padding: 10px 12px;
+    }
+
+    .lifestyle-progress-header {
+        display: none;
+    }
+
+    .lifestyle-steps-list {
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 4px;
+    }
+
+    .lifestyle-step-item {
+        padding: 0;
+    }
+
+    .lifestyle-step-item.is-active {
+        background: transparent;
+    }
+
+    .lifestyle-step-text {
+        display: none;
+    }
+
+    .lifestyle-step-bubble {
+        width: 28px;
+        height: 28px;
+        flex-basis: 28px;
+    }
 }
 
 @media (max-width: 560px) {
+    .lifestyle-page {
+        padding: 86px 12px 48px;
+    }
+
+    .lifestyle-quiz-header {
+        margin-bottom: 18px;
+    }
+
     .lifestyle-options {
         grid-template-columns: 1fr;
     }

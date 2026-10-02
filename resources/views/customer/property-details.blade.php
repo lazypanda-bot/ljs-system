@@ -62,6 +62,24 @@
             </section>
 
             <section class="property-details-panel">
+                @php
+                    $lifestyleTags = collect(explode(',', (string) $property->lifestyle_tag))->map(fn ($tag) => trim($tag))->filter();
+                    $locationTags = collect(explode(',', (string) $property->location_tag))->map(fn ($tag) => trim($tag))->filter();
+                @endphp
+                @if ($lifestyleTags->isNotEmpty() || $locationTags->isNotEmpty())
+                    <h2>Lifestyle Match</h2>
+                    <div class="property-match-tags">
+                        @foreach ($lifestyleTags as $tag)
+                            <span><i class="fas fa-heart" aria-hidden="true"></i> {{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $tag)) }}</span>
+                        @endforeach
+                        @foreach ($locationTags as $tag)
+                            <span><i class="fas fa-location-dot" aria-hidden="true"></i> {{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $tag)) }}</span>
+                        @endforeach
+                    </div>
+                @endif
+            </section>
+
+            <section class="property-details-panel">
                 <h2>Description</h2>
                 <p class="property-description">{{ $property->property_description ?: 'No additional description provided for this listing.' }}</p>
             </section>
@@ -81,8 +99,8 @@
         </div>
 
         <aside class="professional-contact-card" aria-labelledby="contactProfessionalHeading">
-            <p class="contact-card-kicker">Listing professional</p>
-            <h2 id="contactProfessionalHeading">Contact professional</h2>
+            <p class="contact-card-kicker">Listing {{ $isAdminListing ? 'administrator' : 'professional' }}</p>
+            <h2 id="contactProfessionalHeading">Contact {{ $isAdminListing ? 'administrator' : 'professional' }}</h2>
 
             <div class="professional-contact-identity">
                 <div class="professional-avatar">
@@ -117,27 +135,25 @@
             <div class="professional-contact-actions">
                 @auth
                     <button type="button" id="referralAppointmentLink" class="contact-action contact-action-secondary" onclick="openAppointmentModal()">
-                        <i class="far fa-calendar-alt" aria-hidden="true"></i> Book appointment
+                        Book appointment
                     </button>
                 @else
                     <!-- Triggers login or redirects if not logged in -->
                     <button type="button" class="contact-action contact-action-secondary" id="openLoginModal">
-                        <i class="far fa-calendar-alt" aria-hidden="true"></i> Sign in to book
+                        Sign in to book
                     </button>
                 @endauth
                 
                 @auth
-                    @if (auth()->user()?->normalizedRole() === 'client' && ($referralCode || in_array($contactUser?->role_name, ['Broker', 'Agent', 'Lead Broker'], true)))
+                    @if (auth()->user()?->normalizedRole() === 'client' && ($isAdminListing || $referralCode || in_array($contactUser?->role_name, ['Broker', 'Agent', 'Lead Broker'], true)))
                         <form method="POST" action="{{ $messageUrl }}">
                             @csrf
-                            @if ($referralCode)
-                                <input type="hidden" name="recipient_id" id="referralMessageRecipient" value="{{ $contactUser->user_id }}">
-                            @endif
-                            <button class="contact-action contact-action-primary" type="submit"><i class="far fa-paper-plane" aria-hidden="true"></i> Send message</button>
+                            <input type="hidden" name="recipient_id" id="referralMessageRecipient" value="{{ $contactUser->user_id }}">
+                            <button class="contact-action contact-action-primary" type="submit">Send message</button>
                         </form>
                     @endif
                 @else
-                    <button class="contact-action contact-action-primary" type="button" id="openLoginModal"><i class="far fa-paper-plane" aria-hidden="true"></i> Sign in to send a message</button>
+                    <button class="contact-action contact-action-primary" type="button" id="openLoginModal">Sign in to send a message</button>
                 @endauth
             </div>
         </aside>
@@ -163,13 +179,13 @@
 
                 <!-- Display info to user so they know who they are booking with -->
                 <div class="form-group mb-3">
-                    <label>Professional</label>
+                    <label>{{ $isAdminListing ? 'Listing administrator' : 'Professional' }}</label>
                     <input type="text" 
                         class="form-control" 
                         value="{{ $contactUser?->name ?? 'Default Listing Agent' }} ({{ $contactUser?->role_name ?? 'Agent' }})" 
                         disabled 
                         readonly>
-                    <small class="text-muted">This appointment is automatically routed to the agent handling this listing.</small>
+                    <small class="text-muted">This appointment is automatically routed to the {{ $isAdminListing ? 'administrator who listed this property' : 'professional handling this listing' }}.</small>
                 </div>
 
                 <label>Name<input name="contact_name" required value="{{ auth()->user()->name ?? '' }}"></label>

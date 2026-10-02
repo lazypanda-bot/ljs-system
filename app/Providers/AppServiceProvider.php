@@ -40,8 +40,13 @@ class AppServiceProvider extends ServiceProvider
             $isLeadBroker = false;
             $acting = null;
             $pageLabel = null;
+            $pageIcon = 'fa-chart-pie';
             $unreadNotificationCount = 0;
             $recentNotifications = collect();
+            $unreadMessageNotificationCount = 0;
+            $unreadOtherNotificationCount = 0;
+            $recentMessageNotifications = collect();
+            $recentOtherNotifications = collect();
 
             if ($user instanceof User) {
                 $isLeadBroker = $user->normalizedRole() === 'lead_broker';
@@ -55,6 +60,29 @@ class AppServiceProvider extends ServiceProvider
                     ->take(5)
                     ->get();
 
+                if ($user->normalizedRole() === 'client') {
+                    $unreadMessageNotificationCount = AppNotification::where('user_id', $user->user_id)
+                        ->whereNull('read_at')
+                        ->where('type', 'message')
+                        ->count();
+                    $unreadOtherNotificationCount = AppNotification::where('user_id', $user->user_id)
+                        ->whereNull('read_at')
+                        ->where('type', '!=', 'message')
+                        ->count();
+                    $recentMessageNotifications = AppNotification::where('user_id', $user->user_id)
+                        ->whereNull('read_at')
+                        ->where('type', 'message')
+                        ->latest()
+                        ->take(5)
+                        ->get();
+                    $recentOtherNotifications = AppNotification::where('user_id', $user->user_id)
+                        ->whereNull('read_at')
+                        ->where('type', '!=', 'message')
+                        ->latest()
+                        ->take(5)
+                        ->get();
+                }
+
                 $currentPage = request()->route('page');
                 if ($currentPage) {
                     $pageLabel = match ($currentPage) {
@@ -64,20 +92,39 @@ class AppServiceProvider extends ServiceProvider
                         'report' => 'Reports',
                         default => ucfirst(str_replace(['-', '_'], ' ', $currentPage)),
                     };
+                    $pageIcon = match ($currentPage) {
+                        'users' => 'fa-users',
+                        'agents' => 'fa-user-tie',
+                        'messages' => 'fa-comments',
+                        'property', 'listings' => 'fa-building',
+                        'appointment', 'appointments' => 'fa-calendar-check',
+                        'review' => 'fa-star',
+                        'report' => 'fa-chart-column',
+                        'settings' => 'fa-gear',
+                        default => 'fa-chart-pie',
+                    };
                 } elseif (request()->routeIs('dashboard')) {
                     $pageLabel = 'Dashboard';
                 } elseif (request()->routeIs('appointments.index')) {
                     $pageLabel = 'Appointments';
                 } elseif (request()->routeIs('reports.*')) {
                     $pageLabel = 'Reports';
-                } elseif (request()->routeIs('messages.inbox')) {
+                    $pageIcon = 'fa-chart-column';
+                } elseif (request()->routeIs(['messages.inbox', 'app.messages'])) {
                     $pageLabel = 'Messages';
+                    $pageIcon = 'fa-comments';
                 } elseif (request()->routeIs('staff.properties.show')) {
                     $pageLabel = 'Property Details';
+                    $pageIcon = 'fa-building';
                 } elseif (request()->routeIs('admin.users.*')) {
                     $pageLabel = 'Users';
+                    $pageIcon = 'fa-users';
+                } elseif (request()->is('app/users')) {
+                    $pageLabel = 'Users';
+                    $pageIcon = 'fa-users';
                 } elseif (request()->routeIs('admin.teams.*')) {
                     $pageLabel = 'Teams';
+                    $pageIcon = 'fa-users';
                 }
             }
 
@@ -85,8 +132,13 @@ class AppServiceProvider extends ServiceProvider
                 'roleToggle' => $isLeadBroker,
                 'actingAs' => $acting,
                 'pageLabel' => $pageLabel,
+                'pageIcon' => $pageIcon,
                 'unreadNotificationCount' => $unreadNotificationCount,
                 'recentNotifications' => $recentNotifications,
+                'unreadMessageNotificationCount' => $unreadMessageNotificationCount,
+                'unreadOtherNotificationCount' => $unreadOtherNotificationCount,
+                'recentMessageNotifications' => $recentMessageNotifications,
+                'recentOtherNotifications' => $recentOtherNotifications,
             ]);
         });
     }

@@ -65,7 +65,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 cell.appendChild(badgeContainer);
             }
 
-            let tooltipLines = [`<div style="font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 3px; padding-bottom: 2px;">${dateString}</div>`];
+            const tooltipDate = document.createElement('div');
+            tooltipDate.className = 'custom-day-tooltip-date';
+            tooltipDate.textContent = dateString;
+            customTooltip ??= document.createElement('div');
+            customTooltip.className = 'custom-day-tooltip';
+            customTooltip.replaceChildren(tooltipDate);
 
             dayAppointments.forEach(app => {
                 const badge = document.createElement('span');
@@ -77,8 +82,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 badge.style.display = 'inline-block';
                 badgeContainer.appendChild(badge);
 
-                const appTitle = `${app.contact_name || 'Appointment'}`;
-                tooltipLines.push(`<div>• ${app.preferred_time ? app.preferred_time + ' - ' : ''}${appTitle}</div>`);
+                const appointmentLine = document.createElement('div');
+                const appointmentTitle = app.property_name
+                    ? `${app.contact_name || 'Appointment'} · ${app.property_name}`
+                    : (app.contact_name || 'Appointment');
+                appointmentLine.textContent = `${app.preferred_time ? app.preferred_time + ' - ' : ''}${appointmentTitle}`;
+                customTooltip.appendChild(appointmentLine);
             });
 
             dayBlockedDates.forEach((blocked) => {
@@ -93,15 +102,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 cell.classList.add('calendar-cell-blocked');
 
                 const reason = blocked.reason || 'Blocked date';
-                tooltipLines.push(`<div>• [Blocked] ${reason}</div>`);
+                const blockedLine = document.createElement('div');
+                blockedLine.textContent = `[Blocked] ${reason}`;
+                customTooltip.appendChild(blockedLine);
             });
 
-            if (!customTooltip) {
-                customTooltip = document.createElement('div');
-                customTooltip.className = 'custom-day-tooltip';
-                cell.appendChild(customTooltip);
-            }
-            customTooltip.innerHTML = tooltipLines.join('');
+            if (!cell.contains(customTooltip)) cell.appendChild(customTooltip);
         }
     });
 });

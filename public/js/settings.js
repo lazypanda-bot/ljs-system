@@ -1,32 +1,68 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Horizontal Tab switching functionality
+    const photoInput = document.getElementById('profile_photo');
+    const preview = document.querySelector('.settings-avatar-preview');
+    const photoEdit = document.getElementById('profilePhotoEdit');
+    photoEdit?.addEventListener('click', () => photoInput?.click());
+    if (photoInput && preview) {
+        photoInput.addEventListener('change', () => {
+            const file = photoInput.files && photoInput.files[0];
+            if (!file || !file.type.startsWith('image/')) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                let image = preview.querySelector('img');
+                if (!image) {
+                    preview.replaceChildren();
+                    image = document.createElement('img');
+                    image.alt = 'Selected profile photo';
+                    preview.appendChild(image);
+                }
+                image.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
     const tabButtons = document.querySelectorAll('.settings-tab-btn');
     const panels = document.querySelectorAll('.settings-panel');
 
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            panels.forEach(panel => panel.classList.remove('active'));
+    const activateTab = (button) => {
+        const targetId = button.dataset.target;
+        const target = document.getElementById(targetId);
+        if (!target) return;
 
-            button.classList.add('active');
-            const targetId = button.getAttribute('data-target');
-            document.getElementById(targetId).classList.add('active');
+        tabButtons.forEach((tab) => {
+            const active = tab === button;
+            tab.classList.toggle('active', active);
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        panels.forEach((panel) => {
+            const active = panel === target;
+            panel.classList.toggle('active', active);
+            panel.hidden = !active;
+        });
+    };
+
+    tabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            activateTab(button);
         });
     });
 
-    // Password visibility toggle
     const toggleButtons = document.querySelectorAll('.toggle-password');
-    toggleButtons.forEach(btn => {
+    toggleButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
-            const targetId = btn.getAttribute('data-target');
+            const targetId = btn.dataset.target;
             const input = document.getElementById(targetId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                btn.textContent = '🔒';
-            } else {
-                input.type = 'password';
-                btn.textContent = '👁';
-            }
+            if (!input) return;
+
+            const visible = input.type === 'password';
+            input.type = visible ? 'text' : 'password';
+            btn.setAttribute('aria-label', `${visible ? 'Hide' : 'Show'} ${btn.getAttribute('aria-label')?.replace(/^(Show|Hide) /, '')}`);
+            btn.querySelector('i')?.classList.toggle('fa-eye-slash', visible);
+            btn.querySelector('i')?.classList.toggle('fa-eye', !visible);
         });
     });
 
@@ -38,8 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const reqNumber = document.getElementById('req-number');
         const reqSpecial = document.getElementById('req-special');
 
-        newPasswordInput.addEventListener('input', (e) => {
-            const val = e.target.value;
+        newPasswordInput.addEventListener('input', (event) => {
+            const val = event.target.value;
 
             // Length check
             if (val.length >= 8) {

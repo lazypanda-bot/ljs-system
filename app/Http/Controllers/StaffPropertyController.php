@@ -22,24 +22,7 @@ class StaffPropertyController extends Controller
         );
 
         $property->load(['images', 'details', 'user']);
-        $isAdmin = $user->actingRole() === 'admin';
-        $ownsProperty = (int) $property->user_id === (int) $user->user_id;
-        $hasApprovedAssignment = $property->assignments()
-            ->where('user_id', $user->user_id)
-            ->where('status', 'Approved')
-            ->exists();
-        $canAccessReferral = $isAdmin || $ownsProperty || $hasApprovedAssignment;
-        $canGenerateReferral = $property->approval_status === 'Approved' && $canAccessReferral;
-        $showReferralUnavailable = $property->approval_status !== 'Approved' && $canAccessReferral;
-        $referralCode = $canGenerateReferral
-            ? $property->referralCodes()->where('user_id', $user->user_id)->first()
-            : null;
 
-        return view('staff.property-details', compact(
-            'property',
-            'referralCode',
-            'canGenerateReferral',
-            'showReferralUnavailable'
-        ));
+        return view('staff.property-details', compact('property'));
     }
 }

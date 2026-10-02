@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Property;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class LifestyleController extends Controller
 {
@@ -61,7 +62,37 @@ class LifestyleController extends Controller
 
     public function index()
     {
-        return view('customer.lifestyle');
+        $properties = Property::query()
+            ->with('details.amenities')
+            ->where('approval_status', 'Approved')
+            ->whereNotIn('property_status', ['Pending'])
+            ->get(['property_id', 'lifestyle_tag', 'location_tag']);
+
+        $toOptions = static function ($values, string $icon, string $description, bool $slugValues = false): array {
+            return collect($values)
+                ->map(fn ($value) => trim((string) $value))
+                ->filter()
+                ->unique(fn ($value) => mb_strtolower($value))
+                ->map(fn ($value) => [
+                    'value' => $value,
+                    'icon' => $icon,
+                    'label' => $slugValues ? Str::headline(str_replace('_', ' ', $value)) : $value,
+                    'description' => $description,
+                ])
+                ->values()
+                ->all();
+        };
+
+        $lifestyleValues = $properties->flatMap(fn ($property) => explode(',', (string) $property->lifestyle_tag));
+        $locationValues = $properties->flatMap(fn ($property) => explode(',', (string) $property->location_tag));
+        $amenityValues = $properties->flatMap(fn ($property) => $property->details?->amenities->pluck('amenity_name') ?? collect());
+        $matchChoices = [
+            'lifestyle' => $toOptions($lifestyleValues, 'sparkles', 'Matches this property lifestyle tag.', true),
+            'location' => $toOptions($locationValues, 'map-pin', 'Matches this property location preference.', true),
+            'amenities' => $toOptions($amenityValues, 'house', 'Available on one or more listed properties.'),
+        ];
+
+        return view('customer.lifestyle', compact('matchChoices'));
     }
 
     public function results(Request $request)
@@ -126,7 +157,7 @@ class LifestyleController extends Controller
         // Lifestyle tag (25 pts)
         if (! empty($answers['lifestyle'])) {
             $possible += 25;
-            if (! empty($property->lifestyle_tag) && $property->lifestyle_tag === $answers['lifestyle']) {
+            if (in_array($answers['lifestyle'], $this->storedTags($property->lifestyle_tag), true)) {
                 $earned += 25;
             }
         }
@@ -134,7 +165,7 @@ class LifestyleController extends Controller
         // Location tag (20 pts)
         if (! empty($answers['location'])) {
             $possible += 20;
-            if (! empty($property->location_tag) && $property->location_tag === $answers['location']) {
+            if (in_array($answers['location'], $this->storedTags($property->location_tag), true)) {
                 $earned += 20;
             }
         }
@@ -203,6 +234,15 @@ class LifestyleController extends Controller
         return $matchCount / count($wanted);
     }
 
+    private function storedTags(?string $tags): array
+    {
+        return collect(explode(',', (string) $tags))
+            ->map(fn ($tag) => trim($tag))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
     private function preferenceSummary(array $answers): array
     {
         $summary = [];
@@ -212,7 +252,10 @@ class LifestyleController extends Controller
                 continue;
             }
 
-            $summary[$key] = self::PREFERENCE_LABELS[$key][$answers[$key]] ?? $answers[$key];
+            $summary[$key] = self::PREFERENCE_LABELS[$key][$answers[$key]]
+                ?? (in_array($key, ['lifestyle', 'location'], true)
+                    ? Str::headline(str_replace('_', ' ', $answers[$key]))
+                    : $answers[$key]);
         }
 
         if (! empty($answers['must_haves'])) {

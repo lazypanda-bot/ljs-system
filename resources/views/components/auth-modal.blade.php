@@ -50,6 +50,7 @@
                 <div class="password-field"><input id="modalRegisterPasswordConfirmation" name="password_confirmation" type="password" placeholder="Repeat your password" required autocomplete="new-password"><button type="button" class="password-toggle" data-password-target="modalRegisterPasswordConfirmation" aria-label="Show password">Show</button></div>
                 @error('password')<span class="auth-input-error">{{ $message }}</span>@enderror
             </div>
+            <div class="auth-login-status" id="authRegisterStatus" role="alert" aria-live="polite"></div>
             <button type="submit" class="login-submit-btn">Create Account</button>
         </form>
 

@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class ConversationParticipant extends Model
 {
-    protected $fillable = ['conversation_id', 'user_id', 'last_read_at'];
+    protected $fillable = ['conversation_id', 'user_id', 'last_read_at', 'hidden_at'];
 
     protected function casts(): array
     {
-        return ['last_read_at' => 'datetime'];
+        return ['last_read_at' => 'datetime', 'hidden_at' => 'datetime'];
     }
 
     public function user()

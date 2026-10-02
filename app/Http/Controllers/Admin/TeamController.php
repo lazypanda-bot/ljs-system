@@ -105,9 +105,46 @@ class TeamController extends Controller
         $validated = $request->validate([
             'user_id' => 'sometimes|required|exists:users,user_id',
             'team_name' => 'nullable|string|max:255',
+            'member_ids' => 'nullable|array',
+            'member_ids.*' => 'integer|exists:users,user_id',
         ]);
 
-        $team->update($validated);
+        DB::transaction(function () use ($team, $validated): void {
+            $team->update(collect($validated)->except('member_ids')->all());
+
+            if (! array_key_exists('member_ids', $validated)) {
+                return;
+            }
+
+            $selectedIds = collect($validated['member_ids'] ?? [])
+                ->map(fn ($userId) => (int) $userId)
+                ->reject(fn ($userId) => $userId === (int) $team->user_id)
+                ->unique()
+                ->values();
+            $currentIds = $team->members()->pluck('user_id')->map(fn ($userId) => (int) $userId);
+            $removedIds = $currentIds->diff($selectedIds);
+            if ($removedIds->isNotEmpty()) {
+                $team->members()->whereIn('user_id', $removedIds)->delete();
+            }
+
+            foreach ($selectedIds as $userId) {
+                $member = $team->members()->firstOrCreate(
+                    ['user_id' => $userId],
+                    ['status' => 'Approved', 'requested_at' => now(), 'approved_at' => now()]
+                );
+                if ($member->wasRecentlyCreated) {
+                    AppNotification::create([
+                        'user_id' => $userId,
+                        'type' => 'team',
+                        'title' => 'You were added to ' . ($team->team_name ?: 'a team'),
+                        'body' => 'Open Messages to access the team conversation.',
+                        'url' => route('messages.inbox'),
+                    ]);
+                } elseif ($member->status !== 'Approved') {
+                    $member->update(['status' => 'Approved', 'approved_at' => now()]);
+                }
+            }
+        });
 
         return redirect()->route('admin.teams.index')->with('success', 'Team updated successfully.');
     }

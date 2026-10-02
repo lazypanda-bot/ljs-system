@@ -21,7 +21,8 @@
             $currMonth = request('month', now()->month);
             $currYear = request('year', now()->year);
             
-            $startOfMonth = \Carbon\Carbon::createFromDate($currYear, $currMonth, 1);
+            $calendarTimezone = auth()->user()?->timezone ?? config('appointments.default_timezone');
+            $startOfMonth = \Carbon\Carbon::createFromDate($currYear, $currMonth, 1, $calendarTimezone);
             $daysInMonth = $startOfMonth->daysInMonth;
             $firstDayOfWeek = $startOfMonth->dayOfWeek;
             $currentMonthName = $startOfMonth->format('F Y');
@@ -104,7 +105,9 @@
                     <div class="card-header">
                         <h2>Appointments Calendar</h2>
                         <div class="calendar-controls">
-                            <button class="calendar-btn block-calendar-btn" type="button" id="openBlockDateModal"><i class="fas fa-calendar-minus" aria-hidden="true"></i> Block Date</button>
+                            @if (in_array(auth()->user()?->actingRole(), ['admin', 'broker', 'agent', 'lead_broker'], true))
+                                <button class="calendar-btn block-calendar-btn" type="button" id="openBlockDateModal"><i class="fas fa-calendar-minus" aria-hidden="true"></i> Block Date</button>
+                            @endif
                             <a href="{{ url()->current() }}?month={{ $prevDate->month }}&year={{ $prevDate->year }}" class="calendar-btn nav-btn" aria-label="Previous month"><i class="fas fa-chevron-left"></i></a>
                             <a href="{{ url()->current() }}?month={{ $nextDate->month }}&year={{ $nextDate->year }}" class="calendar-btn nav-btn" aria-label="Next month"><i class="fas fa-chevron-right"></i></a>
                             <div class="calendar-month-display">{{ $currentMonthName }}</div>
@@ -130,7 +133,7 @@
 
                         @for ($day = 1; $day <= $daysInMonth; $day++)
                             @php
-                                $isToday = $day === now()->day && (int)$currMonth === now()->month && (int)$currYear === now()->year;
+                                $isToday = $day === now($calendarTimezone)->day && (int)$currMonth === now($calendarTimezone)->month && (int)$currYear === now($calendarTimezone)->year;
                             @endphp
                             <div class="calendar-cell {{ $isToday ? 'calendar-day-today' : '' }}">
                                 <span class="calendar-day-number">{{ $day }}</span>
@@ -220,6 +223,7 @@
     <div class="block-date-modal" id="blockDateModal" aria-hidden="true">
         <form method="POST" action="{{ route('appointments.block-date') }}" class="block-date-dialog">
             @csrf
+            <input type="hidden" name="timezone" value="{{ auth()->user()?->timezone ?? config('appointments.default_timezone') }}">
             <div class="block-date-dialog-header"><h2>Block a date</h2><button type="button" id="closeBlockDateModal" aria-label="Close">&times;</button></div>
             <label>Date<input type="date" name="date" min="{{ now()->toDateString() }}" required></label>
             <label>Start time<input type="time" name="start_time"></label>
