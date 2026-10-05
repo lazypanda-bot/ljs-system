@@ -7,7 +7,7 @@
 		<label>From<input type="date" name="from" value="{{ $reportFrom }}" required></label>
 		<label>To<input type="date" name="to" value="{{ $reportTo }}" required></label>
 		@if ($staff->count() > 1)
-			<label>Listed by<select name="user_id"><option value="">All visible staff</option>@foreach ($staff as $staffUser)<option value="{{ $staffUser->user_id }}" @selected($selectedOwnerId === $staffUser->user_id)>{{ $staffUser->name }} ({{ $staffUser->role_name }})</option>@endforeach</select></label>
+			<label>Listed by<select name="user_id"><option value="">{{ $overview ? 'All users' : 'All visible staff' }}</option>@foreach ($staff as $staffUser)<option value="{{ $staffUser->user_id }}" @selected($selectedOwnerId === $staffUser->user_id)>{{ $staffUser->name }} ({{ $staffUser->role_name }})</option>@endforeach</select></label>
 		@endif
 		<button type="submit" class="report-filter-button"><i class="fas fa-filter" aria-hidden="true"></i> Apply</button>
 	</form>
@@ -18,7 +18,21 @@
 		<div><strong data-report-value="completed">{{ $completed }}</strong><span>Appointments completed</span></div>
 		<div><strong data-report-value="sold">{{ $sold }}</strong><span>Properties sold</span></div>
 	</div>
-	<section class="report-section" aria-labelledby="reportTrendHeading">
+	@if ($overview)
+		<section class="report-section" aria-labelledby="reportOverviewHeading">
+			<div class="report-section-heading"><div><h2 id="reportOverviewHeading">Overall system report</h2><p>All users and activity across the platform for the selected dates.</p></div></div>
+			<div class="report-stat-grid">
+				@foreach (['Admin' => 'Admins', 'Lead Broker' => 'Lead brokers', 'Broker' => 'Brokers', 'Agent' => 'Agents', 'Client' => 'Clients'] as $role => $label)
+					<div><strong>{{ $overview['roles'][$role] ?? 0 }}</strong><span>{{ $label }}</span></div>
+				@endforeach
+				<div><strong>{{ $overview['newUsers'] }}</strong><span>New users in range</span></div>
+				<div><strong>{{ $overview['messages'] }}</strong><span>Messages sent</span></div>
+				<div><strong>{{ $overview['reviews'] }}</strong><span>Reviews ({{ $overview['averageRating'] ?: 'n/a' }} avg)</span></div>
+			</div>
+		</section>
+	@endif
+	<div class="report-split">
+	<section class="report-section report-trend-section" aria-labelledby="reportTrendHeading">
 		<div class="report-section-heading"><div><h2 id="reportTrendHeading">Activity trend</h2><p>Daily activity for the selected day.</p></div>
 			<form class="report-trend-filter" method="GET" action="{{ url()->current() }}">
 				<input type="hidden" name="from" value="{{ $reportFrom }}"><input type="hidden" name="to" value="{{ $reportTo }}">
@@ -38,7 +52,7 @@
 		</div>
 		<div class="report-trend-legend"><span class="trend-inquiries">Inquiries</span><span class="trend-appointments">Appointments</span><span class="trend-completed">Completed</span><span class="trend-sold">Sold</span></div>
 	</section>
-	<section class="report-section" aria-labelledby="reportStaffHeading">
+	<section class="report-section report-owner-section" aria-labelledby="reportStaffHeading">
 		<div class="report-section-heading"><div><h2 id="reportStaffHeading">By listing owner</h2><p>Only staff associated with properties visible to your role are included.</p></div></div>
 		<div class="report-table-wrap"><table class="report-staff-table"><thead><tr><th>Staff member</th><th>Listings</th><th>Inquiries</th><th>Appointments</th><th>Completed</th><th>Sold</th></tr></thead><tbody>
 			@forelse ($perUser as $row)
@@ -47,7 +61,9 @@
 				<tr><td colspan="6" class="report-empty">No listing activity for this selection.</td></tr>
 			@endforelse
 		</tbody></table></div>
+		{{ $perUser->links('pagination.ljs') }}
 	</section>
+	</div>
 	<a class="report-export-btn" href="{{ route('reports.export', request()->query()) }}"><i class="fas fa-file-csv" aria-hidden="true"></i> Export CSV</a>
 </div>
 @endsection

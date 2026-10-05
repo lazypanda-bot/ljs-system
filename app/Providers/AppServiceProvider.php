@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Models\AppNotification;
+use App\Services\AppointmentReminderService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
@@ -47,35 +49,53 @@ class AppServiceProvider extends ServiceProvider
             $unreadOtherNotificationCount = 0;
             $recentMessageNotifications = collect();
             $recentOtherNotifications = collect();
+            $activeAppointmentCount = 0;
+            $activeAppointments = collect();
 
             if ($user instanceof User) {
+                // Keeps reminders flowing when the scheduler is not running.
+                if (Cache::add('appointment-reminders:tick', true, 60)) {
+                    try {
+                        app(AppointmentReminderService::class)->sendDue();
+                    } catch (\Throwable $exception) {
+                        report($exception);
+                    }
+                }
+
                 $isLeadBroker = $user->normalizedRole() === 'lead_broker';
                 $acting = $user->actingRole();
-                $unreadNotificationCount = AppNotification::where('user_id', $user->user_id)
+                $unreadNotificationCount = AppNotification::visibleTo($user)
                     ->whereNull('read_at')
                     ->count();
-                $recentNotifications = AppNotification::where('user_id', $user->user_id)
+                $recentNotifications = AppNotification::visibleTo($user)
                     ->whereNull('read_at')
                     ->latest()
                     ->take(5)
                     ->get();
 
                 if ($user->normalizedRole() === 'client') {
-                    $unreadMessageNotificationCount = AppNotification::where('user_id', $user->user_id)
+                    $activeAppointmentCount = \App\Models\Appointment::activeForClient($user)->count();
+                    $activeAppointments = \App\Models\Appointment::activeForClient($user)
+                        ->with('assignment.property')
+                        ->orderByRaw('CASE WHEN starts_at_utc IS NULL THEN 1 ELSE 0 END')
+                        ->orderBy('starts_at_utc')
+                        ->take(5)
+                        ->get();
+                    $unreadMessageNotificationCount = AppNotification::visibleTo($user)
                         ->whereNull('read_at')
                         ->where('type', 'message')
                         ->count();
-                    $unreadOtherNotificationCount = AppNotification::where('user_id', $user->user_id)
+                    $unreadOtherNotificationCount = AppNotification::visibleTo($user)
                         ->whereNull('read_at')
                         ->where('type', '!=', 'message')
                         ->count();
-                    $recentMessageNotifications = AppNotification::where('user_id', $user->user_id)
+                    $recentMessageNotifications = AppNotification::visibleTo($user)
                         ->whereNull('read_at')
                         ->where('type', 'message')
                         ->latest()
                         ->take(5)
                         ->get();
-                    $recentOtherNotifications = AppNotification::where('user_id', $user->user_id)
+                    $recentOtherNotifications = AppNotification::visibleTo($user)
                         ->whereNull('read_at')
                         ->where('type', '!=', 'message')
                         ->latest()
@@ -139,6 +159,8 @@ class AppServiceProvider extends ServiceProvider
                 'unreadOtherNotificationCount' => $unreadOtherNotificationCount,
                 'recentMessageNotifications' => $recentMessageNotifications,
                 'recentOtherNotifications' => $recentOtherNotifications,
+                'activeAppointmentCount' => $activeAppointmentCount,
+                'activeAppointments' => $activeAppointments,
             ]);
         });
     }

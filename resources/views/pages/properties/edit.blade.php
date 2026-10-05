@@ -14,24 +14,30 @@
             <div class="property-edit-errors" role="alert"><strong>Please review the highlighted form errors.</strong></div>
         @endif
 
-        <form method="POST" action="{{ route('admin.properties.update', $property) }}" enctype="multipart/form-data" class="property-edit-form">
+        <form method="POST" action="{{ route('admin.properties.update', $property) }}" enctype="multipart/form-data" class="property-edit-form" data-type-requirements='@json(\App\Models\Property::detailRequirementMap())' data-type-visibility='@json(\App\Models\Property::detailVisibilityMap())'>
             @csrf @method('PUT')
             <section class="property-edit-section" aria-labelledby="editBasicHeading">
                 <div class="property-edit-section-heading"><span>01</span><div><h2 id="editBasicHeading">Basic information</h2><p>Public listing title, type, price, and status.</p></div></div>
                 <div class="property-edit-fields">
                     <label class="property-edit-field"><span>Property name</span><input name="property_name" value="{{ old('property_name', $property->property_name) }}" required>@error('property_name')<small>{{ $message }}</small>@enderror</label>
-                    <label class="property-edit-field"><span>Property type</span>
-                        <select name="property_type" required>
-                            @foreach (['House & Lot', 'Condominium', 'Commercial', 'Lot'] as $type)
-                                <option value="{{ $type }}" @selected(old('property_type', $property->property_type) === $type)>{{ $type }}</option>
-                            @endforeach
-                            @if (! in_array($property->property_type, ['House & Lot', 'Condominium', 'Commercial', 'Lot'], true))
-                                <option value="{{ $property->property_type }}" selected>{{ $property->property_type }}</option>
-                            @endif
-                        </select>
-                    </label>
+                    @php($typeOptions = \App\Models\Property::typeOptions())
+                    @php($selectedType = old('property_type', $property->property_type))
+                    <div class="property-edit-field property-edit-field-wide">
+                        <fieldset class="property-choice-fieldset"><legend class="property-choice-heading">Property type</legend>
+                            <div class="property-choice-list" id="typeChoices">
+                                @foreach ($typeOptions as $type)
+                                    <label class="property-choice"><input type="radio" name="property_type" value="{{ $type }}" @checked($selectedType === $type) required><span>{{ $type }}</span></label>
+                                @endforeach
+                                @if ($selectedType && ! in_array($selectedType, $typeOptions, true))
+                                    <label class="property-choice is-custom"><input type="radio" name="property_type" value="{{ $selectedType }}" checked required><span>{{ $selectedType }}</span></label>
+                                @endif
+                            </div>
+                        </fieldset>
+                        <div class="property-add-choice"><label for="customType">Add a property type not listed</label><div><input id="customType" type="text" maxlength="100" placeholder="e.g. Beach Resort"><button type="button" id="addTypeChoice">Add</button></div></div>
+                        @error('property_type')<small>{{ $message }}</small>@enderror
+                    </div>
                     <label class="property-edit-field"><span>Price (PHP)</span><input type="number" min="0" step="0.01" name="price" value="{{ old('price', $property->price) }}" required>@error('price')<small>{{ $message }}</small>@enderror</label>
-                    <label class="property-edit-field"><span>Status</span><select name="property_status" required>@foreach (['For Sale', 'For Rent', 'Available', 'Reserved', 'Pending', 'Sold', 'Unavailable'] as $status)<option value="{{ $status }}" @selected(old('property_status', $property->property_status) === $status)>{{ $status }}</option>@endforeach</select></label>
+                    <label class="property-edit-field"><span>Status</span><select name="property_status" required>@foreach (array_unique(array_merge(['For Sale', 'For Rent', 'Sold', 'Reserved', 'Unavailable'], [(string) $property->property_status])) as $status)<option value="{{ $status }}" @selected(old('property_status', $property->property_status) === $status)>{{ $status }}</option>@endforeach</select></label>
                     <label class="property-edit-field property-edit-field-wide"><span>Description</span><textarea name="property_description" rows="4">{{ old('property_description', $property->property_description) }}</textarea></label>
                 </div>
             </section>
@@ -49,11 +55,12 @@
 
             <section class="property-edit-section" aria-labelledby="editDetailsHeading">
                 <div class="property-edit-section-heading"><span>03</span><div><h2 id="editDetailsHeading">Property details</h2><p>Measurements, rooms, condition, and amenities.</p></div></div>
+                <p class="property-detail-hint" data-detail-hint aria-live="polite"></p>
                 <div class="property-edit-fields property-edit-fields-four">
-                    <label class="property-edit-field"><span>Lot area (sqm)</span><input type="number" min="0" step="0.01" name="lot_area" value="{{ old('lot_area', $property->details?->lot_area) }}"></label>
-                    <label class="property-edit-field"><span>Floor area (sqm)</span><input type="number" min="0" step="0.01" name="floor_area" value="{{ old('floor_area', $property->details?->floor_area) }}"></label>
-                    <label class="property-edit-field"><span>Bedrooms</span><input type="number" min="0" name="bedrooms" value="{{ old('bedrooms', $property->details?->bedroom ?? 0) }}"></label>
-                    <label class="property-edit-field"><span>Bathrooms</span><input type="number" min="0" name="bathrooms" value="{{ old('bathrooms', $property->details?->bathroom ?? 0) }}"></label>
+                    <label class="property-edit-field"><span>Lot area (sqm)<b class="detail-required-mark" hidden> *</b></span><input type="number" min="0" step="0.01" name="lot_area" value="{{ old('lot_area', $property->details?->lot_area) }}"></label>
+                    <label class="property-edit-field"><span>Floor area (sqm)<b class="detail-required-mark" hidden> *</b></span><input type="number" min="0" step="0.01" name="floor_area" value="{{ old('floor_area', $property->details?->floor_area) }}"></label>
+                    <label class="property-edit-field"><span>Bedrooms<b class="detail-required-mark" hidden> *</b></span><input type="number" min="0" name="bedrooms" value="{{ old('bedrooms', $property->details?->bedroom ?? 0) }}"></label>
+                    <label class="property-edit-field"><span>Bathrooms<b class="detail-required-mark" hidden> *</b></span><input type="number" min="0" name="bathrooms" value="{{ old('bathrooms', $property->details?->bathroom ?? 0) }}"></label>
                     <label class="property-edit-field"><span>Parking spaces</span><input type="number" min="0" name="parking_spaces" value="{{ old('parking_spaces', $property->details?->parking_spaces ?? 0) }}"></label>
                     <label class="property-edit-field"><span>Number of floors</span><input type="number" min="1" name="number_of_floors" value="{{ old('number_of_floors', $property->details?->number_of_floors ?? 1) }}"></label>
                     <label class="property-edit-field"><span>Condition</span><input name="property_condition" value="{{ old('property_condition', $property->details?->property_condition) }}"></label>
@@ -107,4 +114,9 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/property-edit.css') }}?v={{ filemtime(public_path('css/property-edit.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/property-create.css') }}?v={{ filemtime(public_path('css/property-create.css')) }}">
+@endpush
+
+@push('scripts')
+    <script src="{{ asset('js/property-type-fields.js') }}?v={{ filemtime(public_path('js/property-type-fields.js')) }}" defer></script>
 @endpush

@@ -667,9 +667,51 @@
 .staff-assign-button { justify-self: start; }
 .staff-property-actions { flex-wrap: nowrap; }
 .staff-review-actions { display: grid; min-width: 190px; gap: 7px; }
+.staff-review-decision-actions { display: flex; align-items: flex-start; gap: 7px; }
+.staff-review-decision-actions > form { flex: 1; min-width: 0; }
+.staff-review-decision-actions .staff-approve-button,.staff-review-decision-actions .staff-reject-button { width: 100%; }
+.staff-review-actions > .staff-view-button { width: 100%; }
 .staff-approve-button { background: #15803d; }
 .staff-reject-form { display: grid; gap: 5px; }
 .staff-reject-form textarea { width: 100%; min-height: 48px; resize: vertical; border: 1px solid var(--color-border); border-radius: 5px; padding: 6px; font: inherit; font-size: 11px; }
 .staff-reject-button { justify-self: start; background: #b91c1c; }
 .staff-table-empty { padding: 28px !important; color: var(--color-text-muted) !important; text-align: center; }
 @media (max-width: 700px) { .staff-property-admin-header { align-items: flex-start; flex-direction: column; }.staff-property-admin-header .btn-add-property { margin-left: 0; } }
+.staff-property-tabs a.au-tab-btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.staff-filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
+.staff-filter-bar .search-box { flex: 1 1 260px; }
+.staff-filter-bar select { min-height: 40px; border: 1px solid var(--color-border); border-radius: 6px; padding: 0 10px; font: inherit; font-size: 13px; background: var(--color-surface); }
+.staff-filter-bar button[type=submit] { min-height: 40px; padding: 0 16px; border: 0; border-radius: 6px; background: var(--color-primary); color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.staff-status-pill { display: inline-block; padding: 3px 9px; border-radius: 999px; background: #e2e8f0; color: #334155; font-size: 11px; font-weight: 800; }
+.staff-status-pill.status-confirmed, .staff-status-pill.status-completed { background: #dcfce7; color: #166534; }
+.staff-status-pill.status-pending { background: #fef3c7; color: #92400e; }
+.staff-status-pill.status-cancelled, .staff-status-pill.status-rejected { background: #fee2e2; color: #991b1b; }
+.staff-readonly-note { color: var(--color-text-muted); font-size: 12px; font-style: italic; }
+.staff-review-text { max-width: 360px; line-height: 1.45; }
+.staff-review-stars { color: #f59e0b; white-space: nowrap; letter-spacing: 1px; }
+
+.staff-property-table .appointment-propose-time { margin-top: 8px; text-align: left; }
+.staff-property-table .appointment-propose-time form { grid-template-columns: minmax(0, 1fr); min-width: 230px; }
+.property-detail-hint { margin: 0 0 12px; color: var(--color-text-muted); font-size: 13px; }
+
+.btn-add-property[hidden] { display: none !important; }
+
+/* Round 5 polish */
+.notification-view-all { display: block; padding: 12px 16px; border-top: 1px solid var(--color-border); color: var(--color-primary); font-size: 13px; font-weight: 700; text-align: center; text-decoration: none; }
+.notification-view-all:hover { background: var(--color-primary-soft); }
+.staff-property-table th.text-end, .staff-property-table td.text-end, .au-team-table th.text-end { text-align: center !important; padding-right: 14px; }
+.staff-property-table .au-action-group, .staff-property-table .action-buttons { justify-content: center; }
+.staff-filter-bar { align-items: center; }
+.staff-filter-bar .search-box { display: flex; flex: 1 1 280px; align-items: center; gap: 8px; min-width: 220px; min-height: 40px; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; }
+.staff-filter-bar .search-box:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
+.staff-filter-bar .search-box .search-icon { display: inline-flex; color: var(--color-text-muted); }
+.staff-filter-bar .search-box input { flex: 1; min-width: 0; min-height: 38px; padding: 0; border: 0; outline: 0; background: transparent; box-shadow: none; font: inherit; font-size: 14px; }
+.staff-filter-bar select { min-width: 170px; }
+.au-members-trigger { padding: 3px 12px; border: 0; border-radius: 999px; background: #e0f2fe; color: #0369a1; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.au-members-trigger:hover { background: #bae6fd; }
+.au-members-list { display: grid; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; max-height: 50vh; overflow-y: auto; }
+.au-members-list li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; }
+.au-members-list small { color: #64748b; }
+.staff-reject-fields[hidden] { display: none; }
+.staff-reject-fields { display: grid; gap: 5px; }.staff-view-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 32px; padding: 6px 10px; border: 1px solid var(--color-border); border-radius: 5px; background: #fff; color: var(--color-text); font-size: 11px; font-weight: 800; text-decoration: none; }
+.staff-view-button:hover { border-color: var(--color-primary); color: var(--color-primary); }

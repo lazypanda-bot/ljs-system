@@ -69,6 +69,24 @@ class Appointment extends Model
         return $this->hasMany(AppointmentReminder::class, 'appointment_id', 'appointment_id');
     }
 
+    /** A client's upcoming appointments that are still Pending or Confirmed. */
+    public function scopeActiveForClient($query, User $client)
+    {
+        return $query
+            ->whereIn('appointment_status', ['Pending', 'Confirmed'])
+            ->where(fn ($q) => $q->whereNull('starts_at_utc')->orWhere('starts_at_utc', '>=', now('UTC')->format('Y-m-d H:i:s')))
+            ->where(fn ($q) => $q->where('client_id', $client->user_id)
+                ->orWhere(fn ($legacy) => $legacy->whereNull('client_id')->where('contact_email', $client->email)));
+    }
+
+    /** True when the client already has a Pending or Confirmed upcoming appointment on the property. */
+    public static function clientHasActiveForProperty(User $client, int $propertyId): bool
+    {
+        return static::activeForClient($client)
+            ->whereHas('assignment', fn ($query) => $query->where('property_id', $propertyId))
+            ->exists();
+    }
+
     public function startInTimezone(string $timezone): \Carbon\CarbonImmutable
     {
         if ($this->starts_at_utc) {

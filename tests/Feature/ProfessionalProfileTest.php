@@ -33,7 +33,7 @@ class ProfessionalProfileTest extends TestCase
         ])->assertRedirect();
 
         $leadBroker->refresh()->load('professionalProfile');
-        $this->assertSame('555-0101', $leadBroker->contact_number);
+        $this->assertSame('5550101', $leadBroker->contact_number);
         $this->assertSame('PRC-1001', $leadBroker->professionalProfile->license_number);
         $this->assertSame(12, $leadBroker->professionalProfile->years_experience);
         $this->assertSame('Experienced Cebu real estate professional.', $leadBroker->professionalProfile->professional_bio);

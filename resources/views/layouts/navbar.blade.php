@@ -1,5 +1,8 @@
 <header class="top-header">
     <div class="header-left">
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Open navigation" aria-expanded="false" aria-controls="appSidebar">
+            <i data-lucide="menu" aria-hidden="true"></i>
+        </button>
         @if(!empty($pageLabel))
             <div class="page-label">
                 <span class="page-icon" aria-hidden="true">

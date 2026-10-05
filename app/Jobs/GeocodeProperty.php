@@ -31,31 +31,41 @@ class GeocodeProperty implements ShouldQueue
             return;
         }
 
-        $address = collect([$property->house_number, $property->street, $property->city, $property->province])
-            ->filter()->implode(', ');
-        try {
-            $response = Http::timeout(10)->withHeaders([
-                'User-Agent' => 'LJSRealtyApp/1.0 (ljsrealty@gmail.com)',
-            ])->get('https://nominatim.openstreetmap.org/search', [
-                'format' => 'json',
-                'q' => $address,
-                'limit' => 1,
-            ]);
-        } catch (ConnectionException $exception) {
-            Log::warning('Property geocoding request failed and will be retried.', ['property_id' => $this->propertyId]);
-            throw $exception;
+        $queries = [
+            collect([$property->house_number, $property->street, $property->city, $property->province])->filter()->implode(', '),
+            collect([$property->city, $property->province])->filter()->implode(', '),
+        ];
+
+        foreach (array_unique(array_filter($queries)) as $index => $address) {
+            if ($index > 0) {
+                sleep(1);
+            }
+
+            try {
+                $response = Http::timeout(10)->withHeaders([
+                    'User-Agent' => 'LJSRealtyApp/1.0 (ljsrealty@gmail.com)',
+                ])->get('https://nominatim.openstreetmap.org/search', [
+                    'format' => 'json',
+                    'q' => $address,
+                    'limit' => 1,
+                ]);
+            } catch (ConnectionException $exception) {
+                Log::warning('Property geocoding request failed and will be retried.', ['property_id' => $this->propertyId]);
+                throw $exception;
+            }
+
+            if (! $response->successful()) {
+                throw new \RuntimeException('Property geocoding returned HTTP ' . $response->status());
+            }
+
+            $result = $response->json()[0] ?? null;
+            if (is_array($result) && is_numeric($result['lat'] ?? null) && is_numeric($result['lon'] ?? null)) {
+                $property->update(['latitude' => $result['lat'], 'longitude' => $result['lon']]);
+
+                return;
+            }
         }
 
-        if (! $response->successful()) {
-            throw new \RuntimeException('Property geocoding returned HTTP ' . $response->status());
-        }
-
-        $result = $response->json()[0] ?? null;
-        if (! is_array($result) || ! is_numeric($result['lat'] ?? null) || ! is_numeric($result['lon'] ?? null)) {
-            Log::info('No coordinates found for property address.', ['property_id' => $this->propertyId]);
-            return;
-        }
-
-        $property->update(['latitude' => $result['lat'], 'longitude' => $result['lon']]);
+        Log::info('No coordinates found for property address.', ['property_id' => $this->propertyId]);
     }
 }

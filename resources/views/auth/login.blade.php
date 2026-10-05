@@ -29,7 +29,7 @@
 
     <form method="POST" action="{{ route('register') }}" class="login-form auth-panel" id="register-panel" hidden>
         @csrf
-        <div class="form-group"><label for="registerName" class="form-label">Full Name</label><input type="text" class="form-control" id="registerName" name="name" value="{{ old('name') }}" placeholder="Enter your full name" required autocomplete="name"></div>
+        <div class="form-group"><label for="registerName" class="form-label">Full Name</label><input type="text" class="form-control" id="registerName" name="name" value="{{ old('name') }}" placeholder="Enter your full name" required minlength="2" maxlength="100" pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'\-]*" title="Letters, spaces, apostrophes, hyphens and periods only" autocomplete="name"></div>
         <div class="form-group"><label for="registerEmail" class="form-label">Email Address</label><input type="email" class="form-control" id="registerEmail" name="email" value="{{ old('email') }}" placeholder="Enter your email" required autocomplete="email"></div>
         <div class="form-group"><label for="registerPassword" class="form-label">Password</label><div class="input-group"><input type="password" class="form-control" id="registerPassword" name="password" placeholder="At least 8 characters" required autocomplete="new-password"><button class="btn btn-outline-secondary password-toggle" type="button" data-password-target="registerPassword">Show</button></div></div>
         <div class="form-group"><label for="passwordConfirmation" class="form-label">Confirm Password</label><input type="password" class="form-control" id="passwordConfirmation" name="password_confirmation" placeholder="Repeat your password" required autocomplete="new-password"></div>

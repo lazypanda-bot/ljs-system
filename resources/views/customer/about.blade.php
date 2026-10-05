@@ -93,56 +93,8 @@
 
         <section class="business-about-cta">
             <div><span class="business-eyebrow">START EXPLORING</span><h2>Your next move starts with the right listing.</h2></div>
-            <div class="business-about-actions"><a href="{{ route('properties') }}" class="business-primary-link">Browse properties</a><button type="button" class="business-secondary-link" id="openContactUsDialog">Contact Us</button></div>
+            <div class="business-about-actions"><a href="{{ route('properties') }}" class="business-primary-link">Browse properties</a></div>
         </section>
-
-        <dialog class="about-contact-dialog" id="contactUsDialog" aria-labelledby="contactUsDialogTitle">
-            <div class="about-contact-dialog-header">
-                <div>
-                    <span class="about-page-eyebrow">GET IN TOUCH</span>
-                    <h2 id="contactUsDialogTitle">Contact LJS Realty</h2>
-                    <p>Choose the contact option that works for you.</p>
-                </div>
-                <button type="button" class="about-contact-dialog-close" aria-label="Close contact options"><i data-lucide="x" aria-hidden="true"></i></button>
-            </div>
-            <div class="about-contact-options">
-                @auth
-                    @if (Auth::user()->normalizedRole() === 'client')
-                        <button type="button" class="about-contact-option" data-contact-open-messages aria-label="Open messages to contact LJS Realty">
-                    @else
-                        <a class="about-contact-option" href="{{ route('messages.inbox') }}" aria-label="Open messages to contact LJS Realty">
-                    @endif
-                @else
-                    <button type="button" class="about-contact-option" data-open-login-modal data-contact-open-login aria-label="Sign in to message LJS Realty">
-                @endauth
-                    <span class="about-contact-option-copy"><strong>Email</strong><small>ljsrealty@gmail.com</small></span>
-                @auth
-                    @if (Auth::user()->normalizedRole() === 'client')
-                        </button>
-                    @else
-                        </a>
-                    @endif
-                @else
-                    </button>
-                @endauth
-                <div class="about-contact-option">
-                    <span class="about-contact-option-icon"><i data-lucide="phone" aria-hidden="true"></i></span>
-                    <span class="about-contact-option-copy"><strong>Phone</strong><small>+63 921 345 6789</small></span>
-                </div>
-                <address class="about-contact-option">
-                    <span class="about-contact-option-icon"><i data-lucide="map-pin" aria-hidden="true"></i></span>
-                    <span class="about-contact-option-copy"><strong>Office Address</strong><small>Unit 6 Labangon Town Center<br>Katipunan St, Cebu City</small></span>
-                </address>
-                <a class="about-contact-option about-contact-placeholder" href="" data-contact-placeholder>
-                    <span class="about-contact-option-icon"><i data-lucide="share-2" aria-hidden="true"></i></span>
-                    <span class="about-contact-option-copy"><strong>Messenger</strong></span>
-                </a>
-                <a class="about-contact-option about-contact-placeholder" href="" data-contact-placeholder aria-label="X">
-                    <span class="about-contact-option-icon"><span class="about-contact-x-mark" aria-hidden="true">X</span></span>
-                    <span class="about-contact-option-copy"><strong>X</strong></span>
-                </a>
-            </div>
-        </dialog>
     </div>
 @endsection
 
@@ -151,31 +103,3 @@
     <link rel="stylesheet" href="{{ asset('css/about-page.css') }}?v={{ filemtime(public_path('css/about-page.css')) }}">
 @endpush
 
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const dialog = document.getElementById('contactUsDialog');
-            const openButton = document.getElementById('openContactUsDialog');
-            const closeButton = dialog?.querySelector('.about-contact-dialog-close');
-
-            openButton?.addEventListener('click', () => dialog?.showModal());
-            closeButton?.addEventListener('click', () => dialog?.close());
-            dialog?.querySelector('[data-contact-open-login]')?.addEventListener('click', () => dialog.close());
-            dialog?.querySelector('[data-contact-open-messages]')?.addEventListener('click', () => {
-                dialog.close();
-                document.getElementById('clientMessagesButton')?.click();
-            });
-            dialog?.addEventListener('click', (event) => {
-                if (event.target === dialog) dialog.close();
-            });
-            dialog?.querySelectorAll('[data-contact-placeholder]').forEach((link) => {
-                link.addEventListener('click', (event) => {
-                    if (!link.getAttribute('href')) event.preventDefault();
-                });
-            });
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && dialog?.open) dialog.close();
-            });
-        });
-    </script>
-@endpush

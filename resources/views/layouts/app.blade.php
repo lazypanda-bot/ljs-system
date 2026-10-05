@@ -80,6 +80,26 @@
         @auth
             @if (Auth::user()->normalizedRole() === 'client')
                 <div class="floating-notification-wrap">
+                    <button type="button" class="floating-action" data-notification-count-url="{{ route('appointments.active-count') }}" data-notification-menu="clientAppointmentMenu" aria-expanded="false" aria-label="Active appointments" title="Appointments">
+                        <i class="fas fa-calendar-check" aria-hidden="true"></i>
+                        @if(($activeAppointmentCount ?? 0) > 0)
+                            <span class="public-notification-badge" data-notification-count>{{ $activeAppointmentCount }}</span>
+                        @endif
+                    </button>
+                    <div class="floating-notification-panel" id="clientAppointmentMenu" aria-hidden="true">
+                        <div class="floating-notification-title">Active appointments</div>
+                        @forelse ($activeAppointments ?? [] as $activeAppointment)
+                            @php
+                                $activeStart = $activeAppointment->startInTimezone(Auth::user()->timezone ?: config('appointments.default_timezone'));
+                            @endphp
+                            <a href="{{ route('appointments.index', ['selected' => $activeAppointment->appointment_id]) }}" class="public-notification-item"><strong>{{ $activeAppointment->assignment?->property?->property_name ?? 'Property appointment' }}</strong><small>{{ $activeAppointment->appointment_status }} · {{ $activeAppointment->appointment_type }}</small><time>{{ $activeStart->format('M j, Y · g:i A') }}</time></a>
+                        @empty
+                            <p>No active appointments.</p>
+                        @endforelse
+                        <a href="{{ route('appointments.index') }}" class="public-notification-item public-notification-view-all">View all appointments</a>
+                    </div>
+                </div>
+                <div class="floating-notification-wrap">
                     <button type="button" class="floating-action" id="clientMessagesButton" data-client-message-count-url="{{ route('notifications.count', ['type' => 'message']) }}" aria-expanded="false" aria-controls="clientMessagesModal" aria-label="Open messages" title="Messages">
                         <i class="fas fa-comments" aria-hidden="true"></i>
                         @if(($unreadMessageNotificationCount ?? 0) > 0)
@@ -154,15 +174,41 @@
         @yield('content')
     </main>
 
-    <footer class="site-footer">
-        <div class="footer-container">
+    <footer class="site-footer site-footer-full" id="siteFooter">
+        <div class="footer-container footer-grid">
             <div class="footer-col brand-col">
                 <img src="{{ asset('images/ljs-logo.jpg') }}" alt="LJS Realty Logo" class="footer-logo" />
+                <p class="footer-tagline">Your trusted partner in real estate.<br>Helping you find your dream property.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{{ route('home') }}">Home</a></li>
+                    <li><a href="{{ route('properties') }}">Properties</a></li>
+                    <li><a href="{{ route('agents') }}">Agents</a></li>
+                    <li><a href="{{ route('about') }}">About Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contact Us</h4>
+                <ul class="contact-list">
+                    <li><a href="tel:+639213456789"><i data-lucide="phone" aria-hidden="true"></i> +63 921 345 6789</a></li>
+                    <li><a href="mailto:ljsrealty@gmail.com"><i data-lucide="mail" aria-hidden="true"></i> ljsrealty@gmail.com</a></li>
+                    <li class="footer-address"><i data-lucide="map-pin" aria-hidden="true"></i> <span>Unit 6 Labangon Town Center<br>Katipunan St, Cebu City</span></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Social Media</h4>
+                <div class="footer-social">
+                    <a href="#" class="footer-social-link footer-social-facebook" aria-label="Facebook"><i data-lucide="facebook" aria-hidden="true"></i></a>
+                    <a href="#" class="footer-social-link footer-social-messenger" aria-label="Messenger"><i data-lucide="message-circle" aria-hidden="true"></i></a>
+                </div>
             </div>
         </div>
     </footer>
 
     @include('components.auth-modal')
+    @include('components.popup-message')
 
     @php
         $mapProperties = ($properties ?? collect())->map(function ($property) {

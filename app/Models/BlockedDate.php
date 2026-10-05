@@ -14,6 +14,7 @@ class BlockedDate extends Model
 
     protected $fillable = [
         'user_id',
+        'acting_role',
         'date',
         'start_time',
         'end_time',

@@ -86,7 +86,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const appointmentTitle = app.property_name
                     ? `${app.contact_name || 'Appointment'} · ${app.property_name}`
                     : (app.contact_name || 'Appointment');
-                appointmentLine.textContent = `${app.preferred_time ? app.preferred_time + ' - ' : ''}${appointmentTitle}`;
+                const handler = app.professional_name ? ` · handled by ${app.professional_name}` : '';
+                appointmentLine.textContent = `${app.preferred_time ? app.preferred_time + ' - ' : ''}${appointmentTitle}${handler}`;
                 customTooltip.appendChild(appointmentLine);
             });
 
@@ -101,9 +102,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 badgeContainer.appendChild(badge);
                 cell.classList.add('calendar-cell-blocked');
 
-                const reason = blocked.reason || 'Blocked date';
+                const blocker = blocked.blocked_by ? `Blocked by ${blocked.blocked_by}` : 'Blocked date';
+                const reason = blocked.reason ? `: ${blocked.reason}` : '';
                 const blockedLine = document.createElement('div');
-                blockedLine.textContent = `[Blocked] ${reason}`;
+                blockedLine.textContent = `[${blocker}${reason}]`;
                 customTooltip.appendChild(blockedLine);
             });
 

@@ -11,12 +11,13 @@ class ContactController extends Controller
 {
     public function store(Request $request)
     {
+        \App\Support\InputRules::normalize($request, ['name'], ['phone']);
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:120'],
-            'email' => ['required', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'message' => ['required', 'string', 'max:3000'],
-        ]);
+            'name' => \App\Support\InputRules::name(),
+            'email' => \App\Support\InputRules::email(),
+            'phone' => \App\Support\InputRules::phone(),
+            'message' => ['required', 'string', 'min:5', 'max:3000'],
+        ], \App\Support\InputRules::messages());
         $recipient = config('services.contact_email');
         abort_unless(is_string($recipient) && filter_var($recipient, FILTER_VALIDATE_EMAIL), 503, 'The contact inbox is not configured.');
 

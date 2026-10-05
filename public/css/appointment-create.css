@@ -131,3 +131,5 @@
         margin: -4px 0 0;
     }
 }
+.modal-overlay { padding: 16px; overflow-y: auto; }
+.modal-content.appointment-create-page { max-height: calc(100vh - 32px); overflow-y: auto; }

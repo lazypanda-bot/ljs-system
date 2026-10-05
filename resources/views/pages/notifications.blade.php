@@ -3,7 +3,7 @@
 @section('title', 'Notifications')
 
 @section('content')
-    <div class="notifications-page {{ auth()->user()?->normalizedRole() === 'client' ? 'notifications-client-page' : 'staff-page-surface' }}">
+    <div class="notifications-page {{ auth()->user()?->normalizedRole() === 'client' ? 'notifications-client-page' : 'staff-page-surface' }}" data-mobile-selected="{{ request()->filled('selected') && $selectedNotification ? 'true' : 'false' }}">
         <div class="notifications-page-header">
             <div><span>ACCOUNT UPDATES</span><h1>Notifications</h1><p>Select a notification to view its details and actions.</p></div>
         </div>
@@ -48,6 +48,7 @@
             <section class="notification-detail-panel" aria-live="polite" aria-label="Notification details">
                 @if ($selected)
                     <header class="notification-detail-header">
+                        <button type="button" class="notification-detail-back" data-close-notification-detail data-list-url="{{ route('notifications.index') }}" aria-label="Back to notifications"><i data-lucide="arrow-left" aria-hidden="true"></i><span>Notifications</span></button>
                         <span class="notification-detail-kicker">{{ $selected->type === 'listing' ? 'APPOINTMENT & LISTING' : strtoupper($selected->type) }}</span>
                         <h2>{{ $selected->title }}</h2>
                         <p>{{ $selected->body }}</p>
@@ -88,6 +89,10 @@
                             @endif
                         </section>
                     @endif
+
+                    @if (! $appointment && $selected->url && $selected->url !== route('notifications.index'))
+                        <a class="notification-detail-action" href="{{ $selected->url }}">Open related item</a>
+                    @endif
                 @else
                     <div class="notification-detail-empty"><h2>Select a notification</h2><p>Choose one from the list to see its details here.</p></div>
                 @endif
@@ -99,4 +104,21 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/staff-pages.css') }}?v={{ filemtime(public_path('css/staff-pages.css')) }}">
 <link rel="stylesheet" href="{{ asset('css/notification-proposals.css') }}?v={{ filemtime(public_path('css/notification-proposals.css')) }}">
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const page = document.querySelector('.notifications-page');
+    const isMobile = window.matchMedia('(max-width: 768px)');
+    const setDetailMode = () => {
+        page?.classList.toggle('mobile-detail-open', isMobile.matches && page.dataset.mobileSelected === 'true');
+    };
+    setDetailMode();
+    isMobile.addEventListener?.('change', setDetailMode);
+    document.querySelector('[data-close-notification-detail]')?.addEventListener('click', (event) => {
+        window.location.href = event.currentTarget.dataset.listUrl;
+    });
+});
+</script>
 @endpush

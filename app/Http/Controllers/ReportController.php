@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\ConversationMessage;
 use App\Models\Property;
 use App\Models\PropertyInquiry;
+use App\Models\Review;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
@@ -24,9 +26,14 @@ class ReportController extends Controller
         $to = CarbonImmutable::parse($filters['to'] ?? today()->toDateString())->endOfDay();
         $from = CarbonImmutable::parse($filters['from'] ?? $to->subDays(29)->toDateString())->startOfDay();
 
-        $visibleProperties = Property::visibleTo($user);
+        $visibleProperties = $this->reportProperties($user);
         $visiblePropertyIds = (clone $visibleProperties)->pluck('property_id');
         $visibleOwnerIds = (clone $visibleProperties)->whereNotNull('user_id')->distinct()->pluck('user_id');
+        $isAdminView = $user->actingRole() === 'admin';
+        if ($isAdminView) {
+            // Admin sees every staff member, including those with no listings yet.
+            $visibleOwnerIds = User::query()->where('role_name', '!=', 'Client')->pluck('user_id');
+        }
         $selectedOwnerId = isset($filters['user_id']) && $visibleOwnerIds->contains((int) $filters['user_id'])
             ? (int) $filters['user_id']
             : null;
@@ -79,12 +86,29 @@ class ReportController extends Controller
             return compact('staffUser', 'propertiesCount', 'inquiriesCount', 'appointmentsCount', 'completedCount', 'soldCount');
         });
 
+        $ownersPage = max(1, (int) request()->query('owners_page', 1));
+        $perUser = new \Illuminate\Pagination\LengthAwarePaginator(
+            $perUser->forPage($ownersPage, 5)->values(),
+            $perUser->count(),
+            5,
+            $ownersPage,
+            ['path' => request()->url(), 'pageName' => 'owners_page', 'query' => request()->except('owners_page')]
+        );
+
         $reportFrom = $from->toDateString();
         $reportTo = $to->toDateString();
         $trendDateValue = $trendDate->toDateString();
 
+        $overview = $isAdminView ? [
+            'roles' => User::query()->selectRaw('role_name, count(*) as total')->groupBy('role_name')->pluck('total', 'role_name')->all(),
+            'newUsers' => User::query()->whereBetween('created_at', [$from, $to])->count(),
+            'reviews' => Review::query()->whereBetween('created_at', [$from, $to])->count(),
+            'averageRating' => round((float) Review::query()->whereBetween('created_at', [$from, $to])->avg('rating'), 1),
+            'messages' => ConversationMessage::query()->whereBetween('created_at', [$from, $to])->count(),
+        ] : null;
+
         return view('pages.reports-live', compact(
-            'properties', 'appointments', 'completed', 'sold', 'soldProperties', 'inquiries',
+            'properties', 'appointments', 'completed', 'sold', 'soldProperties', 'inquiries', 'overview',
             'staff', 'perUser', 'selectedOwnerId', 'reportFrom', 'reportTo', 'trend', 'trendMax', 'trendDateValue'
         ));
     }
@@ -99,7 +123,7 @@ class ReportController extends Controller
         ]);
         $to = CarbonImmutable::parse($filters['to'] ?? today()->toDateString())->endOfDay();
         $from = CarbonImmutable::parse($filters['from'] ?? $to->subDays(29)->toDateString())->startOfDay();
-        $visibleProperties = Property::visibleTo($user);
+        $visibleProperties = $this->reportProperties($user);
         $visibleOwnerIds = (clone $visibleProperties)->whereNotNull('user_id')->distinct()->pluck('user_id');
         $visiblePropertyIds = (clone $visibleProperties)->pluck('property_id');
         $selectedOwnerId = isset($filters['user_id']) && $visibleOwnerIds->contains((int) $filters['user_id'])
@@ -149,6 +173,14 @@ class ReportController extends Controller
             }
             fclose($handle);
         }, 'ljs-property-report.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    /** Admins report on everything; professionals only on the listings they own. */
+    private function reportProperties(User $user)
+    {
+        return $user->actingRole() === 'admin'
+            ? Property::query()
+            : Property::query()->where('user_id', $user->user_id);
     }
 
     private function user(): User

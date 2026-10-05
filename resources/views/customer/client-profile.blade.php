@@ -31,7 +31,7 @@
             <div class="profile-form-grid">
                 <div class="profile-form-group">
                     <label>Full Name</label>
-                    <input type="text" name="name" value="{{ auth()->user()->name }}">
+                    <input type="text" name="name" value="{{ auth()->user()->name }}" required minlength="2" maxlength="100" pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'\-]*" title="Letters, spaces, apostrophes, hyphens and periods only">
                 </div>
                 <div class="profile-form-group">
                     <label>Email Address</label>

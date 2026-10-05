@@ -24,11 +24,11 @@
                 <h2>Send a message</h2>
                 <p>We’ll use your contact details to respond to your inquiry.</p>
                 @if (session('success'))<p class="business-contact-success" role="status">{{ session('success') }}</p>@endif
-                <label for="contactName">Your name</label><input id="contactName" name="name" value="{{ old('name') }}" autocomplete="name" maxlength="120" required>
+                <label for="contactName">Your name</label><input id="contactName" name="name" value="{{ old('name') }}" autocomplete="name" maxlength="100" minlength="2" pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'\-]*" title="Letters, spaces, apostrophes, hyphens and periods only" required>
                 @error('name')<span class="business-contact-error">{{ $message }}</span>@enderror
                 <label for="contactEmail">Email address</label><input id="contactEmail" type="email" name="email" value="{{ old('email') }}" autocomplete="email" maxlength="255" required>
                 @error('email')<span class="business-contact-error">{{ $message }}</span>@enderror
-                <label for="contactPhone">Phone <span>(optional)</span></label><input id="contactPhone" name="phone" value="{{ old('phone') }}" autocomplete="tel" maxlength="30">
+                <label for="contactPhone">Phone <span>(optional)</span></label><input id="contactPhone" name="phone" value="{{ old('phone') }}" autocomplete="tel" inputmode="tel" maxlength="20" pattern="\+?[0-9\s\-\(\)]{7,20}" title="7 to 15 digits, e.g. 09171234567">
                 @error('phone')<span class="business-contact-error">{{ $message }}</span>@enderror
                 <label for="contactMessage">How can we help?</label><textarea id="contactMessage" name="message" rows="5" maxlength="3000" required>{{ old('message') }}</textarea>
                 @error('message')<span class="business-contact-error">{{ $message }}</span>@enderror

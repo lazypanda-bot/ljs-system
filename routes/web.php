@@ -100,7 +100,8 @@ Route::get('/properties', function (Request $request) {
         ->when($request->sort === 'price_high', fn ($query) => $query->orderByDesc('price'))
         ->when($request->sort === 'latest', fn ($query) => $query->latest())
         ->when($request->sort === 'featured' || ! $request->filled('sort'), fn ($query) => $query->orderByDesc('featured')->latest())
-        ->get();
+        ->paginate(12)
+        ->withQueryString();
     return view('customer.properties', compact('properties', 'propertyTypes', 'propertyLocations'));
 })->name('properties');
 
@@ -149,9 +150,10 @@ Route::post('/appointments/{appointment}/proposals', [AppointmentController::cla
 Route::get('/appointments/{appointment}/availability', [AppointmentController::class, 'proposalAvailability'])->middleware('auth')->name('appointments.proposals.availability');
 Route::patch('/appointment-proposals/{proposal}', [AppointmentController::class, 'respondToProposal'])->middleware('auth')->name('appointments.proposals.respond');
 Route::post('/appointments/block-date', [AppointmentController::class, 'blockDate'])->middleware('auth')->name('appointments.block-date');
-Route::get('/properties/{property}/appointments/create', [AppointmentController::class, 'create'])->name('appointments.create');
-Route::get('/properties/{property}/appointments/availability', [AppointmentController::class, 'availability'])->name('appointments.availability');
-Route::post('/properties/{property}/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
+Route::get('/appointments/active-count', [AppointmentController::class, 'activeCount'])->middleware('auth')->name('appointments.active-count');
+Route::get('/properties/{property}/appointments/create', [AppointmentController::class, 'create'])->middleware('auth')->name('appointments.create');
+Route::get('/properties/{property}/appointments/availability', [AppointmentController::class, 'availability'])->middleware('auth')->name('appointments.availability');
+Route::post('/properties/{property}/appointments', [AppointmentController::class, 'store'])->middleware('auth')->name('appointments.store');
 Route::get('/app/reports/export', [ReportController::class, 'export'])->middleware('auth')->name('reports.export');
 Route::get('/messages', [MessageController::class, 'index'])->middleware('auth')->name('messages.inbox');
 Route::delete('/messages/conversations/{conversation}', [MessageController::class, 'deleteConversation'])->middleware('auth')->name('messages.conversations.delete');
@@ -180,6 +182,8 @@ Route::get('/login/otp', [AuthController::class, 'showOtp'])->name('login.otp');
 Route::post('/login/otp', [AuthController::class, 'verifyOtp'])->name('login.otp.verify');
 Route::post('/login/otp/resend', [AuthController::class, 'resendOtp'])->name('login.otp.resend');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
+Route::post('/password/forgot', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,1')->name('password.forgot');
+Route::post('/password/reset', [AuthController::class, 'resetPassword'])->middleware('throttle:10,1')->name('password.reset');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 Route::post('/settings/profile', [AuthController::class, 'updateProfile'])->name('settings.profile.update')->middleware('auth');
 Route::get('/settings/credentials', [AuthController::class, 'downloadOwnCredentials'])->name('settings.credentials.download')->middleware('auth');
@@ -249,18 +253,11 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
     if ($page === 'appointment') {
         return app(AppointmentController::class)->index(request());
     }
-    if ($page === 'review') return app(ReviewController::class)->index();
+    if ($page === 'review') return app(ReviewController::class)->index(request());
     if ($page === 'report') return app(ReportController::class)->index(request());
 
     if ($page === 'agents') {
-        $teamIds = $user->teams()->pluck('team_id');
-        $managedAgents = User::whereIn('user_id', \App\Models\TeamMember::whereIn('team_id', $teamIds)->where('status', 'Approved')->pluck('user_id'))
-            ->where('account_status', 'Active')
-            ->with('professionalProfile')
-            ->orderBy('name')
-            ->get();
-
-        return view('pages.managed-agents', compact('managedAgents', 'acting', 'pageTitle'));
+        return app(\App\Http\Controllers\ManagedAgentsController::class)->index(request());
     }
 
     if ($page === 'dashboard') {
@@ -269,6 +266,7 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
         $calendarTimezone = $user->timezone ?: config('appointments.default_timezone');
         $calendarStart = \Carbon\CarbonImmutable::create($calendarYear, $calendarMonth, 1, 0, 0, 0, $calendarTimezone);
         $calendarEnd = $calendarStart->endOfMonth();
+        $calendarStaffIds = collect([(int) $user->user_id]);
         $properties = Property::visibleTo($user)->with('details')->get();
         $totalProperties = $properties->count();
 
@@ -289,8 +287,12 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
                         $query->whereNull('client_id')->where('contact_email', $user->email);
                     });
             });
-        } elseif ($acting !== 'admin') {
-            $calendarAppointmentsQuery->whereHas('assignment', fn ($query) => $query->where('user_id', $user->user_id));
+        } else {
+            // Staff calendars only show the viewer's own appointments; a Lead Broker's admin and broker modes stay separate.
+            $calendarAppointmentsQuery->whereHas('assignment', fn ($query) => $query->whereIn('user_id', $calendarStaffIds));
+            $calendarAppointmentsQuery->whereHas('assignment.property', fn ($property) => $acting === 'admin'
+                ? $property->where('listing_mode', 'admin')
+                : $property->where(fn ($mode) => $mode->whereNull('listing_mode')->orWhere('listing_mode', '!=', 'admin')));
         }
 
         $calendarAppointments = $calendarAppointmentsQuery->get()->map(function ($appointment) use ($calendarTimezone) {
@@ -301,6 +303,7 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
                 'preferred_time' => $localStart->format('H:i'),
                 'contact_name' => $appointment->contact_name,
                 'property_name' => $appointment->assignment?->property?->property_name ?? 'Property appointment',
+                'professional_name' => $appointment->assignment?->user?->name,
                 'appointment_status' => $appointment->appointment_status,
             ];
         });
@@ -309,10 +312,22 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
             ? collect()
             : \App\Models\BlockedDate::query()
                 ->whereBetween('date', [$calendarStart->toDateString(), $calendarEnd->toDateString()])
-                ->when($acting !== 'admin', fn ($query) => $query->where('user_id', $user->user_id))
-                ->get();
-        $recentActivities = \App\Models\AppNotification::query()
-            ->where('user_id', $user->user_id)
+                ->where('user_id', $user->user_id)
+                ->when($acting === 'admin', fn ($query) => $query->where(fn ($query) => $query
+                    ->where('acting_role', 'admin')
+                    ->orWhereHas('user', fn ($userQuery) => $userQuery->where('role_name', 'Admin'))))
+                ->when($acting !== 'admin', fn ($query) => $query
+                    ->where(fn ($query) => $query->whereNull('acting_role')->orWhere('acting_role', '!=', 'admin')))
+                ->with('user')
+                ->get()
+                ->map(fn ($blocked) => [
+                    'date' => $blocked->date instanceof \DateTimeInterface ? $blocked->date->format('Y-m-d') : substr((string) $blocked->date, 0, 10),
+                    'start_time' => $blocked->start_time,
+                    'end_time' => $blocked->end_time,
+                    'reason' => $blocked->reason,
+                    'blocked_by' => $blocked->user?->name,
+                ]);
+        $recentActivities = \App\Models\AppNotification::visibleTo($user)
             ->latest()
             ->take(5)
             ->get()
@@ -390,11 +405,9 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
         ? $properties->where('approval_status', 'Pending')->values()
         : collect();
     $myProperties = $page === 'listings'
-        ? $properties->filter(fn ($property) => $property->user_id === $user->user_id || $property->assignments->contains(fn ($assignment) => $assignment->user_id === $user->user_id && $assignment->status === 'Approved'))->values()
+        ? $properties->filter(fn ($property) => (int) $property->user_id === (int) $user->user_id)->values()
         : collect();
-    $teamProperties = $page === 'listings' && $acting === 'broker'
-        ? $properties
-        : collect();
+    $teamProperties = collect();
     $sharedPageViews = [
         'messages' => 'pages.messages',
         'listings' => 'pages.listings',
@@ -420,12 +433,13 @@ Route::post('/lead/toggle', function () {
     $next = $current === 'admin' ? 'broker' : 'admin';
     session(['acting_as' => $next]);
 
-    return redirect()->back();
+    return redirect()->route('app.page', ['page' => 'dashboard']);
 })->name('lead.toggle')->middleware('auth');
 
 // ADMIN USER MANAGEMENT
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/users/{user}/credentials', [UserController::class, 'downloadCredentials'])->name('users.credentials');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
     Route::resource('users', UserController::class);
     Route::resource('teams', TeamController::class);
 });

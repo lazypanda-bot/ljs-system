@@ -1,4 +1,4 @@
-<aside data-sidebar class="sidebar">
+<aside data-sidebar id="appSidebar" class="sidebar">
     <div class="sidebar-top"><div class="brand-block"><div class="brand-logo"><img src="{{ asset('images/ljs-logo.jpg') }}" alt="LJS logo"></div></div></div>
     <nav class="nav-menu">
         @php

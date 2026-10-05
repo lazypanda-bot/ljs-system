@@ -54,7 +54,9 @@ class MessagingSearchAttachmentTest extends TestCase
 
         $search = $this->get(route('messages.inbox', ['q' => 'needle']));
         $search->assertOk()->assertSee('needle property question')->assertDontSee('other topic')->assertDontSee('needle secret thread');
-        $this->get(route('messages.inbox', ['q' => 'Harbor Point']))->assertOk()->assertSee('Harbor Point Residence');
+        $this->get(route('messages.inbox', ['q' => 'Harbor Point']))
+            ->assertOk()
+            ->assertSee('needle property question');
         $this->assertSame($unread->conversation_id, $unread->fresh()->conversation_id);
         $this->assertNotSame($read->conversation_id, $unread->conversation_id);
     }

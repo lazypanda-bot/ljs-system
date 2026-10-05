@@ -1,4 +1,4 @@
-@extends('layouts.client')
+@extends(auth()->user()?->normalizedRole() === 'client' ? 'layouts.app' : 'layouts.client')
 
 @section('title', 'Appointments')
 
@@ -7,7 +7,7 @@
 @endpush
 
 @section('content')
-    <div class="appointments-page appointments-split-page staff-page-surface">
+    <div class="appointments-page appointments-split-page {{ auth()->user()?->normalizedRole() === 'client' ? 'appointments-client-page' : 'staff-page-surface' }}">
         <div class="appointments-page-header">
             <div>
                 <span>Schedule</span>
@@ -82,6 +82,10 @@
                     @endif
 
                     <div class="appointment-detail-actions">
+                        @php $reviewable = $selectedAppointment->assignment?->user; @endphp
+                        @if ($isAppointmentClient && $selectedAppointment->appointment_status === 'Completed' && $reviewable && in_array($reviewable->role_name, ['Broker', 'Agent', 'Lead Broker'], true))
+                            <a class="settings-appointment-link" href="{{ route('agents.show', $reviewable) }}#reviews">Rate your experience with {{ $reviewable->name }}</a>
+                        @endif
                         @if ($selectedAppointment->appointment_status === 'Pending' && ($isAppointmentAdmin || $isAssignedProfessional || $isAppointmentClient))
                             <form method="POST" action="{{ route('appointments.status', $selectedAppointment) }}">
                                 @csrf @method('PATCH')
@@ -124,5 +128,6 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/availability-picker.js') }}?v={{ filemtime(public_path('js/availability-picker.js')) }}" defer></script>
     <script src="{{ asset('js/appointment-proposals.js') }}?v={{ filemtime(public_path('js/appointment-proposals.js')) }}" defer></script>
 @endpush

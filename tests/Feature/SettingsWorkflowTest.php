@@ -31,7 +31,7 @@ class SettingsWorkflowTest extends TestCase
         $response->assertRedirect();
         $user->refresh();
         $this->assertSame('Updated Name', $user->name);
-        $this->assertSame('555-0100', $user->contact_number);
+        $this->assertSame('5550100', $user->contact_number);
         $this->assertNotEmpty($user->profile_photo);
         $this->assertTrue(Storage::disk('public')->exists($user->profile_photo));
     }

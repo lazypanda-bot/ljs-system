@@ -161,6 +161,10 @@ class PropertyManagementTest extends TestCase
             'property_description' => $property->property_description,
             'price' => $property->price,
             'property_status' => 'Sold',
+            'lot_area' => 100,
+            'floor_area' => 80,
+            'bedrooms' => 2,
+            'bathrooms' => 1,
             'street' => $property->street,
             'city' => $property->city,
             'province' => $property->province,
@@ -296,14 +300,19 @@ class PropertyManagementTest extends TestCase
         $property->assignments()->create(['user_id' => $listingAdmin->user_id, 'assigned_date' => today(), 'status' => 'Approved']);
         $referral = ReferralCode::create(['user_id' => $listingAdmin->user_id, 'property_id' => $property->property_id, 'code' => 'LJS-OWNER-123']);
 
-        $this->actingAs($otherAdmin)->get(route('staff.properties.show', $property))
+        $this->actingAs($otherAdmin)->get(route('staff.properties.show', $property))->assertForbidden();
+        $this->get(route('app.page', ['page' => 'property']))
+            ->assertOk()
+            ->assertDontSee($referral->code);
+        $this->post(route('agent.properties.generate-code', $property->property_id))->assertForbidden();
+
+        $this->actingAs($listingAdmin)->get(route('staff.properties.show', $property))
             ->assertOk()
             ->assertSee('staff-page-surface', false)
             ->assertDontSee('Seller referral link')
             ->assertDontSee(route('referrals.open', $referral->code));
         $this->get(route('app.page', ['page' => 'property']))
             ->assertOk()
-            ->assertSee('Referral link')
             ->assertSee($referral->code)
             ->assertSee(route('referrals.open', $referral->code));
         $this->post(route('agent.properties.generate-code', $property->property_id))->assertRedirect();

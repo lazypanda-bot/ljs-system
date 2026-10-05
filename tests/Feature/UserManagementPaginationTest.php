@@ -34,7 +34,7 @@ class UserManagementPaginationTest extends TestCase
             ->assertSee('staff-property-admin-header', false)
             ->assertSee('listings-toolbar', false)
             ->assertSee('usersSearchWrapper', false)
-            ->assertSee('aria-label="Search staff accounts by name"', false)
+            ->assertSee('aria-label="Search users or teams"', false)
             ->assertSee('All Users')
             ->assertSee('Teams')
             ->assertDontSee('fa-users me-2', false)
@@ -42,6 +42,7 @@ class UserManagementPaginationTest extends TestCase
 
         $content = $response->getContent();
         $this->assertLessThan(strpos($content, 'staff-user-tabs'), strpos($content, '<h2>Staff management</h2>'));
-        $this->assertLessThan(strpos($content, 'staff-user-tabs'), strpos($content, 'id="openAddUserModal"'));
+        $this->assertLessThan(strpos($content, 'id="openAddUserModal"'), strpos($content, 'id="searchUsers"'));
+        $this->assertLessThan(strpos($content, 'id="openAddTeamModal"'), strpos($content, 'id="openAddUserModal"'));
     }
 }

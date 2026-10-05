@@ -99,5 +99,27 @@ class ClientNotificationSplitTest extends TestCase
             ->assertViewHas('selectedNotification', fn ($notification) => $notification?->title === 'Update 1');
 
         $secondPage->assertSee('Update 1');
+        $secondPage->assertSee('data-mobile-selected="false"', false)
+            ->assertSee('data-close-notification-detail', false);
+
+        $selected = $this->get(route('notifications.index', ['selected' => $notifications->first()->notification_id]))
+            ->assertOk();
+        $selected->assertSee('data-mobile-selected="true"', false)
+            ->assertSee('data-close-notification-detail', false);
+    }
+
+    public function test_notification_bell_item_opens_its_detail_page_for_all_notification_types(): void
+    {
+        $client = User::factory()->create(['role_name' => 'Client']);
+        $notification = AppNotification::create([
+            'user_id' => $client->user_id,
+            'type' => 'message',
+            'title' => 'New message',
+            'body' => 'A reply is waiting.',
+            'url' => route('messages.inbox'),
+        ]);
+
+        $this->actingAs($client)->get(route('notifications.open', $notification))
+            ->assertRedirect(route('notifications.index', ['selected' => $notification->notification_id]));
     }
 }

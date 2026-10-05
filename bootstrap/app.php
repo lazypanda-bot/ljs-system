@@ -31,7 +31,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->redirectGuestsTo(fn () => route('home'));
+        $middleware->redirectGuestsTo(function () {
+            session()->flash('auth_modal_error', true);
+
+            return route('home');
+        });
 
         $middleware->validateCsrfTokens(except: [
             'temp-login',

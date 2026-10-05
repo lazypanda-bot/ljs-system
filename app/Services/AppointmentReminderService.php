@@ -19,16 +19,25 @@ class AppointmentReminderService
         $now = CarbonImmutable::now('UTC');
         $window = max(1, (int) config('appointments.reminder_window_minutes', 15));
 
-        foreach (config('appointments.reminder_offsets', [1440, 60]) as $minutesBefore) {
-            $windowStart = $now->addMinutes((int) $minutesBefore);
-            $windowEnd = $windowStart->addMinutes($window);
+        $offsets = collect(config('appointments.reminder_offsets', [1440, 60]))->map(fn ($offset) => (int) $offset)->sort()->values();
+
+        foreach ($offsets as $minutesBefore) {
+            // Catch up on missed runs: anything starting within the offset still gets its reminder.
+            $windowStart = $now;
+            $windowEnd = $now->addMinutes($minutesBefore + $window);
+            $smallerOffsets = $offsets->filter(fn ($offset) => $offset < $minutesBefore);
 
             Appointment::query()
                 ->with(['assignment.user', 'client'])
                 ->where('appointment_status', 'Confirmed')
                 ->whereBetween('starts_at_utc', [$windowStart->format('Y-m-d H:i:s'), $windowEnd->format('Y-m-d H:i:s')])
-                ->chunkById(100, function ($appointments) use (&$sent, $minutesBefore, $now): void {
+                ->chunkById(100, function ($appointments) use (&$sent, $minutesBefore, $now, $smallerOffsets, $window): void {
                     foreach ($appointments as $appointment) {
+                        $minutesUntil = $now->diffInMinutes($appointment->starts_at_utc, false);
+                        if ($smallerOffsets->contains(fn ($offset) => $minutesUntil <= $offset + $window)) {
+                            continue;
+                        }
+
                         $recipients = collect([$appointment->assignment?->user, $this->clientFor($appointment)])
                             ->filter(fn ($recipient) => $recipient instanceof User)
                             ->unique('user_id');

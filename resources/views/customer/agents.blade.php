@@ -93,6 +93,8 @@
                                 {{ $professional->professionalProfile?->years_experience ?? 0 }} Years Experience
                             </div>
 
+                            <div class="agent-sold-stat">PRC License: {{ $professional->professionalProfile?->license_number ?: 'Not listed' }}</div>
+
                             <a href="{{ route('agents.show', $professional) }}" class="agent-view-btn">View details</a>
                         </div>
                     </article>

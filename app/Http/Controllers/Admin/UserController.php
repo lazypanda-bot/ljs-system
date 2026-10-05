@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ActivityMail;
 use App\Models\User;
 use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -22,9 +25,9 @@ class UserController extends Controller
         $this->authorizeAdmin();
 
         return view('admin.admin-users', [
-            'users' => User::where('role_name', '!=', 'Client')->orderBy('user_id')->paginate(7),
+            'users' => User::with('professionalProfile')->where('role_name', '!=', 'Client')->orderBy('user_id')->paginate(7),
             'allUsers' => User::where('role_name', '!=', 'Client')->get(),
-            'teams' => Team::with(['user', 'members'])->latest()->get(),
+            'teams' => Team::with(['user', 'members.user'])->latest()->get(),
         ]);
     }
 
@@ -45,14 +48,24 @@ class UserController extends Controller
     {
         $this->authorizeAdmin();
 
+        // 1. Validate inputs first (including 'Admin' in the allowed roles)
+        \App\Support\InputRules::normalize($request);
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email',
-            'role_name' => 'required|in:Lead Broker,Admin,Broker,Agent',
+            'name' => \App\Support\InputRules::name(),
+            'email' => \App\Support\InputRules::email(),
+            'role_name' => 'required|in:Admin,Lead Broker,Broker,Agent', // Added 'Admin' here
             'account_status' => 'required|in:Active,Inactive,Suspended',
             'password' => 'required|string|min:8',
             'credential_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-        ]);
+        ], \App\Support\InputRules::messages());
+
+        // 2. Check if trying to create an Admin, and ensure the creator is a Lead Broker
+        if ($validated['role_name'] === 'Admin' && Auth::user()->role_name !== 'Lead Broker') {
+            throw ValidationException::withMessages([
+                'role_name' => 'Only a Lead Broker is authorized to add an Admin user.',
+            ]);
+        }
+
         unset($validated['credential_document']);
 
         $existingUser = User::withTrashed()->where('email', $validated['email'])->first();
@@ -62,8 +75,8 @@ class UserController extends Controller
             ]);
         }
 
-        // Hash the password typed by the admin in the modal box
-        $validated['password'] = Hash::make($validated['password']);
+        $initialPassword = $validated['password'];
+        $validated['password'] = Hash::make($initialPassword);
 
         if ($existingUser) {
             $existingUser->restore();
@@ -78,9 +91,24 @@ class UserController extends Controller
             $user->professionalProfile()->updateOrCreate([], ['document_file' => $path]);
         }
 
+        $mailed = true;
+        try {
+            Mail::to($user->email, $user->name)->sendNow(new ActivityMail(
+                'Your LJS Realty account is ready',
+                "Hello {$user->name},\n\nAn account was created for you at LJS Realty and Brokerage.\n\n"
+                . "Role: {$user->role_name}\nEmail: {$user->email}\nInitial password: {$initialPassword}\n\n"
+                . 'Log in with these details, then change your password in Settings.'
+            ));
+        } catch (\Throwable $exception) {
+            $mailed = false;
+            Log::warning('Account email could not be sent.', ['user_id' => $user->user_id, 'error' => $exception->getMessage()]);
+        }
+
         return redirect()->route('admin.users.index')->with(
-            'success', 
-            'User created successfully with the provided initial password.'
+            'success',
+            $mailed
+                ? 'User created. Their role, email and initial password were emailed to ' . $user->email . '.'
+                : 'User created, but the account email could not be sent. Share the initial password with them directly.'
         );
     }
 
@@ -94,7 +122,7 @@ class UserController extends Controller
         return view('admin.admin-users', [
             'users' => User::where('role_name', '!=', 'Client')->orderBy('user_id')->paginate(7),
             'allUsers' => User::where('role_name', '!=', 'Client')->get(),
-            'teams' => Team::with(['user', 'members'])->latest()->get(),
+            'teams' => Team::with(['user', 'members.user'])->latest()->get(),
             'editUser' => $user,
         ]);
     }
@@ -109,7 +137,7 @@ class UserController extends Controller
         return view('admin.admin-users', [
             'users' => User::where('role_name', '!=', 'Client')->orderBy('user_id')->paginate(7),
             'allUsers' => User::where('role_name', '!=', 'Client')->get(),
-            'teams' => Team::with(['user', 'members'])->latest()->get(),
+            'teams' => Team::with(['user', 'members.user'])->latest()->get(),
             'editUser' => $user,
         ]);
     }
@@ -121,42 +149,18 @@ class UserController extends Controller
     {
         $this->authorizeAdmin();
 
+        // Only the account status can be changed from the users list.
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:users,email,' . $user->user_id . ',user_id',
-            'contact_number' => 'sometimes|required|string|max:20',
-            'role_name' => 'sometimes|required|in:Lead Broker,Admin,Broker,Agent,Client',
-            'account_status' => 'sometimes|required|in:Active,Inactive,Suspended',
-            'credential_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'account_status' => 'required|in:Active,Inactive',
         ]);
 
-        if ($request->has('password') && $request->password) {
-            $request->validate(['password' => 'min:8|confirmed']);
-            $validated['password'] = Hash::make($request->password);
-        }
-
-        unset($validated['credential_document']);
-        if ($request->hasFile('credential_document')) {
-            $role = $validated['role_name'] ?? $user->role_name;
-            if (! in_array($role, ['Lead Broker', 'Admin', 'Broker', 'Agent'], true)) {
-                throw ValidationException::withMessages([
-                    'credential_document' => 'Credential files can only be added to professional accounts.',
-                ]);
-            }
-
-            $profile = $user->professionalProfile;
-            $oldPath = $profile?->document_file;
-            $path = $request->file('credential_document')->store('professional-credentials', 'local');
-            $user->professionalProfile()->updateOrCreate([], ['document_file' => $path]);
-
-            if ($oldPath && str_starts_with($oldPath, 'professional-credentials/')) {
-                Storage::disk('local')->delete($oldPath);
-            }
+        if ((int) $user->user_id === (int) Auth::id()) {
+            throw ValidationException::withMessages(['account_status' => 'You cannot change your own account status.']);
         }
 
         $user->update($validated);
 
-        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
+        return redirect()->route('admin.users.index')->with('success', $user->name . ' is now ' . strtolower($validated['account_status']) . '.');
     }
 
     /**
@@ -187,7 +191,16 @@ class UserController extends Controller
             404
         );
 
-        return response()->download($credentialPath, basename($credentialPath));
+        return response()->file($credentialPath, [
+            'Content-Type' => match (strtolower(pathinfo($credentialPath, PATHINFO_EXTENSION))) {
+                'pdf' => 'application/pdf',
+                'png' => 'image/png',
+                'jpg', 'jpeg' => 'image/jpeg',
+                default => 'application/octet-stream',
+            },
+            'Content-Disposition' => 'inline; filename="' . basename($credentialPath) . '"',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     private function authorizeAdmin(): void

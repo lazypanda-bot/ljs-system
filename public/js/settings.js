@@ -51,6 +51,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    const deleteModal = document.getElementById('deleteAccountModal');
+    const setDeleteModal = (open) => {
+        deleteModal?.classList.toggle('open', open);
+        deleteModal?.setAttribute('aria-hidden', open ? 'false' : 'true');
+        if (open) document.getElementById('delete_current_password')?.focus();
+    };
+    document.querySelectorAll('[data-open-delete-account]').forEach((button) => button.addEventListener('click', () => setDeleteModal(true)));
+    document.querySelectorAll('[data-close-delete-account]').forEach((button) => button.addEventListener('click', () => setDeleteModal(false)));
+    deleteModal?.addEventListener('click', (event) => { if (event.target === deleteModal) setDeleteModal(false); });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') setDeleteModal(false); });
+
     const toggleButtons = document.querySelectorAll('.toggle-password');
     toggleButtons.forEach((btn) => {
         btn.addEventListener('click', () => {

@@ -76,8 +76,8 @@ class PropertyApprovalReferralTest extends TestCase
             ->get(route('app.page', ['page' => 'listings']))
             ->assertOk()
             ->assertSee('Add Property')
-            ->assertSee('Your listing')
-            ->assertSee('Referral: ' . $code->code);
+            ->assertSee('My Listings')
+            ->assertSee($code->code);
         $this->get(route('referrals.open', $code->code))
             ->assertRedirect(route('properties.show', ['id' => $property->property_id, 'ref' => $code->code]));
     }

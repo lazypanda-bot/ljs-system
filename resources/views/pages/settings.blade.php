@@ -19,8 +19,13 @@
 			<div class="settings-errors" role="alert">{{ $errors->first() }}</div>
 		@endif
 		<div class="settings-tab-bar">
-			<button class="settings-tab-btn active" id="profile-tab" data-target="profile-section" type="button" role="tab" aria-controls="profile-section" aria-selected="true"><i class="fas fa-user tab-icon"></i> Profile</button>
-			<button class="settings-tab-btn" id="password-tab" data-target="password-section" type="button" role="tab" aria-controls="password-section" aria-selected="false"><i class="fas fa-lock tab-icon"></i> Password</button>
+			@if ($isClient)
+				<button class="settings-tab-btn active" id="profile-tab" data-target="profile-section" type="button" role="tab" aria-controls="profile-section" aria-selected="true"><i class="fas fa-user tab-icon"></i> Account</button>
+				<button class="settings-tab-btn" id="history-tab" data-target="history-section" type="button" role="tab" aria-controls="history-section" aria-selected="false"><i class="fas fa-calendar-check tab-icon"></i> Appointment History</button>
+			@else
+				<button class="settings-tab-btn active" id="profile-tab" data-target="profile-section" type="button" role="tab" aria-controls="profile-section" aria-selected="true"><i class="fas fa-user tab-icon"></i> Profile</button>
+				<button class="settings-tab-btn" id="password-tab" data-target="password-section" type="button" role="tab" aria-controls="password-section" aria-selected="false"><i class="fas fa-lock tab-icon"></i> Password</button>
+			@endif
 		</div>
 		<div class="settings-main-card">
 			<section id="profile-section" class="settings-panel active" role="tabpanel" aria-labelledby="profile-tab">
@@ -47,10 +52,10 @@
 						</div>
 						<div class="settings-profile-details">
 							<div class="settings-form-grid">
-								<div class="form-group"><label for="name">Full Name</label><input type="text" id="name" name="name" value="{{ old('name', $authUser?->name) }}" required></div>
+								<div class="form-group"><label for="name">Full Name</label><input type="text" id="name" name="name" value="{{ old('name', $authUser?->name) }}" required minlength="2" maxlength="100" pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'\-]*" title="Letters, spaces, apostrophes, hyphens and periods only"></div>
 								<div class="form-group"><label for="email">Email Address</label><input type="email" id="email" name="email" value="{{ old('email', $authUser?->email) }}" required></div>
 							</div>
-							<div class="form-group"><label for="contact_number">Contact Number</label><input type="tel" id="contact_number" name="contact_number" value="{{ old('contact_number', $authUser?->contact_number) }}" maxlength="20" placeholder="Add your contact number"></div>
+							<div class="form-group"><label for="contact_number">Contact Number</label><input type="tel" id="contact_number" name="contact_number" value="{{ old('contact_number', $authUser?->contact_number) }}" maxlength="20" inputmode="tel" pattern="\+?[0-9\s\-\(\)]{7,20}" title="7 to 15 digits, e.g. 09171234567" placeholder="e.g. 09171234567"></div>
 							<div class="form-group">
 								<label for="timezone">Time zone</label>
 								@php
@@ -86,7 +91,7 @@
 								<div class="settings-form-grid">
 									<div class="form-group">
 										<label for="license_number">License / PRC number</label>
-										<input type="text" id="license_number" name="license_number" value="{{ old('license_number', $profile?->license_number) }}" maxlength="100" placeholder="PRC or license number">
+										<input type="text" id="license_number" name="license_number" value="{{ old('license_number', $profile?->license_number) }}" maxlength="100" pattern="[A-Za-z0-9\-\/ ]+" title="Letters, numbers, spaces, hyphens and slashes only" placeholder="PRC or license number">
 									</div>
 									<div class="form-group">
 										<label for="years_experience">Years of experience</label>
@@ -99,14 +104,13 @@
 								</div>
 								<div class="form-group">
 									<label for="credential_document">Credential document</label>
-									<input type="file" id="credential_document" name="credential_document" accept=".pdf,image/jpeg,image/png">
-									<small>
-										PDF, JPG, or PNG, up to 10 MB. Stored privately.
-										@if ($profile?->document_file)
-											<span class="settings-doc-on-file">A document is on file.</span>
-											<a href="{{ route('settings.credentials.download') }}">Download current file</a>
-										@endif
-									</small>
+									@if ($profile?->document_file)
+										<p class="settings-doc-on-file"><i class="fas fa-file-shield" aria-hidden="true"></i> A credential document is on file. <a href="{{ route('settings.credentials.download') }}" target="_blank" rel="noopener">View document</a></p>
+										<small>Credentials are added when your account is created. Contact an admin to change it.</small>
+									@else
+										<input type="file" id="credential_document" name="credential_document" accept=".pdf,image/jpeg,image/png">
+										<small>No credential has been added to your account yet. Upload a PDF, JPG, or PNG (up to 10 MB); it is stored privately and visible to admins.</small>
+									@endif
 								</div>
 							@endif
 
@@ -115,22 +119,23 @@
 					</div>
 				</form>
 
-				<div class="danger-zone-box">
-					<h3>Delete Account</h3>
-					<p class="section-subtitle">Your account will be deactivated. Enter your password and type DELETE to confirm.</p>
-					<form method="POST" action="{{ route('settings.account.destroy') }}" class="settings-form" data-confirm-message="Deactivate your account? You will be signed out immediately.">
-						@csrf @method('DELETE')
-						<div class="form-group"><label for="delete_current_password">Current Password</label><input type="password" id="delete_current_password" name="current_password" required autocomplete="current-password"></div>
-						<div class="form-group"><label for="delete_confirmation">Type DELETE to confirm</label><input type="text" id="delete_confirmation" name="confirmation" required autocomplete="off"></div>
-						<button type="submit" class="btn-danger-outline">Deactivate Account</button>
-					</form>
-				</div>
 				@if ($isClient)
-					<div class="settings-history">
+					<div class="settings-subsection settings-password-block">
+						<h3>Password</h3>
+						<p class="section-subtitle">Change your account password securely.</p>
+					</div>
+					@include('pages.settings._password-form')
+				@endif
+
+				@include('pages.settings._delete-account')
+			</section>
+			@if ($isClient)
+				<section id="history-section" class="settings-panel" role="tabpanel" aria-labelledby="history-tab" hidden>
+					<div class="settings-history settings-history-tab">
 						<div class="settings-subsection">
 							<h3>Appointment history</h3>
-								<p class="section-subtitle">Your scheduled appointments, displayed in {{ $authUser?->timezone ?? config('appointments.default_timezone') }}.</p>
-								<a href="{{ route('appointments.index') }}" class="settings-appointment-link">Open appointment schedule</a>
+							{{-- <p class="section-subtitle">All your appointments, displayed in {{ $authUser?->timezone ?? config('appointments.default_timezone') }}.</p> --}}
+							{{-- <a href="{{ route('appointments.index') }}" class="settings-appointment-link">Open appointment schedule</a> --}}
 						</div>
 						@forelse ($appointments ?? [] as $appointment)
 							<div class="settings-appointment-item">
@@ -144,19 +149,13 @@
 							<p class="settings-empty">No appointments booked yet.</p>
 						@endforelse
 					</div>
-				@endif
-			</section>
+				</section>
+			@else
 			<section id="password-section" class="settings-panel" role="tabpanel" aria-labelledby="password-tab" hidden>
 				<div class="section-header-row"><div><h2>Password Settings</h2><p class="section-subtitle">Change your account password securely.</p></div></div>
-				<form id="password-form" class="settings-form" method="POST" action="{{ route('settings.password.update') }}">
-					@csrf
-					@foreach ([['current_password', 'Current Password', 'Enter your current password'], ['password', 'New Password', 'Enter your new password'], ['password_confirmation', 'Confirm New Password', 'Confirm new password']] as [$field, $label, $placeholder])
-						<div class="form-group"><label for="{{ $field }}">{{ $label }}</label><div class="password-input-wrapper"><input type="password" id="{{ $field }}" name="{{ $field }}" placeholder="{{ $placeholder }}" required><button type="button" class="toggle-password" data-target="{{ $field }}" aria-label="Show {{ strtolower($label) }}"><i class="fas fa-eye"></i></button></div></div>
-					@endforeach
-					<div class="password-requirements-box"><div class="req-title"><i class="fas fa-shield-alt"></i> Password Requirements:</div><ul><li id="req-length">Minimum 8 characters</li><li id="req-upper">At least 1 uppercase letter</li><li id="req-number">At least 1 number</li><li id="req-special">At least 1 special character</li></ul></div>
-					<div class="form-actions"><button type="submit" class="btn-green">Save Password</button></div>
-				</form>
+				@include('pages.settings._password-form')
 			</section>
+			@endif
 		</div>
 	</div>
 @endsection

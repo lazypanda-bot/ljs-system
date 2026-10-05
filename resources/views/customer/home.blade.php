@@ -214,22 +214,3 @@
     </section>
 @endsection
 
-@push('scripts')
-    @php
-        $mapProperties = ($properties ?? collect())->map(function ($property) {
-            return [
-                'name' => $property->property_name,
-                'type' => $property->property_type,
-                'status' => $property->property_status ?? 'Available',
-                'price' => (float) ($property->price ?? 0),
-                'location' => $property->property_location ?? 'Cebu City',
-                'lat' => (float) ($property->latitude ?? 10.3157),
-                'lng' => (float) ($property->longitude ?? 123.8854),
-            ];
-        })->values();
-    @endphp
-
-    <script>
-        window.propertyMapData = @json($mapProperties);
-    </script>
-@endpush

@@ -26,7 +26,7 @@ class MessageController extends Controller
         $panelMode = $request->boolean('panel');
         abort_unless(! $panelMode || $user->normalizedRole() === 'client', 403);
         $this->ensureTeamConversations($user);
-        AppNotification::where('user_id', $user->user_id)
+        AppNotification::visibleTo($user)
             ->where('type', 'message')
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
@@ -51,7 +51,9 @@ class MessageController extends Controller
             ->get();
 
         $selected = $request->integer('conversation');
-        $conversation = $selected ? $conversations->firstWhere('conversation_id', $selected) : $conversations->first();
+        $conversation = $selected
+            ? $conversations->firstWhere('conversation_id', $selected)
+            : ($panelMode ? null : $conversations->first());
 
         if ($conversation) {
             $conversation->unsetRelation('messages');
@@ -125,38 +127,14 @@ class MessageController extends Controller
     public function propertyDirect(Request $request, Property $property)
     {
         $user = $this->user();
-        $recipientId = $request->integer('recipient_id');
-        $referralCode = $request->filled('ref')
-            ? ReferralCode::query()->with('user')->where('code', $request->query('ref'))->where('property_id', $property->property_id)->firstOrFail()
-            : null;
-
-        if ($property->listing_mode === 'admin') {
-            $recipient = $property->user;
-        } else {
-            $recipient = $property->user;
-
-            if ($recipientId && $recipientId !== (int) $property->user_id) {
-                $recipient = $property->assignments()
-                    ->where('user_id', $recipientId)
-                    ->where('status', 'Approved')
-                    ->whereHas('user', fn ($query) => $query->where('account_status', 'Active'))
-                    ->with('user')
-                    ->first()?->user;
-            }
-
-            if ($referralCode && $recipientId === $referralCode->user_id) {
-                $recipient = $referralCode->user;
-            }
-        }
+        // Messages about a listing always go to the person who listed it.
+        $recipient = $property->user;
 
         abort_unless(
             $property->approval_status === 'Approved'
                 && $user->normalizedRole() === 'client'
                 && $recipient instanceof User
-                && $recipient->account_status === 'Active'
-                && ($property->listing_mode === 'admin'
-                    || $referralCode !== null
-                    || in_array($recipient->role_name, ['Broker', 'Agent', 'Lead Broker'], true)),
+                && $recipient->account_status === 'Active',
             403
         );
 
@@ -176,7 +154,12 @@ class MessageController extends Controller
             $this->createMessage($conversation, $user, $body, 'Property enquiry: ' . $property->property_name);
         }
 
-        return redirect()->route('messages.inbox', ['conversation' => $conversation->conversation_id]);
+        $destination = route('messages.inbox', [
+            'conversation' => $conversation->conversation_id,
+            'panel' => $request->boolean('panel') ? 1 : null,
+        ]);
+
+        return $request->expectsJson() ? response()->json(['url' => $destination]) : redirect($destination);
     }
 
     private function findOrCreateDirectConversation(User $user, User $recipient): Conversation
@@ -312,8 +295,7 @@ class MessageController extends Controller
     public function notificationCount(Request $request)
     {
         $user = $this->user();
-        $notifications = AppNotification::query()
-            ->where('user_id', $user->user_id)
+        $notifications = AppNotification::visibleTo($user)
             ->whereNull('read_at');
 
         if ($user->normalizedRole() === 'client') {
@@ -339,9 +321,8 @@ class MessageController extends Controller
             'appointmentProposal.appointment.client',
             'appointmentProposal.proposedBy',
         ];
-        $notifications = AppNotification::query()
+        $notifications = AppNotification::visibleTo($user)
             ->with($relations)
-            ->where('user_id', $user->user_id)
             ->latest()
             ->orderByDesc('notification_id')
             ->paginate(5)
@@ -365,15 +346,11 @@ class MessageController extends Controller
     public function openNotification(AppNotification $notification)
     {
         $user = $this->user();
-        abort_unless($notification->user_id === $user->user_id, 403);
+        abort_unless((int) $notification->user_id === (int) $user->user_id, 403);
 
         $notification->update(['read_at' => now()]);
 
-        if ($notification->appointment_proposal_id || $notification->appointment_id) {
-            return redirect()->route('notifications.index', ['selected' => $notification->notification_id]);
-        }
-
-        return redirect($notification->url ?: route('messages.inbox'));
+        return redirect()->route('notifications.index', ['selected' => $notification->notification_id]);
     }
 
     private function ensureTeamConversations(User $user): void

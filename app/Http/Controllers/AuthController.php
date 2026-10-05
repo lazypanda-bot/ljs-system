@@ -124,6 +124,67 @@ class AuthController extends Controller
         return redirect()->route('login.otp')->with('status', 'A new verification code was sent.');
     }
 
+    public function forgotPassword(Request $request)
+    {
+        $validated = $request->validate(['email' => ['required', 'email', 'max:255']]);
+
+        $user = User::where('email', $validated['email'])->where('account_status', 'Active')->first();
+        $code = (string) random_int(100000, 999999);
+
+        // Same session state and response for unknown emails so accounts cannot be enumerated.
+        $request->session()->put([
+            'password_reset_user_id' => $user?->user_id,
+            'password_reset_hash' => Hash::make($code),
+            'password_reset_expires_at' => now()->addMinutes(10),
+            'password_reset_attempts' => 0,
+        ]);
+
+        if ($user) {
+            try {
+                Mail::raw("Your LJS Realty password reset code is {$code}. It expires in 10 minutes. If you did not request this, you can ignore this email.", function ($message) use ($user) {
+                    $message->to($user->email, $user->name)->subject('LJS Realty password reset code');
+                });
+            } catch (\Throwable $exception) {
+                Log::error('Password reset code could not be sent.', ['user_id' => $user->user_id, 'error' => $exception->getMessage()]);
+                throw ValidationException::withMessages(['email' => 'We could not send your reset code. Please try again.']);
+            }
+        }
+
+        return response()->json([
+            'message' => 'If that email is registered, a 6-digit code was sent. Enter it with your new password.',
+            'csrf_token' => csrf_token(),
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'code' => ['required', 'digits:6'],
+            'password' => ['required', 'confirmed', 'min:8'],
+        ]);
+        $keys = ['password_reset_user_id', 'password_reset_hash', 'password_reset_expires_at', 'password_reset_attempts'];
+
+        $expiresAt = $request->session()->get('password_reset_expires_at');
+        $attempts = (int) $request->session()->get('password_reset_attempts', 0);
+        if (! $expiresAt || now()->greaterThan($expiresAt) || $attempts >= 5) {
+            $request->session()->forget($keys);
+
+            return response()->json(['message' => 'Your reset code expired. Please request a new one.'], 422);
+        }
+
+        $request->session()->put('password_reset_attempts', $attempts + 1);
+        $userId = $request->session()->get('password_reset_user_id');
+
+        if (! $userId || ! Hash::check($validated['code'], (string) $request->session()->get('password_reset_hash'))) {
+            return response()->json(['message' => 'The reset code is incorrect.'], 422);
+        }
+
+        User::whereKey($userId)->firstOrFail()->update(['password' => Hash::make($validated['password'])]);
+        $request->session()->forget($keys);
+
+        return response()->json(['message' => 'Password changed. You can now log in with your new password.']);
+    }
+
     private function sendOtp(Request $request, User $user, bool $remember): void
     {
         $code = (string) random_int(100000, 999999);
@@ -152,11 +213,12 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         try {
+            \App\Support\InputRules::normalize($request);
             $validated = $request->validate([
-                'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+                'name' => \App\Support\InputRules::name(),
+                'email' => \App\Support\InputRules::email(['unique:users,email']),
                 'password' => ['required', 'confirmed', 'min:8'],
-            ]);
+            ], \App\Support\InputRules::messages());
         } catch (ValidationException $exception) {
             $request->session()->flash('auth_modal_error', true);
             throw $exception;
@@ -203,22 +265,23 @@ class AuthController extends Controller
 
         abort_unless($user instanceof User, 403);
 
+        \App\Support\InputRules::normalize($request, ['name'], ['contact_number']);
         $rules = [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->user_id . ',user_id'],
-            'contact_number' => ['nullable', 'string', 'max:20'],
+            'name' => \App\Support\InputRules::name(),
+            'email' => \App\Support\InputRules::email(['unique:users,email,' . $user->user_id . ',user_id']),
+            'contact_number' => \App\Support\InputRules::phone(),
             'timezone' => ['nullable', 'timezone'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ];
 
         if ($user->isProfessional()) {
-            $rules['license_number'] = ['nullable', 'string', 'max:100'];
+            $rules['license_number'] = ['nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9\-\/ ]+$/'];
             $rules['years_experience'] = ['nullable', 'integer', 'min:0', 'max:80'];
             $rules['professional_bio'] = ['nullable', 'string', 'max:2000'];
             $rules['credential_document'] = ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'];
         }
 
-        $validated = $request->validate($rules);
+        $validated = $request->validate($rules, \App\Support\InputRules::messages() + ['license_number.regex' => 'The license number may only contain letters, numbers, spaces, hyphens and slashes.']);
 
         $profileFields = [];
         if ($user->isProfessional()) {
@@ -243,12 +306,9 @@ class AuthController extends Controller
         }
 
         if ($user->isProfessional()) {
-            if ($request->hasFile('credential_document')) {
-                $oldPath = $user->professionalProfile?->document_file;
+            // A credential on file (added by an admin or earlier) is kept; only a missing one can be added here.
+            if ($request->hasFile('credential_document') && ! $user->professionalProfile?->document_file) {
                 $profileFields['document_file'] = $request->file('credential_document')->store('professional-credentials', 'local');
-                if ($oldPath && str_starts_with($oldPath, 'professional-credentials/')) {
-                    Storage::disk('local')->delete($oldPath);
-                }
             }
 
             $user->professionalProfile()->updateOrCreate([], $profileFields);
@@ -274,7 +334,16 @@ class AuthController extends Controller
             404
         );
 
-        return response()->download($credentialPath, basename($credentialPath));
+        return response()->file($credentialPath, [
+            'Content-Type' => match (strtolower(pathinfo($credentialPath, PATHINFO_EXTENSION))) {
+                'pdf' => 'application/pdf',
+                'png' => 'image/png',
+                'jpg', 'jpeg' => 'image/jpeg',
+                default => 'application/octet-stream',
+            },
+            'Content-Disposition' => 'inline; filename="' . basename($credentialPath) . '"',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     public function updatePassword(Request $request)

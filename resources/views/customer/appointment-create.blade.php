@@ -15,31 +15,10 @@
 		@csrf
 		<input type="hidden" name="client_timezone" id="appointmentTimezone" value="{{ $clientTimezone ?? '' }}">
 		<input type="hidden" name="slot_start_utc" id="appointmentSlotUtc">
-		@if ($isAdminListing)
-			<input type="hidden" name="assign_id" value="{{ $selectedAssignmentId }}">
-			<p>Appointment will be sent to {{ $property->user->name }}.</p>
-		@elseif ($referralCode)
-			<input type="hidden" name="ref" value="{{ $referralCode->code }}">
-			@if ($isAdminListing && $assignments->count() > 1)
-				<label>Professional<select name="assign_id" required>@foreach($assignments as $assignment)<option value="{{ $assignment->assign_id }}" @selected((int) $assignment->assign_id === (int) $selectedAssignmentId)>{{ $assignment->user->name }} ({{ $assignment->user->role_name }})</option>@endforeach</select></label>
-				<p>The professional from your referral is selected first. You can choose another assigned professional.</p>
-			@else
-				<input type="hidden" name="assign_id" value="{{ $selectedAssignmentId }}">
-				<p>Appointment will be sent to {{ $assignments->first()->user->name }}.</p>
-			@endif
-		@else
-			<label>Professional
-				<select name="assign_id" required>
-					@foreach($assignments as $assignment)
-						<option value="{{ $assignment->assign_id }}" @selected((int) $assignment->assign_id === (int) $selectedAssignmentId)>
-							{{ $assignment->user?->name ?? 'Unknown Professional' }}
-						</option>
-					@endforeach
-				</select>
-			</label>
-		@endif
-		<label>Name<input name="contact_name" required value="{{ auth()->user()->name ?? '' }}"></label>
-		<label>Contact number<input name="contact_number" required value="{{ auth()->user()->contact_number ?? '' }}"></label>
+		<input type="hidden" name="assign_id" value="{{ $selectedAssignmentId }}">
+		<p>Appointment will be sent to {{ $property->user->name }}.</p>
+		<label>Name<input name="contact_name" required minlength="2" maxlength="100" pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'\-]*" title="Letters, spaces, apostrophes, hyphens and periods only" value="{{ auth()->user()->name ?? '' }}"></label>
+		<label>Contact number<input name="contact_number" type="tel" inputmode="tel" required maxlength="20" pattern="\+?[0-9\s\-\(\)]{7,20}" title="7 to 15 digits, e.g. 09171234567" value="{{ auth()->user()->contact_number ?? '' }}"></label>
 		<label>Email<input type="email" name="contact_email" required value="{{ auth()->user()->email ?? '' }}"></label>
 		<label>Appointment type<select name="appointment_type" required><option>Property viewing</option><option>Consultation</option><option>Site visit</option></select></label>
 		<label>Date<input type="date" name="preferred_date" id="appointmentDate" min="{{ now()->toDateString() }}" required></label>
@@ -52,5 +31,6 @@
 @endsection
 
 @push('scripts')
+	<script src="{{ asset('js/availability-picker.js') }}?v={{ filemtime(public_path('js/availability-picker.js')) }}" defer></script>
 	<script src="{{ asset('js/appointment-booking.js') }}?v={{ filemtime(public_path('js/appointment-booking.js')) }}" defer></script>
 @endpush

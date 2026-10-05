@@ -376,3 +376,9 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+@media (max-width: 1024px) {
+    .rush-property-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 14px; padding-bottom: 8px; }
+    .rush-property-grid .rush-card { flex: 0 0 min(280px, 78%); scroll-snap-align: start; }
+    .top-agents-track { justify-content: flex-start; overflow-x: auto; scroll-snap-type: x mandatory; }
+    .top-agents-track .agent-highlight-card { flex: 0 0 min(240px, 78%); width: auto; scroll-snap-align: start; }
+}

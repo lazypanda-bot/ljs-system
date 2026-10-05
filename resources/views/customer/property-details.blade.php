@@ -51,22 +51,61 @@
                 <p class="property-details-price">PHP {{ number_format($property->price, 2) }}</p>
                 <h1>{{ $property->property_name }}</h1>
                 <p class="property-details-location"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {{ collect([$property->city, $property->province])->filter()->implode(', ') }}</p>
+                @if (! $property->acceptsAppointments())
+                    <p class="property-status-notice property-status-{{ \Illuminate\Support\Str::slug($property->property_status) }}" role="status"><i class="fas fa-circle-info" aria-hidden="true"></i> This property is <strong>{{ $property->property_status }}</strong>. Appointments are closed.</p>
+                @endif
             </header>
 
-            <section class="property-details-panel property-metrics" aria-label="Property details">
-                <div><i class="fas fa-bed" aria-hidden="true"></i><span>{{ $property->details?->bedroom ?? 0 }} beds</span></div>
-                <div><i class="fas fa-bath" aria-hidden="true"></i><span>{{ $property->details?->bathroom ?? 0 }} baths</span></div>
-                <div><i class="fas fa-car" aria-hidden="true"></i><span>{{ $property->details?->parking ?? 0 }} parking</span></div>
-                <div><i class="fas fa-vector-square" aria-hidden="true"></i><span>{{ number_format($property->details?->floor_area ?? 0, 2) }} m² floor</span></div>
-                <div><i class="fas fa-expand" aria-hidden="true"></i><span>{{ number_format($property->details?->lot_area ?? 0, 2) }} m² lot</span></div>
-            </section>
+            @php
+                $details = $property->details;
+                $visible = \App\Models\Property::visibleDetailFields($property->property_type);
+                $show = fn (string $field) => in_array($field, $visible, true);
+                $isResidential = \App\Models\Property::isResidentialType($property->property_type);
+                $hasValue = fn ($value) => $value !== null && $value !== '' && (float) $value > 0;
 
-            <section class="property-details-panel">
-                @php
-                    $lifestyleTags = collect(explode(',', (string) $property->lifestyle_tag))->map(fn ($tag) => trim($tag))->filter();
-                    $locationTags = collect(explode(',', (string) $property->location_tag))->map(fn ($tag) => trim($tag))->filter();
-                @endphp
-                @if ($lifestyleTags->isNotEmpty() || $locationTags->isNotEmpty())
+                // Which facts make sense for this property type; custom types show whatever was filled in.
+                $metrics = collect([
+                    ['icon' => 'fa-bed', 'text' => ($details?->bedroom ?? 0) . ' beds', 'show' => $show('bedrooms') && ($isResidential || $hasValue($details?->bedroom))],
+                    ['icon' => 'fa-bath', 'text' => ($details?->bathroom ?? 0) . ' baths', 'show' => $show('bathrooms') && ($isResidential || $hasValue($details?->bathroom))],
+                    ['icon' => 'fa-car', 'text' => ($details?->parking_spaces ?? 0) . ' parking', 'show' => $show('parking_spaces') && $hasValue($details?->parking_spaces)],
+                    ['icon' => 'fa-vector-square', 'text' => number_format($details?->floor_area ?? 0, 2) . ' m² floor', 'show' => $show('floor_area') && $hasValue($details?->floor_area)],
+                    ['icon' => 'fa-expand', 'text' => number_format($details?->lot_area ?? 0, 2) . ' m² lot', 'show' => $show('lot_area') && $hasValue($details?->lot_area)],
+                ])->where('show', true);
+
+                $facts = collect([
+                    'Property type' => $property->property_type,
+                    'Year built' => $show('year_built') ? $details?->year_built : null,
+                    'Condition' => $show('property_condition') ? $details?->property_condition : null,
+                    'Floors' => $show('number_of_floors') ? $details?->number_of_floors : null,
+                ])->filter(fn ($value) => $value !== null && $value !== '' && $value !== 0);
+            @endphp
+            @if ($metrics->isNotEmpty() || $facts->isNotEmpty() || $details?->remarks)
+                <section class="property-details-panel">
+                    <h2>Property details</h2>
+                    @if ($metrics->isNotEmpty())
+                        <div class="property-metrics" aria-label="Key figures">
+                            @foreach ($metrics as $metric)
+                                <div><i class="fas {{ $metric['icon'] }}" aria-hidden="true"></i><span>{{ $metric['text'] }}</span></div>
+                            @endforeach
+                        </div>
+                    @endif
+                    <dl class="property-facts">
+                        @foreach ($facts as $label => $value)
+                            <div><dt>{{ $label }}</dt><dd>{{ $value }}</dd></div>
+                        @endforeach
+                        @if ($details?->remarks)
+                            <div class="property-facts-wide"><dt>Remarks</dt><dd>{{ $details->remarks }}</dd></div>
+                        @endif
+                    </dl>
+                </section>
+            @endif
+
+            @php
+                $lifestyleTags = collect(explode(',', (string) $property->lifestyle_tag))->map(fn ($tag) => trim($tag))->filter();
+                $locationTags = collect(explode(',', (string) $property->location_tag))->map(fn ($tag) => trim($tag))->filter();
+            @endphp
+            @if ($lifestyleTags->isNotEmpty() || $locationTags->isNotEmpty())
+                <section class="property-details-panel">
                     <h2>Lifestyle Match</h2>
                     <div class="property-match-tags">
                         @foreach ($lifestyleTags as $tag)
@@ -76,26 +115,26 @@
                             <span><i class="fas fa-location-dot" aria-hidden="true"></i> {{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $tag)) }}</span>
                         @endforeach
                     </div>
-                @endif
-            </section>
+                </section>
+            @endif
 
-            <section class="property-details-panel">
-                <h2>Description</h2>
-                <p class="property-description">{{ $property->property_description ?: 'No additional description provided for this listing.' }}</p>
-            </section>
+            @if (filled($property->property_description))
+                <section class="property-details-panel">
+                    <h2>Description</h2>
+                    <p class="property-description">{{ $property->property_description }}</p>
+                </section>
+            @endif
 
-            <section class="property-details-panel">
-                <h2>Features &amp; amenities</h2>
-                @if ($property->details?->amenities?->isNotEmpty())
+            @if ($property->details?->amenities?->isNotEmpty())
+                <section class="property-details-panel">
+                    <h2>Features &amp; amenities</h2>
                     <ul class="property-amenities-list">
                         @foreach ($property->details->amenities as $amenity)
                             <li><i class="fas fa-check-circle" aria-hidden="true"></i>{{ $amenity->amenity_name }}</li>
                         @endforeach
                     </ul>
-                @else
-                    <p class="property-description">No amenities listed for this property.</p>
-                @endif
-            </section>
+                </section>
+            @endif
         </div>
 
         <aside class="professional-contact-card" aria-labelledby="contactProfessionalHeading">
@@ -111,7 +150,8 @@
                     @endif
                 </div>
                 <div class="professional-contact-name">
-                    <h3 id="referralContactName">{{ $contactUser->name ?? 'LJS Realty Professional' }}</h3>
+                    @php $contactIsProfessional = $contactUser && $contactUser->account_status === 'Active' && in_array($contactUser->role_name, ['Broker', 'Agent', 'Lead Broker'], true); @endphp
+                    <h3><a id="referralContactName" class="professional-name-link" @if ($contactIsProfessional) href="{{ route('agents.show', $contactUser) }}" @endif>{{ $contactUser->name ?? 'LJS Realty Professional' }}</a></h3>
                     <p id="referralContactRole">{{ $contactUser->role_name ?? 'Listing Professional' }}</p>
                 </div>
             </div>
@@ -121,22 +161,15 @@
                 <p><i class="fas fa-envelope" aria-hidden="true"></i><span id="referralContactEmail">{{ $contactUser->email ?? 'Contact details unavailable' }}</span></p>
             </div>
 
-            @if ($referralCode && $isAdminListing && isset($contactProfessionals) && $contactProfessionals->count() > 1)
-                <label class="professional-select-label" for="referralProfessionalSelect">Choose a professional</label>
-                <select class="professional-select" id="referralProfessionalSelect">
-                    @foreach ($contactProfessionals as $professionalAssignment)
-                        <option value="{{ $professionalAssignment->user_id }}" data-assignment-id="{{ $professionalAssignment->assign_id }}" data-name="{{ $professionalAssignment->user->name }}" data-role="{{ $professionalAssignment->user->role_name }}" data-email="{{ $professionalAssignment->user->email }}" data-phone="{{ $professionalAssignment->user->contact_number }}" @selected((int) $professionalAssignment->user_id === (int) $contactUser->user_id)>
-                            {{ $professionalAssignment->user->name }} ({{ $professionalAssignment->user->role_name }})
-                        </option>
-                    @endforeach
-                </select>
-            @endif
-
             <div class="professional-contact-actions">
                 @auth
-                    <button type="button" id="referralAppointmentLink" class="contact-action contact-action-secondary" onclick="openAppointmentModal()">
-                        Book appointment
-                    </button>
+                    @if ($property->acceptsAppointments())
+                        <button type="button" id="referralAppointmentLink" class="contact-action contact-action-secondary" @if ($hasActiveAppointment ?? false) onclick="showPopup('Already booked', 'You already have an active appointment for this property. Wait for it to finish or cancel it before booking again.')" @else onclick="openAppointmentModal()" @endif>
+                            Book appointment
+                        </button>
+                    @else
+                        <button type="button" class="contact-action contact-action-secondary" disabled>{{ $property->property_status }} · Booking closed</button>
+                    @endif
                 @else
                     <!-- Triggers login or redirects if not logged in -->
                     <button type="button" class="contact-action contact-action-secondary" id="openLoginModal">
@@ -146,8 +179,9 @@
                 
                 @auth
                     @if (auth()->user()?->normalizedRole() === 'client' && ($isAdminListing || $referralCode || in_array($contactUser?->role_name, ['Broker', 'Agent', 'Lead Broker'], true)))
-                        <form method="POST" action="{{ $messageUrl }}">
+                        <form method="POST" action="{{ $messageUrl }}" id="propertyMessageForm">
                             @csrf
+                            <input type="hidden" name="panel" value="1">
                             <input type="hidden" name="recipient_id" id="referralMessageRecipient" value="{{ $contactUser->user_id }}">
                             <button class="contact-action contact-action-primary" type="submit">Send message</button>
                         </form>
@@ -159,58 +193,66 @@
         </aside>
     </div>
 
-    <!-- APPOINTMENT MODAL CONTAINER -->
-    <div id="appointmentModal" class="modal-overlay">
-        <div class="modal-content appointment-create-page">
-            
-            <button type="button" onclick="closeAppointmentModal()">&times;</button>
-            
-            <h1>Book an Appointment</h1>
+    @auth
+    <div id="appointmentModal" class="modal-overlay {{ $errors->any() ? 'active' : '' }}" @if ($errors->any()) style="display:flex" @endif>
+        <div class="modal-content appointment-create-page" role="dialog" aria-modal="true" aria-labelledby="appointmentModalTitle">
+            <button type="button" onclick="closeAppointmentModal()" aria-label="Close">&times;</button>
+            <h1 id="appointmentModalTitle">Book a viewing</h1>
             <p>{{ $property->property_name }}</p>
-
-            <form method="POST" action="{{ route('appointments.store', $property) }}">
+            @if ($errors->any())
+                <div class="appointment-errors" role="alert">{{ $errors->first() }}</div>
+            @endif
+            <form method="POST" action="{{ route('appointments.store', $property) }}" id="appointmentBookingForm" data-slots-url="{{ route('appointments.availability', $property) }}">
                 @csrf
-                @if ($referralCode)
-                    <input type="hidden" name="ref" value="{{ $referralCode->code }}">
-                @endif
-
-                <!-- Automatically locked to the correct listing/referral professional's assignment ID -->
+                <input type="hidden" name="client_timezone" id="appointmentTimezone" value="{{ auth()->user()->timezone ?? '' }}">
+                <input type="hidden" name="slot_start_utc" id="appointmentSlotUtc">
                 <input type="hidden" name="assign_id" value="{{ $selectedAssignmentId }}">
-
-                <!-- Display info to user so they know who they are booking with -->
-                <div class="form-group mb-3">
-                    <label>{{ $isAdminListing ? 'Listing administrator' : 'Professional' }}</label>
-                    <input type="text" 
-                        class="form-control" 
-                        value="{{ $contactUser?->name ?? 'Default Listing Agent' }} ({{ $contactUser?->role_name ?? 'Agent' }})" 
-                        disabled 
-                        readonly>
-                    <small class="text-muted">This appointment is automatically routed to the {{ $isAdminListing ? 'administrator who listed this property' : 'professional handling this listing' }}.</small>
-                </div>
-
-                <label>Name<input name="contact_name" required value="{{ auth()->user()->name ?? '' }}"></label>
-                <label>Contact number<input name="contact_number" required value="{{ auth()->user()->contact_number ?? '' }}"></label>
-                <label>Email<input type="email" name="contact_email" required value="{{ auth()->user()->email ?? '' }}"></label>
-                
-                <label>Appointment type
-                    <select name="appointment_type" required>
-                        <option>Property viewing</option>
-                        <option>Consultation</option>
-                        <option>Site visit</option>
-                    </select>
-                </label>
-                
-                <label>Date<input type="date" name="preferred_date" min="{{ now()->toDateString() }}" required></label>
-                <label>Time<input type="time" name="preferred_time" required></label>
-                <label>Notes<textarea name="additional_note" rows="4"></textarea></label>
-                
+                <p>Appointment will be sent to {{ $contactUser?->name }}.</p>
+                <label>Name<input name="contact_name" required minlength="2" maxlength="100" pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'\-]*" title="Letters, spaces, apostrophes, hyphens and periods only" value="{{ old('contact_name', auth()->user()->name) }}"></label>
+                <label>Contact number<input name="contact_number" type="tel" inputmode="tel" required maxlength="20" pattern="\+?[0-9\s\-\(\)]{7,20}" title="7 to 15 digits, e.g. 09171234567" value="{{ old('contact_number', auth()->user()->contact_number) }}"></label>
+                <label>Email<input type="email" name="contact_email" required value="{{ old('contact_email', auth()->user()->email) }}"></label>
+                <label>Appointment type<select name="appointment_type" required><option>Property viewing</option><option>Consultation</option><option>Site visit</option></select></label>
+                <label>Date<input type="date" name="preferred_date" id="appointmentDate" min="{{ now()->toDateString() }}" required></label>
+                <label>Available time<select name="preferred_time" id="appointmentTime" required disabled><option value="">Choose a date first</option></select></label>
+                <p class="appointment-slots-status" id="appointmentSlotsStatus" role="status" aria-live="polite">Times are shown in your time zone.</p>
+                <label>Notes<textarea name="additional_note" rows="3"></textarea></label>
                 <button type="submit">Request appointment</button>
             </form>
         </div>
     </div>
+    @endauth
 </article>
 @endsection
 
 @push('scripts')
     <script src="{{ asset('js/properties.js') }}"></script>
+    <script src="{{ asset('js/availability-picker.js') }}?v={{ filemtime(public_path('js/availability-picker.js')) }}" defer></script>
+    <script src="{{ asset('js/appointment-booking.js') }}?v={{ filemtime(public_path('js/appointment-booking.js')) }}" defer></script>
+    <script>
+        document.getElementById('propertyMessageForm')?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const button = form.querySelector('button[type="submit"]');
+            button.disabled = true;
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: new FormData(form),
+                });
+                const data = await response.json();
+                if (!response.ok || !data.url) throw new Error();
+                const modal = document.getElementById('clientMessagesModal');
+                const frame = document.getElementById('clientMessagesFrame');
+                const opener = document.getElementById('clientMessagesButton');
+                if (!modal || !frame || !opener) { window.location.href = data.url; return; }
+                if (!modal.classList.contains('open')) opener.click();
+                frame.src = data.url;
+            } catch (error) {
+                form.submit();
+            } finally {
+                button.disabled = false;
+            }
+        });
+    </script>
 @endpush

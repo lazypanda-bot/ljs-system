@@ -1,8 +1,8 @@
 .business-about-page {
     --about-ink: #17212b;
-    --about-muted: #5c6864;
-    --about-green: #1b7e59;
-    --about-line: #d5dfda;
+    --about-muted: #64748b;
+    --about-green: var(--color-primary, #1f6cff);
+    --about-line: #d9e3f3;
     color: var(--about-ink);
 }
 
@@ -10,7 +10,7 @@
     min-height: 560px;
     justify-content: center;
     padding: 90px 32px 72px;
-    background-position: center bottom;
+    background-position: center center;
     text-align: center;
 }
 
@@ -45,7 +45,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link {
 
 body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link:hover,
 body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.active {
-    color: #b9f0d0 !important;
+    color: #8db4ff !important;
 }
 
 .about-content-width,
@@ -134,7 +134,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #33413a;
+    color: #334155;
     font-size: 13px;
     font-weight: 700;
 }
@@ -147,8 +147,8 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 }
 
 .about-owner-note {
-    background: #163d30;
-    color: #fff;
+    background: #edf4ff;
+    color: var(--about-ink);
 }
 
 .about-owner-inner {
@@ -164,9 +164,9 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     width: 48px;
     aspect-ratio: 1;
     place-items: center;
-    border: 1px solid rgba(185, 240, 208, .45);
+    border: 1px solid #bfd2f5;
     border-radius: 50%;
-    color: #b9f0d0;
+    color: var(--color-primary, #1f6cff);
 }
 
 .about-owner-symbol svg {
@@ -176,7 +176,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 
 .about-owner-eyebrow,
 .about-owner-promise > span {
-    color: #b9f0d0;
+    color: var(--color-primary, #1f6cff);
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 1px;
@@ -184,14 +184,14 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 
 .about-owner-copy h2 {
     margin: 10px 0 14px;
-    color: #fff;
+    color: var(--about-ink);
     font-size: 30px;
 }
 
 .about-owner-copy blockquote {
     max-width: 700px;
     margin: 0;
-    color: #e2eee8;
+    color: var(--about-muted);
     font-size: 16px;
     line-height: 1.7;
 }
@@ -201,7 +201,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     align-items: center;
     gap: 10px;
     margin: 22px 0 0;
-    color: #fff;
+    color: var(--about-ink);
     font-size: 14px;
     font-weight: 800;
 }
@@ -209,11 +209,11 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 .about-owner-attribution > span {
     width: 28px;
     height: 2px;
-    background: #b9f0d0;
+    background: var(--color-primary, #1f6cff);
 }
 
 .about-owner-attribution small {
-    color: #bdd0c6;
+    color: var(--about-muted);
     font-size: 12px;
     font-weight: 500;
 }
@@ -227,7 +227,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     display: block;
     width: 100%;
     aspect-ratio: 3 / 2;
-    border: 1px solid rgba(226, 238, 232, .3);
+    border: 1px solid #bfd2f5;
     border-radius: 5px;
     object-fit: cover;
     object-position: center bottom;
@@ -235,7 +235,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 
 .about-owner-image figcaption {
     margin-top: 9px;
-    color: #bdd0c6;
+    color: var(--about-muted);
     font-size: 11px;
 }
 
@@ -249,7 +249,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 .about-offer-section {
     padding-block: 72px 80px;
     padding-inline: 0;
-    background: #f1f5f2;
+    background: #ffffff;
 }
 
 .about-section-heading {
@@ -272,7 +272,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     min-width: 0;
     overflow: hidden;
     padding: 26px 24px 28px;
-    border: 1px solid #d7e1db;
+    border: 1px solid #d9e3f3;
     border-radius: 6px;
     background: #fff;
     transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
@@ -280,8 +280,8 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 
 .about-offer-card:hover {
     transform: translateY(-3px);
-    border-color: #9fc9b1;
-    box-shadow: 0 12px 26px rgba(26, 50, 39, .08);
+    border-color: #9bbcff;
+    box-shadow: 0 12px 26px rgba(31, 108, 255, .08);
 }
 
 .about-offer-watermark {
@@ -335,7 +335,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 
 .about-journey-section {
     padding-block: 72px 78px;
-    background: #fff;
+    background: #edf4ff;
 }
 
 .about-journey-grid {
@@ -489,11 +489,11 @@ button.business-secondary-link {
 }
 
 button.business-secondary-link:hover {
-    background: #f1f5f2;
+    background: #dfeaff;
 }
 
 .business-about-page :focus-visible {
-    outline: 3px solid #65b88e;
+    outline: 3px solid #7aa8ff;
     outline-offset: 3px;
 }
 
@@ -661,4 +661,27 @@ a.about-contact-option:hover {
         max-width: 68px;
         text-align: right;
     }
+}
+
+.business-about-page .business-about-cta {
+    /* background: #ffffff; */
+    background: transparent;
+    border-top: 1px solid #d9e3f3;
+}
+
+.business-about-page .business-about-cta .business-eyebrow,
+.business-about-page .about-company-index,
+.business-about-page .about-page-eyebrow,
+.business-about-page .about-offer-number,
+.business-about-page .about-step-number {
+    color: var(--color-primary, #1f6cff);
+}
+
+.business-about-page .business-primary-link {
+    background: var(--color-primary, #1f6cff);
+    color: #fff;
+}
+
+.business-about-page .business-primary-link:hover {
+    background: #1556d9;
 }

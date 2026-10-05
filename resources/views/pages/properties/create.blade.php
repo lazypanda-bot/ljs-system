@@ -26,13 +26,13 @@
     @endphp
 
     <div class="property-create-page staff-page-surface">
-        <a class="property-create-back" href="{{ route('app.page', ['page' => 'property']) }}"><i class="fas fa-arrow-left" aria-hidden="true"></i> Properties</a>
+        <a class="property-create-back" href="{{ route('app.page', ['page' => auth()->user()->actingRole() === 'admin' ? 'property' : 'listings']) }}"><i class="fas fa-arrow-left" aria-hidden="true"></i> Back to {{ auth()->user()->actingRole() === 'admin' ? 'properties' : 'listings' }}</a>
         <header class="property-create-heading"><span>LISTING MANAGEMENT</span><h1>Add New Property</h1><p>Enter listing information and publish it to the property catalogue.</p></header>
         @if ($errors->any())
             <div class="property-create-errors" role="alert"><strong>Please review the form errors before continuing.</strong></div>
         @endif
 
-        <form action="{{ route('admin.properties.store') }}" method="POST" enctype="multipart/form-data" class="property-create-form">
+        <form action="{{ route('admin.properties.store') }}" method="POST" enctype="multipart/form-data" class="property-create-form" data-type-requirements='@json(\App\Models\Property::detailRequirementMap())' data-type-visibility='@json(\App\Models\Property::detailVisibilityMap())'>
             @csrf
             <section class="property-create-section" aria-labelledby="createPhotosHeading">
                 <div class="property-create-section-title"><span>01</span><div><h2 id="createPhotosHeading">Property photos</h2><p>Add up to 12 JPG, PNG, or WebP images.</p></div></div>
@@ -47,10 +47,39 @@
                 <div class="property-create-section-title"><span>02</span><div><h2 id="createBasicHeading">Basic information</h2><p>Core information shown in the public listing.</p></div></div>
                 <div class="property-create-fields">
                     <label class="property-create-field"><span>Property name *</span><input name="property_name" value="{{ old('property_name') }}" maxlength="255" required>@error('property_name')<small>{{ $message }}</small>@enderror</label>
-                    <label class="property-create-field"><span>Property type *</span><select name="property_type" required><option value="">Choose a type</option>@foreach (['House & Lot', 'Condominium', 'Commercial', 'Lot'] as $type)<option value="{{ $type }}" @selected(old('property_type') === $type)>{{ $type }}</option>@endforeach</select></label>
+                    @php $typeOptions = \App\Models\Property::typeOptions(); $oldType = old('property_type'); @endphp
+                    <div class="property-create-field-wide">
+                        <fieldset class="property-choice-fieldset"><legend class="property-choice-heading">Property type *</legend>
+                            <div class="property-choice-list" id="typeChoices">
+                                @foreach ($typeOptions as $type)
+                                    <label class="property-choice"><input type="radio" name="property_type" value="{{ $type }}" @checked($oldType === $type) required><span>{{ $type }}</span></label>
+                                @endforeach
+                                @if ($oldType && ! in_array($oldType, $typeOptions, true))
+                                    <label class="property-choice is-custom"><input type="radio" name="property_type" value="{{ $oldType }}" checked required><span>{{ $oldType }}</span></label>
+                                @endif
+                            </div>
+                        </fieldset>
+                        <div class="property-add-choice"><label for="customType">Add a property type not listed</label><div><input id="customType" type="text" maxlength="100" placeholder="e.g. Beach Resort"><button type="button" id="addTypeChoice"><i data-lucide="plus" aria-hidden="true"></i> Add</button></div></div>
+                        @error('property_type')<small class="property-create-error">{{ $message }}</small>@enderror
+                    </div>
                     <label class="property-create-field"><span>Price (PHP) *</span><input type="number" min="0" step="0.01" name="price" value="{{ old('price') }}" placeholder="e.g. 2500000" required></label>
-                    <label class="property-create-field"><span>Listing status *</span><select name="property_status" required>@foreach (['For Sale', 'For Rent', 'Available', 'Reserved', 'Pending', 'Sold', 'Unavailable'] as $status)<option value="{{ $status }}" @selected(old('property_status', 'For Sale') === $status)>{{ $status }}</option>@endforeach</select></label>
+                    <label class="property-create-field"><span>Listing status *</span><select name="property_status" required>@foreach (['For Sale', 'For Rent', 'Sold', 'Reserved', 'Unavailable'] as $status)<option value="{{ $status }}" @selected(old('property_status', 'For Sale') === $status)>{{ $status }}</option>@endforeach</select></label>
                     <label class="property-create-field property-create-field-wide"><span>Description *</span><textarea name="description" rows="4" maxlength="5000" required>{{ old('description') }}</textarea></label>
+                </div>
+            </section>
+
+            <section class="property-create-section" aria-labelledby="createDetailsHeading">
+                <div class="property-create-section-title"><span>04</span><div><h2 id="createDetailsHeading">Property details</h2><p>Measurements and practical details for prospective clients.</p></div></div>
+                <p class="property-detail-hint" data-detail-hint aria-live="polite"></p>
+                <div class="property-create-fields property-create-fields-four">
+                    <label class="property-create-field"><span>Lot area (sqm)<b class="detail-required-mark" hidden> *</b></span><input type="number" min="0" step="0.01" name="lot_area" value="{{ old('lot_area') }}"></label>
+                    <label class="property-create-field"><span>Floor area (sqm)<b class="detail-required-mark" hidden> *</b></span><input type="number" min="0" step="0.01" name="floor_area" value="{{ old('floor_area') }}"></label>
+                    <label class="property-create-field"><span>Bedrooms<b class="detail-required-mark" hidden> *</b></span><input type="number" min="0" name="bedrooms" value="{{ old('bedrooms') }}"></label>
+                    <label class="property-create-field"><span>Bathrooms<b class="detail-required-mark" hidden> *</b></span><input type="number" min="0" name="bathrooms" value="{{ old('bathrooms') }}"></label>
+                    <label class="property-create-field"><span>Parking spaces</span><input type="number" min="0" name="parking_spaces" value="{{ old('parking_spaces', 0) }}"></label>
+                    <label class="property-create-field"><span>Number of floors</span><input type="number" min="1" name="number_of_floors" value="{{ old('number_of_floors', 1) }}"></label>
+                    <label class="property-create-field"><span>Property condition</span><input name="property_condition" value="{{ old('property_condition') }}" maxlength="255" placeholder="Optional"></label>
+                    <label class="property-create-field"><span>Year built</span><input type="number" min="1800" max="{{ now()->year + 1 }}" name="year_built" value="{{ old('year_built') }}"></label>
                 </div>
             </section>
 
@@ -62,20 +91,6 @@
                     <label class="property-create-field"><span>City *</span><input name="city" value="{{ old('city') }}" maxlength="255" required></label>
                     <label class="property-create-field"><span>Province *</span><input name="province" value="{{ old('province') }}" maxlength="255" required></label>
                     <label class="property-create-field"><span>Lot number</span><input name="lot_number" value="{{ old('lot_number') }}" maxlength="255" placeholder="Optional"></label>
-                </div>
-            </section>
-
-            <section class="property-create-section" aria-labelledby="createDetailsHeading">
-                <div class="property-create-section-title"><span>04</span><div><h2 id="createDetailsHeading">Property details</h2><p>Measurements and practical details for prospective clients.</p></div></div>
-                <div class="property-create-fields property-create-fields-four">
-                    <label class="property-create-field"><span>Lot area (sqm) *</span><input type="number" min="0" step="0.01" name="lot_area" value="{{ old('lot_area') }}" required></label>
-                    <label class="property-create-field"><span>Floor area (sqm) *</span><input type="number" min="0" step="0.01" name="floor_area" value="{{ old('floor_area') }}" required></label>
-                    <label class="property-create-field"><span>Bedrooms *</span><input type="number" min="0" name="bedrooms" value="{{ old('bedrooms') }}" required></label>
-                    <label class="property-create-field"><span>Bathrooms *</span><input type="number" min="0" name="bathrooms" value="{{ old('bathrooms') }}" required></label>
-                    <label class="property-create-field"><span>Parking spaces</span><input type="number" min="0" name="parking_spaces" value="{{ old('parking_spaces', 0) }}"></label>
-                    <label class="property-create-field"><span>Number of floors</span><input type="number" min="1" name="number_of_floors" value="{{ old('number_of_floors', 1) }}"></label>
-                    <label class="property-create-field"><span>Property condition</span><input name="property_condition" value="{{ old('property_condition') }}" maxlength="255" placeholder="Optional"></label>
-                    <label class="property-create-field"><span>Year built</span><input type="number" min="1800" max="{{ now()->year + 1 }}" name="year_built" value="{{ old('year_built') }}"></label>
                 </div>
             </section>
 
@@ -139,6 +154,7 @@
 @endpush
 
 @push('scripts')
+<script src="{{ asset('js/property-type-fields.js') }}?v={{ filemtime(public_path('js/property-type-fields.js')) }}" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-add-choice]').forEach(function (button) {

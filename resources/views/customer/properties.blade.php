@@ -80,7 +80,7 @@
 
         <!-- PROPERTIES GRID -->
         <div class="properties-grid">
-            @forelse ($properties->where('approval_status', 'Approved') as $item)
+            @forelse ($properties as $item)
                 @php
                     $firstImage = $item->images->first();
                     $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
@@ -136,6 +136,7 @@
                 </div>
             @endforelse
         </div>
+        {{ $properties->links('pagination.ljs') }}
 
     </div>
 </div>

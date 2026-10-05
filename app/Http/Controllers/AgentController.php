@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\Property;
 use App\Models\Review;
+use App\Models\Team;
+use App\Models\TeamMember;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -61,27 +63,30 @@ class AgentController extends Controller
             ->get();
 
         $user = Auth::user();
-        $canReview = $user instanceof User
-            && $user->normalizedRole() === 'client'
-            && Appointment::query()
-                ->where('appointment_status', 'Completed')
-                ->where('contact_email', $user->email)
-                ->whereHas('assignment', fn ($query) => $query->where('user_id', $professional->user_id))
-                ->exists();
+        $canReview = $user instanceof User && $this->completedAppointmentFor($user, $professional) !== null;
+        $myReview = $canReview
+            ? Review::query()->where('reviewer_id', $user->user_id)->where('reviewed_user_id', $professional->user_id)->first()
+            : null;
 
-        return view('customer.agent-profile', compact('professional', 'listings', 'canReview'));
+        $supervisors = $professional->role_name === 'Lead Broker' ? collect() : User::query()
+            ->where('account_status', 'Active')
+            ->whereIn('role_name', ['Broker', 'Lead Broker'])
+            ->whereKeyNot($professional->user_id)
+            ->whereIn('user_id', Team::query()
+                ->whereIn('team_id', TeamMember::query()->where('user_id', $professional->user_id)->where('status', 'Approved')->select('team_id'))
+                ->select('user_id'))
+            ->orderBy('name')
+            ->get(['user_id', 'name', 'role_name']);
+
+        return view('customer.agent-profile', compact('professional', 'listings', 'canReview', 'myReview', 'supervisors'));
     }
 
     public function storeReview(Request $request, User $professional)
     {
         $user = Auth::user();
-        abort_unless($user instanceof User && $user->normalizedRole() === 'client', 403);
-
-        $appointment = Appointment::query()
-            ->where('appointment_status', 'Completed')
-            ->where('contact_email', $user->email)
-            ->whereHas('assignment', fn ($query) => $query->where('user_id', $professional->user_id))
-            ->firstOrFail();
+        abort_unless($user instanceof User, 403);
+        $appointment = $this->completedAppointmentFor($user, $professional);
+        abort_unless($appointment, 403);
 
         $validated = $request->validate([
             'rating' => ['required', 'integer', 'between:1,5'],
@@ -99,5 +104,22 @@ class AgentController extends Controller
         );
 
         return redirect()->route('agents.show', $professional)->with('success', 'Your review has been saved.');
+    }
+
+    /** A client may review only a professional they completed an appointment with. */
+    private function completedAppointmentFor(User $client, User $professional): ?Appointment
+    {
+        if ($client->normalizedRole() !== 'client') {
+            return null;
+        }
+
+        return Appointment::query()
+            ->with('assignment')
+            ->where('appointment_status', 'Completed')
+            ->where(fn ($query) => $query->where('client_id', $client->user_id)
+                ->orWhere(fn ($legacy) => $legacy->whereNull('client_id')->where('contact_email', $client->email)))
+            ->whereHas('assignment', fn ($query) => $query->where('user_id', $professional->user_id))
+            ->latest('appointment_id')
+            ->first();
     }
 }

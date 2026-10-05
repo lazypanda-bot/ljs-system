@@ -19,6 +19,36 @@ class AppointmentSchedulingService
         string $clientTimezone,
         ?int $exceptAppointmentId = null
     ): array {
+        return collect($this->daySlots($assignment, $date, $clientTimezone, $exceptAppointmentId))
+            ->where('available', true)
+            ->map(fn (array $slot) => collect($slot)->except('available')->all())
+            ->values()
+            ->all();
+    }
+
+    /** Dates (client timezone) in the next $days days that have no bookable slot. */
+    public function unavailableDates(PropertyAssign $assignment, string $clientTimezone, ?int $exceptAppointmentId = null, int $days = 45): array
+    {
+        $today = CarbonImmutable::now($clientTimezone)->startOfDay();
+        $closed = [];
+
+        for ($offset = 0; $offset < $days; $offset++) {
+            $date = $today->addDays($offset)->format('Y-m-d');
+            if (collect($this->daySlots($assignment, $date, $clientTimezone, $exceptAppointmentId))->where('available', true)->isEmpty()) {
+                $closed[] = $date;
+            }
+        }
+
+        return $closed;
+    }
+
+    /** Every slot of the client's day, flagged as available or not. */
+    public function daySlots(
+        PropertyAssign $assignment,
+        string $date,
+        string $clientTimezone,
+        ?int $exceptAppointmentId = null
+    ): array {
         $clientZone = new DateTimeZone($clientTimezone);
         $professionalZone = new DateTimeZone($assignment->user?->timezone ?: config('appointments.default_timezone'));
         $clientDayStart = CarbonImmutable::createFromFormat('!Y-m-d', $date, $clientZone);
@@ -32,18 +62,19 @@ class AppointmentSchedulingService
                 $professionalLocal = CarbonImmutable::createFromFormat('!Y-m-d H:i', $day->format('Y-m-d') . ' ' . $time, $professionalZone);
                 $slotUtc = $professionalLocal->utc();
 
-                if ($slotUtc->lessThanOrEqualTo(CarbonImmutable::now('UTC'))
-                    || $slotUtc->lessThan($clientDayStart->utc())
-                    || ! $slotUtc->lessThan($clientDayEnd->utc())
-                    || $this->isBlocked($assignment, $slotUtc)
-                    || ! $this->hasCapacity($assignment, $slotUtc, $exceptAppointmentId)) {
+                if ($slotUtc->lessThan($clientDayStart->utc()) || ! $slotUtc->lessThan($clientDayEnd->utc())) {
                     continue;
                 }
+
+                $available = $slotUtc->greaterThan(CarbonImmutable::now('UTC'))
+                    && ! $this->isBlocked($assignment, $slotUtc)
+                    && $this->hasCapacity($assignment, $slotUtc, $exceptAppointmentId);
 
                 $slots[] = [
                     'value' => $slotUtc->format('Y-m-d\TH:i:s\Z'),
                     'label' => $slotUtc->setTimezone($clientZone)->format('g:i A'),
                     'local_time' => $slotUtc->setTimezone($clientZone)->format('H:i'),
+                    'available' => $available,
                 ];
             }
         }
@@ -90,8 +121,11 @@ class AppointmentSchedulingService
 
     private function isBlocked(PropertyAssign $assignment, CarbonImmutable $slotUtc): bool
     {
+        // Each professional (admins included) only blocks their own calendar.
+        $blockerIds = [$assignment->user_id];
+
         $blocks = BlockedDate::query()
-            ->where('user_id', $assignment->user_id)
+            ->whereIn('user_id', $blockerIds)
             ->whereBetween('date', [
                 $slotUtc->subDay()->toDateString(),
                 $slotUtc->addDay()->toDateString(),
@@ -109,7 +143,8 @@ class AppointmentSchedulingService
                 ? CarbonImmutable::parse($date . ' ' . $block->end_time, $timezone)->utc()
                 : $start->addDay();
 
-            if ($slotUtc->greaterThanOrEqualTo($start) && $slotUtc->lessThan($end)) {
+            $slotEnd = $slotUtc->addMinutes(max(1, (int) config('appointments.slot_duration_minutes', 60)));
+            if ($slotUtc->lessThan($end) && $slotEnd->greaterThan($start)) {
                 return true;
             }
         }

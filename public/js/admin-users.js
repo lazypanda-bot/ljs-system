@@ -22,7 +22,18 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add active class to clicked button and corresponding content
             this.classList.add('active');
             document.getElementById(tabName).classList.add('active');
-            if (usersSearchWrapper) usersSearchWrapper.hidden = tabName !== 'all-users';
+            if (usersSearchWrapper) {
+                const search = document.getElementById('searchUsers');
+                if (search) {
+                    search.placeholder = tabName === 'teams' ? 'Search teams...' : 'Search by name...';
+                    search.value = '';
+                }
+                document.querySelectorAll('.au-tab-content tbody tr').forEach((row) => { row.style.display = ''; });
+            }
+            const addUserButton = document.getElementById('openAddUserModal');
+            const addTeamButton = document.getElementById('openAddTeamModal');
+            if (addUserButton) addUserButton.hidden = tabName !== 'all-users';
+            if (addTeamButton) addTeamButton.hidden = tabName !== 'teams';
 
             closeModal(document.getElementById('addUserModalOverlay'));
             closeModal(document.getElementById('addTeamModalOverlay'));
@@ -97,24 +108,73 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.key !== 'Escape') return;
         closeModal(addUserModalOverlay);
         closeModal(addTeamModalOverlay);
+        closeCredentialViewer();
+    });
+
+    const membersOverlay = document.getElementById('teamMembersOverlay');
+    const closeMembers = () => membersOverlay?.classList.remove('open');
+    document.querySelectorAll('[data-team-members]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const members = JSON.parse(button.dataset.teamMembers || '[]');
+            document.getElementById('teamMembersTitle').textContent = `${button.dataset.teamName} members`;
+            document.getElementById('teamMembersLeader').textContent = button.dataset.teamLeader ? `Leader: ${button.dataset.teamLeader}` : '';
+            const list = document.getElementById('teamMembersList');
+            list.replaceChildren();
+            if (!members.length) {
+                const empty = document.createElement('li');
+                empty.textContent = 'No members in this team yet.';
+                list.appendChild(empty);
+            }
+            members.forEach((member) => {
+                const item = document.createElement('li');
+                const name = document.createElement('strong');
+                name.textContent = member.name;
+                const role = document.createElement('small');
+                role.textContent = member.role || '';
+                item.append(name, role);
+                list.appendChild(item);
+            });
+            membersOverlay?.classList.add('open');
+        });
+    });
+    document.getElementById('closeTeamMembers')?.addEventListener('click', closeMembers);
+    membersOverlay?.addEventListener('click', (event) => { if (event.target === membersOverlay) closeMembers(); });
+
+    const credentialOverlay = document.getElementById('credentialViewerOverlay');
+    const credentialImage = document.getElementById('credentialViewerImage');
+    const credentialPdf = document.getElementById('credentialViewerPdf');
+
+    function closeCredentialViewer() {
+        if (!credentialOverlay) return;
+        closeModal(credentialOverlay);
+        credentialImage.removeAttribute('src');
+        credentialPdf.removeAttribute('src');
+    }
+
+    document.querySelectorAll('[data-view-credential]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const isPdf = button.dataset.credentialType === 'pdf';
+            document.getElementById('credentialViewerTitle').textContent = `${button.dataset.credentialOwner}'s credential`;
+            credentialImage.hidden = isPdf;
+            credentialPdf.hidden = !isPdf;
+            (isPdf ? credentialPdf : credentialImage).src = button.dataset.viewCredential;
+            openModal(credentialOverlay);
+        });
+    });
+    document.getElementById('closeCredentialViewer')?.addEventListener('click', closeCredentialViewer);
+    credentialOverlay?.addEventListener('click', (event) => {
+        if (event.target === credentialOverlay) closeCredentialViewer();
     });
 
     // Search Users
     const searchUsers = document.getElementById('searchUsers');
     if (searchUsers) {
-        searchUsers.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const tableRows = document.querySelectorAll('#all-users tbody tr');
+        searchUsers.addEventListener('input', function() {
+            const searchTerm = this.value.trim().toLowerCase();
+            const tableRows = document.querySelectorAll('.au-tab-content.active tbody tr');
 
             tableRows.forEach(row => {
-                const userName = row.querySelector('td:first-child')?.textContent.toLowerCase() || '';
-                const userEmail = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
-                
-                if (userName.includes(searchTerm) || userEmail.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+                row.style.display = (row.textContent || '').toLowerCase().includes(searchTerm) ? '' : 'none';
             });
         });
     }

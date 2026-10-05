@@ -19,8 +19,12 @@
                 <div class="professional-score"><i data-lucide="star" aria-hidden="true"></i> {{ $rating }} <small>({{ $professional->received_reviews_count }} reviews)</small></div>
                 <dl class="professional-details">
                     <div><dt>Experience</dt><dd>{{ $professional->professionalProfile?->years_experience ?? 0 }} years</dd></div>
-                    <div><dt>License</dt><dd>{{ $professional->professionalProfile?->license_number ?? 'Not listed' }}</dd></div>
+                    <div><dt>PRC License No.</dt><dd>{{ $professional->professionalProfile?->license_number ?? 'Not listed' }}</dd></div>
                     <div><dt>Contact</dt><dd>{{ $professional->contact_number ?? 'Not listed' }}</dd></div>
+                    <div><dt>Email</dt><dd>{{ $professional->email }}</dd></div>
+                    @if ($supervisors->isNotEmpty())
+                        <div><dt>Supervising Broker</dt><dd>@foreach ($supervisors as $supervisor)<a href="{{ route('agents.show', $supervisor) }}">{{ $supervisor->name }}</a>@if (! $loop->last), @endif @endforeach</dd></div>
+                    @endif
                 </dl>
                 @if ($professional->professionalProfile?->professional_bio)
                     <p class="professional-bio">{{ $professional->professionalProfile->professional_bio }}</p>
@@ -29,6 +33,8 @@
                     @if (auth()->user()?->normalizedRole() === 'client')
                         <a class="agent-view-btn" href="{{ route('messages.direct', $professional) }}">Message {{ $professional->role_name }}</a>
                     @endif
+                @else
+                    <button type="button" class="agent-view-btn" data-open-login-modal>Sign in to message</button>
                 @endauth
             </aside>
 
@@ -38,9 +44,27 @@
                     <div class="profile-listings-grid">
                         @forelse ($listings as $listing)
                             @php $image = $listing->images->first(); @endphp
-                            <article class="profile-listing-card">
-                                <img src="{{ $image ? asset('storage/' . $image->image_path) : asset('images/ljs-logo.jpg') }}" alt="{{ $listing->property_name }}">
-                                <div><span>{{ $listing->property_status }}</span><h3>{{ $listing->property_name }}</h3><p>PHP {{ number_format($listing->price, 0) }}</p><a href="{{ route('properties.show', $listing) }}">View listing</a></div>
+                            <article class="rush-card">
+                                <div class="rush-card-img-container">
+                                    <img src="{{ $image ? asset('storage/' . $image->image_path) : asset('images/ljs-logo.jpg') }}" alt="{{ $listing->property_name }}">
+                                    <div class="rush-badges">
+                                        @if ($listing->featured)<span class="badge-featured"><i data-lucide="star" aria-hidden="true"></i> Featured</span>@endif
+                                        <span class="badge-sale">{{ strtoupper($listing->property_status) }}</span>
+                                    </div>
+                                    <span class="rush-img-count">1/{{ max(1, $listing->images->count()) }}</span>
+                                </div>
+                                <div class="rush-card-body">
+                                    <div class="rush-price">₱ {{ number_format($listing->price, 0, '.', ',') }}</div>
+                                    <h3 class="rush-title">{{ $listing->property_name }}</h3>
+                                    <p class="rush-location">{{ collect([$listing->city, $listing->province])->filter()->implode(', ') ?: 'Cebu, Philippines' }}</p>
+                                    <hr class="rush-divider">
+                                    <div class="rush-meta">
+                                        <span>{{ $listing->details?->bedroom ?? 0 }} beds</span>
+                                        <span>{{ $listing->details?->bathroom ?? 0 }} baths</span>
+                                        <span>{{ $listing->details?->floor_area ?? 0 }} sqm</span>
+                                    </div>
+                                    <div class="rush-action"><a href="{{ route('properties.show', $listing) }}" class="rush-btn">View Details</a></div>
+                                </div>
                             </article>
                         @empty
                             <p class="profile-empty-state">No current listings are available.</p>
@@ -48,14 +72,14 @@
                     </div>
                 </section>
 
-                <section class="profile-content-section">
+                <section class="profile-content-section" id="reviews">
                     <div class="profile-section-heading"><h2>Reviews</h2><span>{{ $professional->received_reviews_count }} total</span></div>
                     @if (session('success'))<p class="profile-success">{{ session('success') }}</p>@endif
                     @if ($canReview)
                         <form class="client-review-form" method="POST" action="{{ route('agents.reviews.store', $professional) }}">
                             @csrf
-                            <label for="rating">Your rating</label><select id="rating" name="rating" required><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Fair</option><option value="2">2 - Poor</option><option value="1">1 - Very poor</option></select>
-                            <label for="review">Your review</label><textarea id="review" name="review" rows="4" maxlength="2000" required placeholder="Share your experience with this professional."></textarea>
+                            <label for="rating">Your rating</label><select id="rating" name="rating" required>@foreach ([5 => 'Excellent', 4 => 'Good', 3 => 'Fair', 2 => 'Poor', 1 => 'Very poor'] as $value => $label)<option value="{{ $value }}" @selected((int) old('rating', $myReview?->rating ?? 5) === $value)>{{ $value }} - {{ $label }}</option>@endforeach</select>
+                            <label for="review">Your review</label><textarea id="review" name="review" rows="4" maxlength="2000" required placeholder="Share your experience with this professional.">{{ old('review', $myReview?->review) }}</textarea>
                             <button type="submit">Save review</button>
                         </form>
                     @endif

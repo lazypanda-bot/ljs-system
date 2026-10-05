@@ -39,3 +39,8 @@
 .appointment-detail-empty h2{margin:0 0 6px;color:var(--color-text);font-size:18px}
 .appointment-detail-empty p{margin:0;font-size:13px}
 @media(max-width:760px){.appointments-split-page .appointments-page-header{align-items:flex-start;flex-direction:column}.appointments-workspace{grid-template-columns:minmax(0,1fr);min-height:0}.appointments-master-list{max-height:300px;border-right:0;border-bottom:1px solid var(--color-border)}.appointment-detail-panel{padding:20px 16px}.appointment-detail-grid{grid-template-columns:minmax(0,1fr);gap:12px}.appointment-detail-actions>form:first-child{align-items:flex-start;flex-direction:column}.appointment-detail-empty{min-height:220px}}
+
+.landing-page > main:has(.appointments-client-page) { padding-top: 80px; padding-bottom: 24px; }
+.landing-page .appointments-client-page { width: min(1300px, calc(100% - 64px)); max-width: 1300px; margin: 28px auto 48px; padding: 26px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; box-shadow: 0 4px 16px rgba(15, 23, 42, .04); }
+.appointments-client-page .appointments-workspace { overflow: visible; }
+@media (max-width: 700px) { .landing-page .appointments-client-page { width: calc(100% - 24px); padding: 16px; } }

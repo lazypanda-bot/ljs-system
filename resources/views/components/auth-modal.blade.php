@@ -25,7 +25,7 @@
                 <label for="modalLoginPassword">Password</label>
                 <div class="password-field"><input id="modalLoginPassword" name="password" type="password" placeholder="Enter your password" required autocomplete="current-password"><button type="button" class="password-toggle" data-password-target="modalLoginPassword" aria-label="Show password">Show</button></div>
             </div>
-            <div class="auth-form-options"><label class="remember-me"><input type="checkbox" name="remember" value="1"> Remember me</label><a href="mailto:ljsrealty@gmail.com?subject=Password%20reset%20request" class="forgot-password-link">Forgot password?</a></div>
+            <div class="auth-form-options"><label class="remember-me"><input type="checkbox" name="remember" value="1"> Remember me</label><button type="button" class="forgot-password-link" id="authForgotLink">Forgot password?</button></div>
             <div class="auth-login-status" id="authLoginStatus" role="alert" aria-live="polite"></div>
             <button type="submit" class="login-submit-btn">Login</button>
         </form>
@@ -34,7 +34,7 @@
             @csrf
             <div class="form-group">
                 <label for="modalRegisterName">Full Name</label>
-                <input id="modalRegisterName" name="name" type="text" value="{{ old('name') }}" placeholder="Enter your full name" required autocomplete="name">
+                <input id="modalRegisterName" name="name" type="text" value="{{ old('name') }}" placeholder="Enter your full name" required minlength="2" maxlength="100" pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'\-]*" title="Letters, spaces, apostrophes, hyphens and periods only" autocomplete="name">
                 @error('name')<span class="auth-input-error">{{ $message }}</span>@enderror
             </div>
             <div class="form-group">
@@ -64,6 +64,36 @@
             <button type="submit" class="login-submit-btn">Verify and continue</button>
             <button type="button" class="auth-otp-resend" id="authOtpResend">Resend code</button>
             <button type="button" class="auth-otp-back" id="authOtpBack">Back to login</button>
+        </form>
+
+        <form method="POST" action="{{ route('password.forgot') }}" class="auth-panel" id="modal-forgot-panel" hidden>
+            @csrf
+            <div class="form-group">
+                <label for="modalForgotEmail">Email Address</label>
+                <input id="modalForgotEmail" name="email" type="email" placeholder="Enter your account email" required autocomplete="email">
+            </div>
+            <div class="auth-otp-status" id="authForgotStatus" role="status" aria-live="polite"></div>
+            <button type="submit" class="login-submit-btn">Send reset code</button>
+            <button type="button" class="auth-otp-back" data-auth-back-to-login>Back to login</button>
+        </form>
+
+        <form method="POST" action="{{ route('password.reset') }}" class="auth-panel" id="modal-reset-panel" hidden>
+            @csrf
+            <div class="form-group">
+                <label for="modalResetCode">Verification code</label>
+                <input id="modalResetCode" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="Enter the 6-digit code" required autocomplete="one-time-code">
+            </div>
+            <div class="form-group">
+                <label for="modalResetPassword">New Password</label>
+                <div class="password-field"><input id="modalResetPassword" name="password" type="password" placeholder="At least 8 characters" required minlength="8" autocomplete="new-password"><button type="button" class="password-toggle" data-password-target="modalResetPassword" aria-label="Show password">Show</button></div>
+            </div>
+            <div class="form-group">
+                <label for="modalResetPasswordConfirmation">Confirm New Password</label>
+                <div class="password-field"><input id="modalResetPasswordConfirmation" name="password_confirmation" type="password" placeholder="Repeat your new password" required minlength="8" autocomplete="new-password"><button type="button" class="password-toggle" data-password-target="modalResetPasswordConfirmation" aria-label="Show password">Show</button></div>
+            </div>
+            <div class="auth-otp-status" id="authResetStatus" role="status" aria-live="polite"></div>
+            <button type="submit" class="login-submit-btn">Change password</button>
+            <button type="button" class="auth-otp-back" data-auth-back-to-login>Back to login</button>
         </form>
     </section>
 </div>

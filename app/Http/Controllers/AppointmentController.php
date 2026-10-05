@@ -9,6 +9,7 @@ use App\Models\Property;
 use App\Models\PropertyAssign;
 use App\Models\BlockedDate;
 use App\Services\AppointmentSchedulingService;
+use App\Services\NotificationService;
 use App\Models\ReferralCode;
 use App\Models\AppNotification;
 use App\Mail\ActivityMail;
@@ -29,6 +30,12 @@ class AppointmentController extends Controller
 			abort(403);
 		}
 		$actingRole = $user->actingRole();
+		if ($actingRole === 'admin') {
+			return $this->adminIndex($request, $user);
+		}
+		if ($user->normalizedRole() !== 'client') {
+			return $this->staffIndex($request, $user);
+		}
 		$filter = $request->string('status')->toString();
 
 		$appointmentsQuery = Appointment::with(['assignment.property', 'assignment.user', 'blockedDate', 'client', 'proposals.proposedBy']);
@@ -75,49 +82,103 @@ class AppointmentController extends Controller
 		return view('pages.appointments', compact('appointments', 'selectedAppointment', 'pendingProposal', 'proposalNotification', 'filter', 'viewerTimezone', 'isAdmin'));
 	}
 
+	public function activeCount(Request $request)
+	{
+		$user = $request->user();
+		abort_unless($user instanceof User, 403);
+
+		return response()->json(['count' => Appointment::activeForClient($user)->count()]);
+	}
+
+	private function staffIndex(Request $request, User $user)
+	{
+		$filter = $request->string('status')->toString();
+		$search = trim($request->string('q')->toString());
+
+		$appointments = Appointment::with(['assignment.property', 'assignment.user', 'client', 'proposals'])
+			->whereHas('assignment', fn ($query) => $query->where('user_id', $user->user_id))
+			->when($filter === 'Reschedule', fn ($query) => $query->whereHas('proposals', fn ($proposal) => $proposal->where('status', 'Pending')))
+			->when(in_array($filter, ['Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'], true), fn ($query) => $query->where('appointment_status', $filter))
+			->when($search !== '', function ($query) use ($search) {
+				$term = '%' . addcslashes($search, '%_\\') . '%';
+				$query->where(fn ($q) => $q->where('contact_name', 'like', $term)
+					->orWhere('contact_email', 'like', $term)
+					->orWhereHas('assignment.property', fn ($property) => $property->where('property_name', 'like', $term)));
+			})
+			->orderByRaw('CASE WHEN starts_at_utc IS NULL THEN 1 ELSE 0 END')
+			->orderByDesc('starts_at_utc')
+			->orderByDesc('appointment_id')
+			->paginate(10)
+			->withQueryString();
+
+		$tab = 'projects';
+		$counts = ['monitoring' => 0, 'projects' => 0];
+		$staffMode = true;
+		$viewerTimezone = $user->timezone ?: config('appointments.default_timezone');
+
+		return view('pages.appointments-admin', compact('appointments', 'tab', 'filter', 'search', 'counts', 'viewerTimezone', 'staffMode'));
+	}
+
+	private function adminIndex(Request $request, User $user)
+	{
+		$tab = $request->query('tab') === 'projects' ? 'projects' : 'monitoring';
+		$filter = $request->string('status')->toString();
+		$search = trim($request->string('q')->toString());
+		$projectScope = fn ($query) => $query->whereHas('assignment', fn ($assignment) => $assignment
+			->where('user_id', $user->user_id)
+			->whereHas('property', fn ($property) => $property->where('listing_mode', 'admin')));
+		$monitoringScope = fn ($query) => $query->whereHas('assignment', fn ($assignment) => $assignment
+			->whereHas('user', fn ($professional) => $professional->whereIn('role_name', ['Agent', 'Broker', 'Lead Broker']))
+			->whereHas('property', fn ($property) => $property->where(fn ($mode) => $mode->whereNull('listing_mode')->orWhere('listing_mode', '!=', 'admin'))));
+
+		$appointments = Appointment::with(['assignment.property', 'assignment.user', 'client', 'proposals'])
+			->where($tab === 'projects' ? $projectScope : $monitoringScope)
+			->when($filter === 'Reschedule', fn ($query) => $query->whereHas('proposals', fn ($proposal) => $proposal->where('status', 'Pending')))
+			->when($filter !== '' && in_array($filter, ['Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'], true), fn ($query) => $query->where('appointment_status', $filter))
+			->when($search !== '', function ($query) use ($search) {
+				$term = '%' . addcslashes($search, '%_\\') . '%';
+				$query->where(function ($query) use ($term) {
+					$query->where('contact_name', 'like', $term)
+						->orWhere('contact_email', 'like', $term)
+						->orWhereHas('assignment.property', fn ($property) => $property->where('property_name', 'like', $term))
+						->orWhereHas('assignment.user', fn ($professional) => $professional->where('name', 'like', $term));
+				});
+			})
+			->orderByRaw('CASE WHEN starts_at_utc IS NULL THEN 1 ELSE 0 END')
+			->orderByDesc('starts_at_utc')
+			->orderByDesc('appointment_id')
+			->paginate(10)
+			->withQueryString();
+
+		$counts = [
+			'monitoring' => Appointment::query()->where($monitoringScope)->count(),
+			'projects' => Appointment::query()->where($projectScope)->count(),
+		];
+		$viewerTimezone = $user->timezone ?: config('appointments.default_timezone');
+
+		return view('pages.appointments-admin', compact('appointments', 'tab', 'filter', 'search', 'counts', 'viewerTimezone'));
+	}
+
 	public function create(Request $request, Property $property)
 	{
 		abort_unless($property->approval_status === 'Approved', 404);
-		$referralCode = $request->filled('ref')
-			? ReferralCode::query()->with('user')->where('code', $request->query('ref'))->where('property_id', $property->property_id)->firstOrFail()
-			: null;
-		$isAdminListing = $property->listing_mode === 'admin';
-		$selectedAssignmentId = null;
-
-		if ($isAdminListing) {
-			$assignment = $this->ownerAssignment($property);
-			$assignments = collect([$assignment->load('user')]);
-			$selectedAssignmentId = $assignment->assign_id;
-		} elseif ($referralCode) {
-			abort_unless($referralCode->user?->account_status === 'Active', 404);
-
-			$assignment = $property->assignments()->where('user_id', $referralCode->user_id)->first();
-
-			if (! $assignment) {
-				$assignment = $property->assignments()->create([
-					'user_id' => $referralCode->user_id,
-					'assigned_date' => now()->toDateString(),
-					'status' => 'Approved',
-				]);
-			} elseif ($assignment->status !== 'Approved' && (int) $property->user_id === (int) $referralCode->user_id) {
-				$assignment->update(['status' => 'Approved']);
-			}
-
-			abort_unless($assignment->status === 'Approved', 404);
-			$assignments = collect([$assignment->load('user')]);
-			$selectedAssignmentId = $assignment->assign_id;
-		} else {
-			if ($property->assignments()->where('status', 'Approved')->doesntExist() && in_array($property->user?->role_name, ['Broker', 'Agent', 'Lead Broker'], true)) {
-				$property->assignments()->create(['user_id' => $property->user_id, 'assigned_date' => now()->toDateString(), 'status' => 'Approved']);
-			}
-			$assignments = $property->assignments()->where('status', 'Approved')->with('user')->get();
-
-			if ($assignments->isEmpty() && in_array($property->user?->role_name, ['Broker', 'Agent', 'Lead Broker'], true)) {
-				$assignments = collect([(object) ['assign_id' => null, 'user' => $property->user]]);
-			}
-			$selectedAssignmentId = $request->integer('assign_id')
-				?: $assignments->first()?->assign_id;
+		if (! $property->acceptsAppointments()) {
+			return redirect()->route('properties.show', $property)->with('error', "This property is {$property->property_status}; appointments are closed.");
 		}
+		if ($request->user() instanceof User && Appointment::clientHasActiveForProperty($request->user(), $property->property_id)) {
+			return redirect()->route('properties.show', $property)->with('popup', [
+				'title' => 'Already booked',
+				'message' => 'You already have an active appointment for this property.',
+			]);
+		}
+		$referralCode = null;
+		$isAdminListing = $property->listing_mode === 'admin';
+
+		// A listing's appointments always go to the person who listed it.
+		$assignment = $this->ownerAssignment($property);
+		abort_unless($property->user?->account_status === 'Active', 404);
+		$assignments = collect([$assignment->load('user')]);
+		$selectedAssignmentId = $assignment->assign_id;
 
 		$clientTimezone = $request->user()?->timezone ?: '';
 
@@ -126,19 +187,22 @@ class AppointmentController extends Controller
 
 	public function availability(Request $request, Property $property, AppointmentSchedulingService $scheduling)
 	{
-		abort_unless($property->approval_status === 'Approved', 404);
+		abort_unless($property->approval_status === 'Approved' && $property->acceptsAppointments(), 404);
 
 		$validated = $request->validate([
 			'assign_id' => ['required', 'integer'],
 			'date' => ['required', 'date_format:Y-m-d'],
 			'timezone' => ['required', 'timezone'],
 			'ref' => ['nullable', 'string', 'max:255'],
+			'with_dates' => ['nullable', 'boolean'],
 		]);
 
-		$assignment = $this->resolveAvailableAssignment($property, (int) $validated['assign_id'], $validated['ref'] ?? null);
+		$assignment = $this->resolveAvailableAssignment($property, (int) $validated['assign_id']);
 
 		return response()->json([
 			'slots' => $scheduling->availableSlots($assignment, $validated['date'], $validated['timezone']),
+			'all_slots' => $scheduling->daySlots($assignment, $validated['date'], $validated['timezone']),
+			'unavailable_dates' => $request->boolean('with_dates') ? $scheduling->unavailableDates($assignment, $validated['timezone']) : null,
 		]);
 	}
 
@@ -151,6 +215,7 @@ class AppointmentController extends Controller
 		$validated = $request->validate([
 			'date' => ['required', 'date_format:Y-m-d'],
 			'timezone' => ['required', 'timezone'],
+			'with_dates' => ['nullable', 'boolean'],
 		]);
 
 		$assignment = $appointment->assignment;
@@ -158,74 +223,39 @@ class AppointmentController extends Controller
 
 		return response()->json([
 			'slots' => $scheduling->availableSlots($assignment, $validated['date'], $validated['timezone'], $appointment->appointment_id),
+			'all_slots' => $scheduling->daySlots($assignment, $validated['date'], $validated['timezone'], $appointment->appointment_id),
+			'unavailable_dates' => $request->boolean('with_dates') ? $scheduling->unavailableDates($assignment, $validated['timezone'], $appointment->appointment_id) : null,
 		]);
 	}
 
 	public function store(Request $request, Property $property, AppointmentSchedulingService $scheduling)
 	{
 		abort_unless($property->approval_status === 'Approved', 404);
+		if (! $property->acceptsAppointments()) {
+			throw ValidationException::withMessages(['appointment_type' => "This property is {$property->property_status}; appointments are closed."]);
+		}
+		if ($request->user() instanceof User && Appointment::clientHasActiveForProperty($request->user(), $property->property_id)) {
+			throw ValidationException::withMessages(['appointment_type' => 'You already have an active appointment for this property. Wait for it to finish or cancel it before booking again.']);
+		}
 
+		\App\Support\InputRules::normalize($request, ['contact_name'], ['contact_number']);
 		$validated = $request->validate([
 			'assign_id' => ['nullable', 'integer'],
 			'ref' => ['nullable', 'string', 'max:255'],
-			'contact_name' => ['required', 'string', 'max:255'],
-			'contact_number' => ['required', 'string', 'max:20'],
-			'contact_email' => ['required', 'email', 'max:255'],
+			'contact_name' => \App\Support\InputRules::name(),
+			'contact_number' => \App\Support\InputRules::phone(true),
+			'contact_email' => \App\Support\InputRules::email(),
 			'appointment_type' => ['required', 'string', 'max:100'],
 			'preferred_date' => ['required', 'date_format:Y-m-d'],
 			'preferred_time' => ['required', 'date_format:H:i'],
 			'slot_start_utc' => ['nullable', 'date'],
 			'client_timezone' => ['nullable', 'timezone'],
 			'additional_note' => ['nullable', 'string', 'max:1000'],
-		]);
+		], \App\Support\InputRules::messages());
 
-		if ($property->listing_mode === 'admin') {
-			$assignment = $this->ownerAssignment($property);
-		} elseif (! empty($validated['ref'])) {
-			$referralCode = ReferralCode::query()
-				->with('user')
-				->where('code', $validated['ref'])
-				->where('property_id', $property->property_id)
-				->firstOrFail();
-			abort_unless($referralCode->user?->account_status === 'Active', 404);
-
-			$assignmentQuery = $property->assignments()
-				->where('assign_id', $validated['assign_id'] ?? null)
-				->where('status', 'Approved')
-				->whereHas('user', fn ($query) => $query->where('account_status', 'Active'));
-
-			if ($property->listing_mode !== 'admin') {
-				$assignmentQuery->where('user_id', $referralCode->user_id);
-			}
-
-			$assignment = $assignmentQuery->firstOrFail();
-		} else {
-			// 1. If an assign_id was submitted explicitly, use it
-            if (! empty($validated['assign_id'])) {
-                $assignment = $property->assignments()
-                    ->where('assign_id', $validated['assign_id'])
-                    ->where('status', 'Approved')
-                    ->firstOrFail();
-            } else {
-                // 2. Automatically look for an assignment belonging to the property's direct user/owner first
-                $assignment = null;
-                if ($property->user_id) {
-                    $assignment = $property->assignments()
-                        ->where('user_id', $property->user_id)
-                        ->where('status', 'Approved')
-                        ->first();
-                }
-
-                // 3. If the owner has no direct assignment, fallback to the first approved assignment
-                if (!$assignment) {
-                    $assignment = $property->assignments()
-                        ->where('status', 'Approved')
-                        ->first();
-                }
-            }
-		}
-
-		abort_unless($assignment, 422);
+		// A listing's appointments always go to the person who listed it.
+		$assignment = $this->ownerAssignment($property)->load('user');
+		abort_unless($assignment->user?->account_status === 'Active', 404);
 
 		$clientTimezone = $validated['client_timezone']
 			?? ($request->user()?->timezone ?: config('appointments.default_timezone'));
@@ -264,7 +294,10 @@ class AppointmentController extends Controller
 
 		$this->notifyAppointmentRecipient($assignment, $property, $appointment, $validated);
 
-		return redirect()->route('properties.show', $property)->with('success', 'Appointment request submitted.');
+		return redirect()->route('properties.show', $property)->with('success', 'Appointment request submitted.')->with('popup', [
+			'title' => 'Appointment requested',
+			'message' => 'Your appointment request was sent. You will be notified once it is confirmed.',
+		]);
 	}
 
 	public function updateStatus(Request $request, Appointment $appointment)
@@ -272,7 +305,7 @@ class AppointmentController extends Controller
 		$user = Auth::user();
 		if (! ($user instanceof User)) abort(403);
 
-		$isAdmin = $user->actingRole() === 'admin';
+		$isAdmin = false;
 		$isProfessional = (int) $appointment->assignment?->user_id === (int) $user->user_id;
 		$isClient = $this->isClientForAppointment($appointment, $user);
 		abort_unless($isAdmin || $isProfessional || $isClient, 403);
@@ -354,7 +387,20 @@ class AppointmentController extends Controller
 			$user->name . ' proposed ' . $localStart->format('M j, Y g:i A') . '.'
 		);
 
-		return redirect()->back()->with('success', 'Your new appointment time was proposed.');
+		NotificationService::oversight([
+			'type' => 'listing',
+			'title' => 'New appointment time proposal',
+			'body' => $user->name . ' proposed ' . $localStart->format('M j, Y g:i A') . '.',
+			'url' => route('notifications.index'),
+			'appointment_id' => $appointment->appointment_id,
+		], $user, $recipients);
+
+		$notified = $recipients->pluck('name')->filter()->implode(', ');
+
+		return redirect()->back()->with('success', 'Your new appointment time was proposed.')->with('popup', [
+			'title' => 'Proposal sent',
+			'message' => 'Your new appointment time was proposed' . ($notified ? " and {$notified} was notified." : '.') . ' The schedule stays the same until they accept.',
+		]);
 	}
 
 	public function respondToProposal(Request $request, AppointmentTimeProposal $proposal, AppointmentSchedulingService $scheduling)
@@ -430,7 +476,10 @@ class AppointmentController extends Controller
 			->whereNull('read_at')
 			->update(['read_at' => now()]);
 
-		return redirect()->back()->with('success', 'The appointment time proposal was ' . strtolower($decision) . '.');
+		return redirect()->back()->with('success', 'The appointment time proposal was ' . strtolower($decision) . '.')->with('popup', [
+			'title' => 'Proposal ' . strtolower($decision),
+			'message' => 'The appointment time proposal was ' . strtolower($decision) . '. The other participant has been notified.',
+		]);
 	}
 
 	public function blockDate(Request $request)
@@ -451,6 +500,7 @@ class AppointmentController extends Controller
 
         // 1. Create the blocked date/time record
 		$validated['timezone'] = $validated['timezone'] ?: ($user->timezone ?: config('appointments.default_timezone'));
+		$validated['acting_role'] = $user->actingRole();
 		$user->blockedDates()->create($validated);
 
         // 2. Format details for the notification body
@@ -460,24 +510,14 @@ class AppointmentController extends Controller
             
         $reasonText = !empty($validated['reason']) ? ' Reason: ' . $validated['reason'] : '';
 
-        // 3. Find other team members to notify
-        $recipients = User::where('user_id', '!=', $user->user_id)->get()->filter(function ($recipient) {
-            return in_array($recipient->actingRole(), ['admin', 'broker', 'agent', 'lead_broker'], true);
-        });
+        // 3. Admin oversight only; other staff only receive their own appointments and messages.
+        NotificationService::oversight([
+            'type' => 'team',
+            'title' => 'Schedule Blocked',
+            'body' => $user->name . ' blocked off ' . $validated['date'] . $timeInfo . '.' . $reasonText,
+        ], $user);
 
-        // 4. Create notifications using your exact AppNotification fillable schema
-        foreach ($recipients as $recipient) {
-            \App\Models\AppNotification::create([
-                'user_id' => $recipient->user_id,
-                'type'    => 'team',
-                'title'   => 'Schedule Blocked',
-                'body'    => $user->name . ' blocked off ' . $validated['date'] . $timeInfo . '.' . $reasonText,
-                'url'     => null, // Optional: add a link if your calendar view has a specific URL
-                'read_at' => null, // Unread by default
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Date blocked successfully and team notified.');
+        return redirect()->back()->with('success', 'Date blocked successfully and admins notified.');
     }
 
 	private function ownerAssignment(Property $property): PropertyAssign
@@ -500,28 +540,10 @@ class AppointmentController extends Controller
 		return $assignment;
 	}
 
-	private function resolveAvailableAssignment(Property $property, int $assignmentId, ?string $referralCode): PropertyAssign
+	private function resolveAvailableAssignment(Property $property, int $assignmentId): PropertyAssign
 	{
-		if ($property->listing_mode === 'admin') {
-			$assignment = $this->ownerAssignment($property);
-			abort_unless((int) $assignment->assign_id === $assignmentId, 404);
-		} else {
-			$assignmentQuery = $property->assignments()
-				->where('assign_id', $assignmentId)
-				->where('status', 'Approved')
-				->with('user');
-
-			if ($referralCode) {
-				$referral = ReferralCode::query()
-					->where('code', $referralCode)
-					->where('property_id', $property->property_id)
-					->firstOrFail();
-				$assignmentQuery->where('user_id', $referral->user_id);
-			}
-
-			$assignment = $assignmentQuery->firstOrFail();
-		}
-
+		$assignment = $this->ownerAssignment($property)->load('user');
+		abort_unless((int) $assignment->assign_id === $assignmentId, 404);
 		abort_unless($assignment->user?->account_status === 'Active', 404);
 
 		return $assignment;
@@ -536,7 +558,7 @@ class AppointmentController extends Controller
 
 	private function canAccessAppointment(Appointment $appointment, User $user): bool
 	{
-		return $user->actingRole() === 'admin'
+		return ($user->actingRole() === 'admin' && ($appointment->assignment?->property?->isManageableByAdmin($user) ?? true))
 			|| (int) $appointment->assignment?->user_id === (int) $user->user_id
 			|| $this->isClientForAppointment($appointment, $user);
 	}
@@ -619,6 +641,13 @@ class AppointmentController extends Controller
 			'appointment_id' => $appointmentRecord->appointment_id,
 		]);
 
+		NotificationService::oversight([
+			'type' => 'listing',
+			'title' => 'New appointment request',
+			'body' => $appointment['contact_name'] . ' requested a ' . strtolower($appointment['appointment_type']) . ' for ' . $property->property_name . '.',
+			'url' => route('notifications.index'),
+			'appointment_id' => $appointmentRecord->appointment_id,
+		], null, [$recipient]);
 		try {
 			$when = isset($appointment['slot_start_utc'])
 				? CarbonImmutable::parse($appointment['slot_start_utc'], 'UTC')
@@ -645,6 +674,18 @@ class AppointmentController extends Controller
 		$recipients = collect([$this->appointmentClient($appointment), $appointment->assignment?->user])
 			->filter(fn ($recipient) => $recipient instanceof User && (int) $recipient->user_id !== (int) $actor->user_id)
 			->unique('user_id');
+
+		NotificationService::oversight([
+			'type' => 'listing',
+			'title' => 'Appointment ' . strtolower($status),
+			'body' => $body,
+			'url' => route('notifications.index'),
+			'appointment_id' => $appointment->appointment_id,
+		], $actor, $recipients);
+
+		if ($status === 'Completed') {
+			NotificationService::reviewPrompt($this->appointmentClient($appointment), $appointment->assignment?->user, 'your appointment');
+		}
 
 		foreach ($recipients as $recipient) {
 			AppNotification::create([

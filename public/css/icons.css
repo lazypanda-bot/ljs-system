@@ -314,3 +314,68 @@ body.landing-page .lifestyle-page .lifestyle-btn-primary,
 body.landing-page .lifestyle-page .lifestyle-btn-secondary {
     border-radius: 8px !important;
 }
+
+/* Search bars: single outer outline, borderless inner input, icon vertically centred */
+.content-area .search-box { align-items: center; }
+.content-area .search-box .search-icon { display: inline-flex; align-items: center; justify-content: center; align-self: center; line-height: 1; }
+.content-area .search-box input:not([type="checkbox"]):not([type="radio"]),
+.content-area .search-box input:not([type="checkbox"]):not([type="radio"]):focus,
+.content-area .search-box input:not([type="checkbox"]):not([type="radio"]):focus-visible {
+    min-height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    outline: 0;
+}
+.content-area .search-box:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
+
+/* Row action buttons: same circle size, aligned, delete in danger red */
+.content-area .au-action-group,
+.content-area .staff-property-actions { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: nowrap; }
+.content-area .staff-property-actions .inline-action-form { display: inline-flex; margin: 0; }
+.content-area .au-deleteuser-btn,
+.content-area .au-deleteteam-btn,
+.content-area .staff-property-actions .btn-action.delete {
+    display: inline-grid;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-danger);
+    color: #fff;
+    line-height: 1;
+}
+.content-area .au-deleteuser-btn i,
+.content-area .au-deleteteam-btn i,
+.content-area .staff-property-actions .btn-action.delete i { color: #fff; }
+.content-area .au-deleteuser-btn:hover,
+.content-area .au-deleteteam-btn:hover,
+.content-area .staff-property-actions .btn-action.delete:hover { background: #b91c1c; transform: translateY(-1px); }
+/* Back links on staff property pages */
+.content-area .property-create-back,
+.content-area .property-edit-back,
+.content-area .staff-property-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    margin-bottom: 20px;
+    padding: 8px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease;
+}
+.content-area .property-create-back:hover,
+.content-area .property-edit-back:hover,
+.content-area .staff-property-back:hover { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary); }

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\PropertyAssign;
 use App\Models\AppNotification;
+use App\Services\NotificationService;
 use App\Models\User;
 use App\Models\ReferralCode;
 use Illuminate\Http\Request;
@@ -26,17 +27,19 @@ class PropertyController extends Controller
         }
         $validated = $request->validate([
             'property_name' => ['required', 'string', 'max:255'],
-            'property_type' => ['required', 'string'],
+            'property_type' => ['required', 'string', 'max:100'],
             'description' => ['required', 'string'],
             'house_number' => ['nullable', 'string'],
             'street' => ['required', 'string'],
             'city' => ['required', 'string'],
             'province' => ['required', 'string'],
             'price' => ['required', 'numeric'],
-            'lot_area' => ['required', 'numeric'],
-            'floor_area' => ['required', 'numeric'],
-            'bedrooms' => ['required', 'integer'],
-            'bathrooms' => ['required', 'integer'],
+            ...Property::detailRules($request->input('property_type')),
+            'parking_spaces' => ['nullable', 'integer', 'min:0'],
+            'number_of_floors' => ['nullable', 'integer', 'min:1'],
+            'property_condition' => ['nullable', 'string', 'max:255'],
+            'year_built' => ['nullable', 'integer', 'min:1800', 'max:' . (now()->year + 1)],
+            'remarks' => ['nullable', 'string', 'max:3000'],
             'property_status' => ['required', 'string'],
             'lifestyle_tags' => ['nullable', 'array', 'max:8'],
             'lifestyle_tags.*' => ['string', 'max:40', 'regex:/^[a-z0-9_-]+$/i'],
@@ -97,10 +100,7 @@ class PropertyController extends Controller
 
                 $detailsId = DB::table('property_details')->insertGetId([
                     'property_id' => $property->property_id,
-                    'lot_area' => $validated['lot_area'],
-                    'floor_area' => $validated['floor_area'],
-                    'bedroom' => $validated['bedrooms'],
-                    'bathroom' => $validated['bathrooms'],
+                    ...Property::normalizeDetails($validated),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ], 'details_id');
@@ -123,21 +123,15 @@ class PropertyController extends Controller
                     ]);
                 }
 
-                $recipients = User::query()
-                    ->where('account_status', 'Active')
-                    ->when($property->approval_status === 'Pending', fn ($query) => $query->where('role_name', 'Admin'))
-                    ->get();
-
-                foreach ($recipients as $recipient) {
-                    AppNotification::create([
-                        'user_id' => $recipient->user_id,
+                if ($property->approval_status === 'Pending') {
+                    NotificationService::oversight([
                         'type' => 'listing',
-                        'title' => $property->approval_status === 'Pending' ? 'Listing awaiting approval' : 'New property listing',
-                        'body' => $property->property_name . ($property->approval_status === 'Pending' ? ' needs review.' : ' is now available.'),
-                        'url' => in_array($recipient->actingRole(), ['admin', 'broker', 'agent'], true)
-                            ? route('staff.properties.show', $property)
-                            : route('properties.show', $property),
-                    ]);
+                        'title' => 'Listing awaiting approval',
+                        'body' => $property->property_name . ' needs review.',
+                        'url' => route('staff.properties.show', $property),
+                    ], $authenticatedUser);
+                } else {
+                    NotificationService::listingLive($property, $authenticatedUser);
                 }
             });
         } catch (\Throwable $exception) {
@@ -150,11 +144,22 @@ class PropertyController extends Controller
         }
 
         if ($createdPropertyId) {
-            GeocodeProperty::dispatch($createdPropertyId);
+            $this->geocode($createdPropertyId);
         }
 
         $destination = $isAdminLister ? 'property' : 'listings';
         return redirect()->route('app.page', ['page' => $destination])->with('success', 'Property submitted successfully.');
+    }
+
+    /** Pin the listing right away; retry from the queue if the lookup fails. */
+    private function geocode(int $propertyId): void
+    {
+        try {
+            GeocodeProperty::dispatchSync($propertyId);
+        } catch (\Throwable $exception) {
+            report($exception);
+            GeocodeProperty::dispatch($propertyId);
+        }
     }
 
     private function normalizeStatus(string $status): string
@@ -185,7 +190,7 @@ class PropertyController extends Controller
             ->exists();
 
         $isAdmin = $user instanceof User && $user->actingRole() === 'admin';
-        abort_unless($isAdmin || $ownsProperty || $hasApprovedAssignment, 403);
+        abort_unless(($isAdmin && $property->isManageableByAdmin($user)) || $ownsProperty || $hasApprovedAssignment, 403);
         abort_unless($property->approval_status === 'Approved', 403, 'Referral links are available after Admin approval.');
 
         $referralOwner = $property->user;
@@ -261,12 +266,17 @@ class PropertyController extends Controller
             'url' => route('staff.properties.show', $property),
         ]);
 
+        if (! $isRejected) {
+            NotificationService::listingLive($property, $user);
+        }
+
         return redirect()->back()->with('success', 'Listing approval updated.');
     }
 
     public function destroy(Property $property)
     {
         $this->authorizeAdmin();
+        abort_unless($property->isManageableByAdmin(Auth::user()), 403);
         $property->delete();
 
         return redirect()->back()->with('success', 'Property deleted.');
@@ -280,7 +290,7 @@ class PropertyController extends Controller
             && (int) $property->user_id === (int) $user->user_id
             && in_array($user->normalizedRole(), ['agent', 'broker', 'lead_broker'], true)
             && $user->actingRole() !== 'admin';
-        abort_unless($isAdmin || $isProfessionalOwner, 403);
+        abort_unless(($isAdmin && $property->isManageableByAdmin($user)) || $isProfessionalOwner, 403);
 
         $property->load(['details.amenities', 'images']);
 
@@ -295,7 +305,7 @@ class PropertyController extends Controller
             && (int) $property->user_id === (int) $user->user_id
             && in_array($user->normalizedRole(), ['agent', 'broker', 'lead_broker'], true)
             && $user->actingRole() !== 'admin';
-        abort_unless($isAdmin || $isProfessionalOwner, 403);
+        abort_unless(($isAdmin && $property->isManageableByAdmin($user)) || $isProfessionalOwner, 403);
 
         $validated = $request->validate([
             'property_name' => ['required', 'string', 'max:255'],
@@ -308,10 +318,7 @@ class PropertyController extends Controller
             'street' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],
             'province' => ['required', 'string', 'max:255'],
-            'lot_area' => ['nullable', 'numeric', 'min:0'],
-            'floor_area' => ['nullable', 'numeric', 'min:0'],
-            'bedrooms' => ['nullable', 'integer', 'min:0'],
-            'bathrooms' => ['nullable', 'integer', 'min:0'],
+            ...Property::detailRules($request->input('property_type')),
             'parking_spaces' => ['nullable', 'integer', 'min:0'],
             'number_of_floors' => ['nullable', 'integer', 'min:1'],
             'property_condition' => ['nullable', 'string', 'max:255'],
@@ -351,17 +358,7 @@ class PropertyController extends Controller
             'location_tag' => $validated['location_tag'] ?? null,
             'featured' => $request->boolean('featured'),
         ];
-        $detailFields = [
-            'lot_area' => $validated['lot_area'] ?? null,
-            'floor_area' => $validated['floor_area'] ?? null,
-            'bedroom' => $validated['bedrooms'] ?? 0,
-            'bathroom' => $validated['bathrooms'] ?? 0,
-            'parking_spaces' => $validated['parking_spaces'] ?? 0,
-            'number_of_floors' => $validated['number_of_floors'] ?? 1,
-            'property_condition' => $validated['property_condition'] ?? null,
-            'year_built' => $validated['year_built'] ?? null,
-            'remarks' => $validated['remarks'] ?? null,
-        ];
+        $detailFields = Property::normalizeDetails($validated);
         $storedImagePaths = [];
 
         try {
@@ -403,19 +400,19 @@ class PropertyController extends Controller
             Storage::disk('public')->delete($image->image_path);
         }
 
-        GeocodeProperty::dispatch($property->property_id);
+        $this->geocode($property->property_id);
+
+        if ($property->wasChanged('property_status') && $property->property_status === 'Sold') {
+            NotificationService::soldReviewPrompts($property);
+        }
 
         if ($isProfessionalOwner) {
-            $admins = User::query()->where('role_name', 'Admin')->where('account_status', 'Active')->get();
-            foreach ($admins as $admin) {
-                AppNotification::create([
-                    'user_id' => $admin->user_id,
-                    'type' => 'listing',
-                    'title' => 'Listing resubmitted for approval',
-                    'body' => $property->property_name . ' was updated and needs review.',
-                    'url' => route('staff.properties.show', $property),
-                ]);
-            }
+            NotificationService::oversight([
+                'type' => 'listing',
+                'title' => 'Listing resubmitted for approval',
+                'body' => $property->property_name . ' was updated and needs review.',
+                'url' => route('staff.properties.show', $property),
+            ], $user);
         }
 
         return redirect()->route('app.page', ['page' => $isAdmin ? 'property' : 'listings'])
@@ -425,6 +422,7 @@ class PropertyController extends Controller
     public function updateStatus(Request $request, Property $property)
     {
         $this->authorizeAdmin();
+        abort_unless($property->isManageableByAdmin(Auth::user()), 403);
 
         $validated = $request->validate([
             'property_status' => ['required', 'in:Available,For Sale,For Rent,Reserved,Pending,Sold,Unavailable'],
@@ -434,6 +432,10 @@ class PropertyController extends Controller
             'property_status' => $validated['property_status'],
             'sold_at' => $validated['property_status'] === 'Sold' ? ($property->sold_at ?? now()) : null,
         ]);
+
+        if ($property->wasChanged('property_status') && $property->property_status === 'Sold') {
+            NotificationService::soldReviewPrompts($property);
+        }
 
         return redirect()->back()->with('success', 'Property status updated.');
     }
@@ -455,36 +457,27 @@ class PropertyController extends Controller
     // VIEW DETAILS
    public function show($id, Request $request)
 {
-    $property = Property::with(['images', 'details', 'user', 'assignments.user'])->findOrFail($id);
+    $property = Property::with(['images', 'details', 'user'])->findOrFail($id);
     $referralCode = null;
-
-    if ($request->filled('ref')) {
-        $referralCode = ReferralCode::query()
-            ->with('user')
-            ->where('code', $request->query('ref'))
-            ->where('property_id', $property->property_id)
-            ->firstOrFail();
-        abort_unless($referralCode->user?->account_status === 'Active', 404);
-    }
-
     $isAdminListing = $property->listing_mode === 'admin';
-    
-    if ($isAdminListing) {
-        $contactProfessionals = collect();
-        $selectedContactAssignment = null;
-        $contactUser = $property->user;
-        $selectedAssignmentId = null;
-    } else {
-        $contactProfessionals = $property->assignments()
-            ->where('status', 'Approved')
-            ->whereHas('user', fn ($query) => $query->where('account_status', 'Active'))
-            ->with('user')
-            ->get();
-        $selectedContactAssignment = $referralCode
-            ? $contactProfessionals->firstWhere('user_id', $referralCode->user_id)
-            : $contactProfessionals->first();
-        $contactUser = $selectedContactAssignment?->user ?? $referralCode?->user ?? $property->user;
-        $selectedAssignmentId = $selectedContactAssignment?->assign_id;
+
+    // The lister is the only contact for a listing; no other professional can be selected.
+    $contactProfessionals = collect();
+    $selectedContactAssignment = null;
+    $contactUser = $property->user;
+    $selectedAssignmentId = null;
+    $viewer = Auth::user();
+    $hasActiveAppointment = $viewer instanceof User
+        && \App\Models\Appointment::clientHasActiveForProperty($viewer, $property->property_id);
+    if (Auth::check() && $property->approval_status === 'Approved' && $property->user_id) {
+        $ownerAssignment = PropertyAssign::firstOrCreate(
+            ['property_id' => $property->property_id, 'user_id' => $property->user_id],
+            ['assigned_date' => now()->toDateString(), 'status' => 'Approved']
+        );
+        if ($ownerAssignment->status !== 'Approved') {
+            $ownerAssignment->update(['status' => 'Approved']);
+        }
+        $selectedAssignmentId = $ownerAssignment->assign_id;
     }
 
     if ($property->approval_status !== 'Approved') {
@@ -498,6 +491,7 @@ class PropertyController extends Controller
 
     return view('customer.property-details', compact(
         'property',
+        'hasActiveAppointment',
         'referralCode',
         'isAdminListing',
         'contactProfessionals',

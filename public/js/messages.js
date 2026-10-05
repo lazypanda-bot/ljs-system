@@ -15,16 +15,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
+    // Fixed positioning keeps the menu visible when the message list scrolls or clips it.
+    const placeMessageMenu = (button, menu) => {
+        menu.style.position = 'fixed';
+        menu.style.right = 'auto';
+        const anchor = button.getBoundingClientRect();
+        const size = menu.getBoundingClientRect();
+        const left = Math.min(Math.max(8, anchor.right - size.width), window.innerWidth - size.width - 8);
+        let top = anchor.bottom + 5;
+        if (top + size.height > window.innerHeight - 8) top = Math.max(8, anchor.top - size.height - 5);
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+    };
+
     document.querySelectorAll('[data-message-menu-toggle]').forEach((button) => {
         button.addEventListener('click', (event) => {
             event.stopPropagation();
             const menu = button.parentElement?.querySelector('.message-action-menu');
             const shouldOpen = menu?.hidden ?? false;
             closeMessageMenus(button);
-            if (menu) menu.hidden = !shouldOpen;
+            if (menu) {
+                menu.hidden = !shouldOpen;
+                if (shouldOpen) placeMessageMenu(button, menu);
+            }
             button.setAttribute('aria-expanded', String(shouldOpen));
         });
     });
+    document.querySelector('.chat-messages')?.addEventListener('scroll', () => closeMessageMenus());
+    window.addEventListener('resize', () => closeMessageMenus());
 
     document.querySelectorAll('[data-edit-message]').forEach((button) => {
         button.addEventListener('click', () => {

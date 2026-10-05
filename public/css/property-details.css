@@ -224,3 +224,11 @@
     .property-metrics > div { padding: 9px; font-size: 13px; }
     .property-amenities-list { grid-template-columns: minmax(0, 1fr); }
 }
+.professional-name-link { color: inherit; text-decoration: none; }
+.professional-name-link[href]:hover { color: var(--color-primary); text-decoration: underline; }
+
+.property-status-notice { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; padding: 10px 14px; border-radius: 8px; background: #fef3c7; color: #92400e; font-size: 14px; }
+.property-status-notice.property-status-sold { background: #fee2e2; color: #991b1b; }
+.contact-action[disabled] { opacity: .6; cursor: not-allowed; }
+
+.property-details-panel > .property-metrics { margin-bottom: 14px; }

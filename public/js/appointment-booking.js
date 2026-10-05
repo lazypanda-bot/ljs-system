@@ -17,55 +17,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const loadSlots = async () => {
-        slotField.value = '';
-        timeField.replaceChildren(new Option('Loading available times…', ''));
-        timeField.disabled = true;
-
-        if (!dateField.value || !assignmentField?.value) {
-            timeField.replaceChildren(new Option('Choose a date and professional first', ''));
-            status.textContent = 'Times are shown in your local time.';
-            return;
-        }
-
-        const url = new URL(form.dataset.slotsUrl, window.location.href);
-        url.searchParams.set('assign_id', assignmentField.value);
-        url.searchParams.set('date', dateField.value);
-        url.searchParams.set('timezone', timezoneField.value);
-        const referral = form.elements.namedItem('ref');
-        if (referral?.value) url.searchParams.set('ref', referral.value);
-
-        try {
-            const response = await fetch(url, { headers: { Accept: 'application/json' } });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Could not load appointment times.');
-
-            timeField.replaceChildren(new Option(data.slots.length ? 'Select an available time' : 'No times available', ''));
-            data.slots.forEach((slot) => {
-                const option = new Option(slot.label, slot.local_time);
-                option.dataset.slotUtc = slot.value;
-                timeField.add(option);
-            });
-            timeField.disabled = data.slots.length === 0;
-            status.textContent = data.slots.length
-                ? 'Times are shown in your local time.'
-                : 'No available times for this date. Choose another date.';
-        } catch (error) {
-            timeField.replaceChildren(new Option('No times available', ''));
-            status.textContent = error.message;
-        }
-    };
-
-    dateField.addEventListener('change', loadSlots);
-    assignmentField?.addEventListener('change', loadSlots);
-    timeField.addEventListener('change', () => {
-        slotField.value = timeField.selectedOptions[0]?.dataset.slotUtc || '';
+    const picker = window.LjsAvailability.init({
+        dateInput: dateField,
+        timeSelect: timeField,
+        utcField: slotField,
+        status,
+        timezone: () => timezoneField.value,
+        ready: () => Boolean(assignmentField?.value),
+        urlFor: ({ date, withDates }) => {
+            const url = new URL(form.dataset.slotsUrl, window.location.href);
+            url.searchParams.set('assign_id', assignmentField.value);
+            url.searchParams.set('date', date);
+            url.searchParams.set('timezone', timezoneField.value);
+            if (withDates) url.searchParams.set('with_dates', '1');
+            const referral = form.elements.namedItem('ref');
+            if (referral?.value) url.searchParams.set('ref', referral.value);
+            return url;
+        },
     });
+
+    assignmentField?.addEventListener('change', () => picker.reload());
     form.addEventListener('submit', (event) => {
         if (!slotField.value) {
             event.preventDefault();
-            status.textContent = 'Choose an available time before requesting the appointment.';
-            timeField.focus();
+            status.textContent = 'Choose an available date and time before requesting the appointment.';
+            dateField.focus();
         }
     });
 });

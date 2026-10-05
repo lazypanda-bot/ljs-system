@@ -70,7 +70,8 @@ class ReferralContactWorkflowTest extends TestCase
         [$property, , $otherProfessional, $code, $otherAssignment, , $admin] = $this->adminListingWithReferral();
         $date = now()->addDays(3)->toDateString();
 
-        $this->post(route('appointments.store', $property), [
+        $this->actingAs(User::factory()->create(['role_name' => 'Client', 'email' => 'client@example.test']))
+            ->post(route('appointments.store', $property), [
             'ref' => $code->code,
             'assign_id' => $otherAssignment->assign_id,
             'contact_name' => 'Test Client',
@@ -103,7 +104,8 @@ class ReferralContactWorkflowTest extends TestCase
             'reason' => 'Unavailable',
         ]);
 
-        $response = $this->post(route('appointments.store', $property), [
+        $response = $this->actingAs(User::factory()->create(['role_name' => 'Client', 'email' => 'blocked@example.test']))
+            ->post(route('appointments.store', $property), [
             'ref' => $code->code,
             'assign_id' => $property->assignments()->where('user_id', $admin->user_id)->value('assign_id'),
             'contact_name' => 'Test Client',

@@ -9,6 +9,7 @@ use App\Models\AppNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class TeamController extends Controller
 {
@@ -40,7 +41,7 @@ class TeamController extends Controller
         $this->authorizeAdmin();
 
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,user_id',
+            'user_id' => ['required', Rule::exists('users', 'user_id')->whereIn('role_name', ['Broker', 'Lead Broker'])],
             'team_name' => 'nullable|string|max:255',
             'member_ids' => 'array',
             'member_ids.*' => 'exists:users,user_id',
@@ -103,7 +104,7 @@ class TeamController extends Controller
         $this->authorizeAdmin();
 
         $validated = $request->validate([
-            'user_id' => 'sometimes|required|exists:users,user_id',
+            'user_id' => ['sometimes', 'required', Rule::exists('users', 'user_id')->whereIn('role_name', ['Broker', 'Lead Broker'])],
             'team_name' => 'nullable|string|max:255',
             'member_ids' => 'nullable|array',
             'member_ids.*' => 'integer|exists:users,user_id',
@@ -173,7 +174,7 @@ class TeamController extends Controller
         return [
             'users' => User::where('role_name', '!=', 'Client')->paginate(10),
             'allUsers' => User::where('role_name', '!=', 'Client')->get(),
-            'teams' => Team::with(['user', 'members'])->latest()->get(),
+            'teams' => Team::with(['user', 'members.user'])->latest()->get(),
         ];
     }
 }

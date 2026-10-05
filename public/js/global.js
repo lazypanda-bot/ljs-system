@@ -1,4 +1,50 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const viewport = window.visualViewport;
+    const syncVisibleViewport = () => {
+        const height = viewport?.height || window.innerHeight;
+        const offsetTop = viewport?.offsetTop || 0;
+        document.documentElement.style.setProperty('--app-visible-height', `${height}px`);
+        document.documentElement.style.setProperty('--app-visible-top', `${offsetTop}px`);
+        const focusedControl = isFormControl(document.activeElement);
+        const keyboardVisible = window.innerWidth <= 768 && focusedControl && (
+            window.innerHeight - height - offsetTop > 100
+            || window.screen.height - height - offsetTop > 220
+            || focusedControl
+        );
+        document.documentElement.classList.toggle('keyboard-visible', keyboardVisible);
+    };
+    const isFormControl = (element) => element instanceof HTMLElement && element.matches(
+        'input:not([type="hidden"]), textarea, select, [contenteditable="true"]'
+    );
+    const keepFocusedControlVisible = (element, behavior = 'smooth') => {
+        if (!isFormControl(element)) return;
+        const visibleTop = viewport?.offsetTop || 0;
+        const visibleBottom = visibleTop + (viewport?.height || window.innerHeight);
+        const rect = element.getBoundingClientRect();
+        const margin = 20;
+
+        if (rect.top < visibleTop + margin || rect.bottom > visibleBottom - margin) {
+            element.scrollIntoView({ block: 'start', inline: 'nearest', behavior });
+        }
+    };
+
+    syncVisibleViewport();
+    viewport?.addEventListener('resize', () => {
+        syncVisibleViewport();
+        const activeElement = document.activeElement;
+        if (isFormControl(activeElement)) {
+            window.requestAnimationFrame(() => keepFocusedControlVisible(activeElement, 'auto'));
+        }
+    });
+    window.addEventListener('resize', syncVisibleViewport);
+    viewport?.addEventListener('scroll', syncVisibleViewport);
+    document.addEventListener('focusin', (event) => {
+        if (!isFormControl(event.target)) return;
+        syncVisibleViewport();
+        [80, 280].forEach((delay) => window.setTimeout(() => keepFocusedControlVisible(event.target), delay));
+    });
+    document.addEventListener('focusout', () => window.setTimeout(syncVisibleViewport, 180));
+
     const publicNavToggle = document.getElementById('publicNavToggle');
     const publicNavigation = document.getElementById('publicNavigation');
 
@@ -134,10 +180,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.querySelector('[data-sidebar]');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 
     if (sidebarToggle && sidebar) {
+        const closeSidebar = () => {
+            sidebar.classList.remove('is-open');
+            sidebarBackdrop?.classList.remove('open');
+            sidebarToggle.setAttribute('aria-expanded', 'false');
+            sidebarToggle.setAttribute('aria-label', 'Open navigation');
+            document.body.classList.remove('sidebar-open');
+        };
+        const openSidebar = () => {
+            sidebar.classList.add('is-open');
+            sidebarBackdrop?.classList.add('open');
+            sidebarToggle.setAttribute('aria-expanded', 'true');
+            sidebarToggle.setAttribute('aria-label', 'Close navigation');
+            document.body.classList.add('sidebar-open');
+        };
+
         sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
+            sidebar.classList.contains('is-open') ? closeSidebar() : openSidebar();
+        });
+        sidebarBackdrop?.addEventListener('click', closeSidebar);
+        sidebar.querySelectorAll('.nav-link').forEach((link) => link.addEventListener('click', closeSidebar));
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closeSidebar();
         });
     }
 
@@ -198,7 +265,8 @@ document.addEventListener('DOMContentLoaded', () => {
             panel.classList.toggle('active', active);
         });
         const isOtp = panelId === 'modal-otp-panel';
-        if (authTabsContainer) authTabsContainer.hidden = isOtp;
+        const hideTabs = isOtp || panelId === 'modal-forgot-panel' || panelId === 'modal-reset-panel';
+        if (authTabsContainer) authTabsContainer.hidden = hideTabs;
         loginModalOverlay?.classList.toggle('otp-active', isOtp);
     };
 
@@ -309,6 +377,71 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('loginModalTitle').textContent = 'Login';
         document.getElementById('authModalSubtitle').textContent = 'Access your LJS Realty account.';
         setOtpStatus('');
+    });
+
+    const showAuthStep = (panelId, title, subtitle) => {
+        showModalPanel(panelId);
+        document.getElementById('loginModalTitle').textContent = title;
+        document.getElementById('authModalSubtitle').textContent = subtitle;
+    };
+    const backToLogin = () => {
+        showAuthStep('modal-login-panel', 'Login', 'Access your LJS Realty account.');
+        if (authTabsContainer) authTabsContainer.hidden = false;
+    };
+    const setStatus = (id, message, isError = false) => {
+        const element = document.getElementById(id);
+        if (!element) return;
+        element.textContent = message;
+        element.classList.toggle('error', isError);
+    };
+    const modalForgotForm = document.getElementById('modal-forgot-panel');
+    const modalResetForm = document.getElementById('modal-reset-panel');
+
+    document.getElementById('authForgotLink')?.addEventListener('click', () => {
+        const loginEmail = document.getElementById('modalLoginEmail')?.value;
+        if (loginEmail) document.getElementById('modalForgotEmail').value = loginEmail;
+        showAuthStep('modal-forgot-panel', 'Forgot password', 'Enter your email and we will send a code to change your password.');
+    });
+    document.querySelectorAll('[data-auth-back-to-login]').forEach((button) => button.addEventListener('click', backToLogin));
+
+    modalForgotForm?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = modalForgotForm.querySelector('button[type="submit"]');
+        button.disabled = true;
+        button.textContent = 'Sending code...';
+        try {
+            await submitModalForm(modalForgotForm, (data) => {
+                setStatus('authForgotStatus', '');
+                const resetToken = modalResetForm?.querySelector('input[name="_token"]');
+                if (resetToken && data.csrf_token) resetToken.value = data.csrf_token;
+                showAuthStep('modal-reset-panel', 'Change password', data.message);
+                document.getElementById('modalResetCode')?.focus();
+            });
+        } catch (error) {
+            setStatus('authForgotStatus', error.message, true);
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Send reset code';
+        }
+    });
+
+    modalResetForm?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = modalResetForm.querySelector('button[type="submit"]');
+        button.disabled = true;
+        button.textContent = 'Changing password...';
+        try {
+            await submitModalForm(modalResetForm, (data) => {
+                modalResetForm.reset();
+                backToLogin();
+                document.getElementById('authModalSubtitle').textContent = data.message;
+            });
+        } catch (error) {
+            setStatus('authResetStatus', error.message, true);
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Change password';
+        }
     });
 
     authTabs.forEach((tab) => {

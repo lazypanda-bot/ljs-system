@@ -16,6 +16,10 @@ class ContactAndQueueWorkflowTest extends TestCase
         $this->get(route('about'))->assertOk()
             ->assertSee('LJS Realty and Brokerage')
             ->assertSee('Find a property')
+            ->assertSee('href="mailto:ljsrealty@gmail.com"', false)
+            ->assertSee('href="tel:+639213456789"', false)
+            ->assertDontSee('id="openContactUsDialog"', false)
+            ->assertDontSee('Contact options')
             ->assertDontSee('Lorem ipsum')
             ->assertDontSee('1,200+ Properties Sold')
             ->assertDontSee('Established in 2012');

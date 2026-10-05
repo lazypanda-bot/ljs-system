@@ -8,6 +8,7 @@ use App\Models\Appointment;
 use App\Models\BlockedDate;
 use App\Models\Property;
 use App\Models\PropertyAssign;
+use App\Models\Team;
 use App\Models\User;
 use App\Services\AppointmentReminderService;
 use App\Services\AppointmentSchedulingService;
@@ -93,8 +94,21 @@ class AppointmentSchedulingTest extends TestCase
         $this->assertSame([], $service->availableSlots($firstAssignment, $clientStart->toDateString(), 'America/Los_Angeles'));
     }
 
+    public function test_guests_are_sent_to_the_login_modal_for_booking_and_messaging(): void
+    {
+        $professional = User::factory()->create(['role_name' => 'Agent']);
+        [$property] = $this->createAssignment($professional, 'Guest home');
+
+        $this->get(route('appointments.create', $property))->assertRedirect(route('home'))->assertSessionHas('auth_modal_error');
+        $this->post(route('appointments.store', $property), [])->assertRedirect(route('home'));
+        $this->post(route('properties.message', $property))->assertRedirect(route('home'));
+        $this->get(route('messages.inbox'))->assertRedirect(route('home'));
+        $this->get(route('notifications.index'))->assertRedirect(route('home'));
+    }
+
     public function test_public_availability_endpoint_returns_client_local_labels_and_utc_values(): void
     {
+        $this->actingAs(User::factory()->create(['role_name' => 'Client']));
         config(['appointments.daily_slots' => ['09:00'], 'appointments.slot_capacity' => 2]);
         $professional = User::factory()->create(['role_name' => 'Agent', 'timezone' => 'Asia/Manila']);
         [$property, $assignment] = $this->createAssignment($professional, 'Availability endpoint home');
@@ -360,14 +374,94 @@ class AppointmentSchedulingTest extends TestCase
             });
 
         $admin = User::factory()->create(['role_name' => 'Admin']);
+        [$adminProperty, $adminAssignment] = $this->createAssignment($admin, 'Admin project home');
+        $adminProperty->update(['listing_mode' => 'admin']);
+        $this->createAppointment($adminAssignment, $otherClient, $start->addHours(2));
         $this->actingAs($admin)
             ->get(route('app.page', ['page' => 'dashboard']))
             ->assertOk()
             ->assertViewHas('calendarAppointments', function ($appointments) use ($client, $otherClient): bool {
                 $names = collect($appointments)->pluck('contact_name');
+                $properties = collect($appointments)->pluck('property_name');
 
-                return $names->contains($client->name) && $names->contains($otherClient->name);
+                return $properties->contains('Admin project home') && $properties->count() === 1 && $names->contains($otherClient->name) && ! $names->contains($client->name);
             });
+    }
+
+    public function test_staff_calendar_scopes_appointments_and_blocks_by_role_and_lead_broker_mode(): void
+    {
+        $broker = User::factory()->create(['role_name' => 'Broker']);
+        $teamAgent = User::factory()->create(['role_name' => 'Agent']);
+        $outsideAgent = User::factory()->create(['role_name' => 'Agent']);
+        $leadBroker = User::factory()->create(['role_name' => 'Lead Broker']);
+        $adminOne = User::factory()->create(['role_name' => 'Admin']);
+        $adminTwo = User::factory()->create(['role_name' => 'Admin']);
+        $client = User::factory()->create(['role_name' => 'Client']);
+        $brokerTeam = Team::create(['user_id' => $broker->user_id, 'team_name' => 'Broker team']);
+        $brokerTeam->members()->create(['user_id' => $teamAgent->user_id, 'status' => 'Approved']);
+        $leadTeam = Team::create(['user_id' => $leadBroker->user_id, 'team_name' => 'Lead team']);
+        $leadTeam->members()->create(['user_id' => $teamAgent->user_id, 'status' => 'Approved']);
+
+        [, $brokerAssignment] = $this->createAssignment($broker, 'Broker calendar listing');
+        [, $teamAssignment] = $this->createAssignment($teamAgent, 'Team calendar listing');
+        [, $outsideAssignment] = $this->createAssignment($outsideAgent, 'Outside calendar listing');
+        [, $leadAssignment] = $this->createAssignment($leadBroker, 'Lead calendar listing');
+
+        $start = CarbonImmutable::now('UTC')->addDays(3)->setTime(10, 0);
+        $this->createAppointment($brokerAssignment, $client, $start);
+        $this->createAppointment($teamAssignment, $client, $start->addHour());
+        $this->createAppointment($outsideAssignment, $client, $start->addHours(2));
+        $this->createAppointment($leadAssignment, $client, $start->addHours(3));
+
+        $blockedDay = now()->addDays(3)->toDateString();
+        foreach ([$broker, $teamAgent, $outsideAgent, $leadBroker, $adminOne, $adminTwo] as $blocker) {
+            BlockedDate::create([
+                'user_id' => $blocker->user_id,
+                'acting_role' => $blocker->normalizedRole() === 'lead_broker' ? 'broker' : $blocker->normalizedRole(),
+                'date' => $blockedDay,
+                'timezone' => 'Asia/Manila',
+                'reason' => $blocker->name,
+            ]);
+        }
+
+        $adminBlockedDay = now()->addDays(4)->toDateString();
+        $this->actingAs($leadBroker)->withSession(['acting_as' => 'admin'])
+            ->post(route('appointments.block-date'), [
+                'date' => $adminBlockedDay,
+                'timezone' => 'Asia/Manila',
+                'reason' => 'Admin-mode block',
+            ])
+            ->assertRedirect();
+
+        $brokerCalendar = $this->actingAs($broker)->get(route('app.page', ['page' => 'dashboard']))->assertOk();
+        $brokerCalendar->assertViewHas('calendarAppointments', function ($appointments) use ($teamAgent): bool {
+            $properties = collect($appointments)->pluck('property_name');
+            return $properties->contains('Broker calendar listing')
+                && ! $properties->contains('Team calendar listing')
+                && ! $properties->contains('Outside calendar listing');
+        });
+        $brokerCalendar->assertViewHas('calendarBlockedDates', function ($blocks) use ($broker, $teamAgent, $outsideAgent): bool {
+            $names = collect($blocks)->pluck('blocked_by');
+            return $names->contains($broker->name) && ! $names->contains($teamAgent->name) && ! $names->contains($outsideAgent->name);
+        });
+
+        $agentCalendar = $this->actingAs($teamAgent)->get(route('app.page', ['page' => 'dashboard']))->assertOk();
+        $agentCalendar->assertViewHas('calendarAppointments', fn ($appointments) => collect($appointments)->pluck('property_name')->contains('Team calendar listing')
+            && ! collect($appointments)->pluck('property_name')->contains('Broker calendar listing')
+            && ! collect($appointments)->pluck('property_name')->contains('Outside calendar listing'));
+        $agentCalendar->assertViewHas('calendarBlockedDates', fn ($blocks) => collect($blocks)->pluck('blocked_by')->all() === [$teamAgent->name]);
+
+        $leadBrokerCalendar = $this->actingAs($leadBroker)->withSession(['acting_as' => 'broker'])
+            ->get(route('app.page', ['page' => 'dashboard']))->assertOk();
+        $leadBrokerCalendar->assertViewHas('calendarAppointments', fn ($appointments) => collect($appointments)->pluck('property_name')->contains('Lead calendar listing')
+            && ! collect($appointments)->pluck('property_name')->contains('Team calendar listing')
+            && ! collect($appointments)->pluck('property_name')->contains('Outside calendar listing'))
+            ->assertViewHas('calendarBlockedDates', fn ($blocks) => ! collect($blocks)->contains(fn ($block) => $block['date'] === $adminBlockedDay));
+
+        $this->withSession(['acting_as' => 'admin'])->get(route('app.page', ['page' => 'dashboard']))
+            ->assertViewHas('calendarAppointments', fn ($appointments) => collect($appointments)->isEmpty())
+            ->assertViewHas('calendarBlockedDates', fn ($blocks) => collect($blocks)->pluck('blocked_by')->unique()->values()->all() === [$leadBroker->name]
+                && collect($blocks)->contains(fn ($block) => $block['date'] === $adminBlockedDay));
     }
 
     public function test_reminders_are_sent_once_to_the_client_and_professional(): void

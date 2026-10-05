@@ -379,3 +379,25 @@
     margin: 0;
 }
 .au-team-edit-panel{display:grid;gap:16px;margin:0 0 22px;padding:20px;border:1px solid var(--color-border);border-radius:10px;background:var(--color-surface)}.au-team-edit-panel>div h2{margin:0;color:var(--color-text);font-size:19px}.au-team-edit-panel>div p{margin:4px 0 0;color:var(--color-text-muted);font-size:13px}.au-team-edit-panel form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.au-team-field{display:grid;gap:6px;color:var(--color-text);font-size:12px;font-weight:700}.au-team-field .form-control,.au-team-field .form-select{width:100%;min-height:42px;padding:9px 11px;border:1px solid var(--color-border);border-radius:7px;background:#fff;color:var(--color-text);font:inherit;font-size:14px}.au-member-picker-fieldset{grid-column:1/-1;min-width:0;margin:0;padding:0;border:0}.au-member-picker-fieldset legend{margin-bottom:8px;color:var(--color-text);font-size:13px;font-weight:800}.au-member-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;max-height:260px;overflow:auto;padding:4px;border:1px solid var(--color-border);border-radius:8px;background:#f8fafc}.au-member-choice{display:grid;grid-template-columns:18px minmax(0,1fr);align-items:center;gap:2px 8px;min-width:0;padding:9px 10px;border:1px solid var(--color-border);border-radius:7px;background:#fff;color:var(--color-text);cursor:pointer}.au-member-choice:hover{border-color:var(--color-primary)}.au-member-choice:has(input:checked){border-color:var(--color-success);background:#f0fdf4}.au-member-choice input{grid-row:span 2;width:16px;height:16px;margin:0;accent-color:var(--color-success)}.au-member-choice span{overflow:hidden;font-size:12px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}.au-member-choice small{color:var(--color-text-muted);font-size:10px}.au-team-edit-panel .au-form-actions{grid-column:1/-1;margin:0}@media(max-width:620px){.au-team-edit-panel form{grid-template-columns:1fr}.au-member-picker-fieldset,.au-team-edit-panel .au-form-actions{grid-column:auto}.au-member-picker{grid-template-columns:1fr}}
+.au-credential-viewer { width: min(860px, 100%); }
+.au-credential-viewer img { display: block; max-width: 100%; max-height: 75vh; margin: 12px auto 0; border-radius: 8px; }
+.au-credential-viewer iframe { display: block; width: 100%; height: 75vh; margin-top: 12px; border: 1px solid #e2e8f0; border-radius: 8px; }
+.au-credential-viewer [hidden] { display: none; }
+.au-modal-overlay .au-credential-viewer { width: min(860px, 100%); }
+
+.au-status-form { margin: 0; }
+.au-status-select { min-height: 32px; padding: 3px 26px 3px 12px; border: 1px solid #e2e8f0; border-radius: 999px; background-color: #fff; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.au-status-select.status-active { color: #166534; border-color: #bbf7d0; background-color: #f0fdf4; }
+.au-status-select.status-inactive { color: #92400e; border-color: #fde68a; background-color: #fffbeb; }
+
+.au-row-buttons { display: inline-flex; flex-wrap: nowrap; gap: 6px; }
+.au-row-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 999px; background: #fff; color: #334155; font-size: 12px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.au-row-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.au-row-btn-primary { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+.au-row-btn-primary:hover { background: var(--color-success); border-color: var(--color-success); color: #fff; }
+.au-selected-agent { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.au-agent-profile { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin: 14px 0 18px; }
+.au-agent-profile dt { color: #64748b; font-size: 12px; font-weight: 700; }
+.au-agent-profile dd { margin: 2px 0 0; color: #0f172a; font-size: 14px; word-break: break-word; }
+.au-agent-profile-wide { grid-column: 1 / -1; }
+.au-modal-overlay .au-agent-wide { width: min(900px, 100%); }

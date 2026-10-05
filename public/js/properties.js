@@ -36,7 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const modalAssignSelect = document.getElementById('modalAssignSelect');
 
         if (recipient) recipient.value = option.value;
-        if (contactName) contactName.textContent = option.dataset.name;
+        if (contactName) {
+            contactName.textContent = option.dataset.name;
+            if (option.dataset.profileUrl) contactName.href = option.dataset.profileUrl;
+            else contactName.removeAttribute('href');
+        }
         if (contactRole) contactRole.textContent = option.dataset.role;
         if (contactEmail) contactEmail.textContent = option.dataset.email;
         if (contactPhone) contactPhone.textContent = option.dataset.phone || 'Contact number not provided';

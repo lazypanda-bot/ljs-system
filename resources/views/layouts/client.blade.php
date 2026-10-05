@@ -27,6 +27,7 @@
         @include('components.flash-messages')
         <div class="dashboard-container">
             @include('layouts.sidebar')
+            <button type="button" class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Close navigation" tabindex="-1"></button>
 
             <div class="main-content">
                 @include('layouts.navbar')
@@ -38,6 +39,7 @@
         </div>
 
         @include('components.auth-modal')
+        @include('components.popup-message')
 
         <script src="{{ asset('js/global.js') }}?v={{ filemtime(public_path('js/global.js')) }}" defer></script>
         <script src="{{ asset('js/dashboard.js') }}" defer></script>
