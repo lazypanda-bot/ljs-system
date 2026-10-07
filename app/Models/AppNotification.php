@@ -17,17 +17,43 @@ class AppNotification extends Model
      */
     public function scopeVisibleTo($query, User $user)
     {
-        $query->where('app_notifications.user_id', $user->user_id);
+        $role = $user->normalizedRole();
 
-        if ($user->normalizedRole() === 'lead_broker') {
-            if ($user->actingRole() === 'admin') {
-                $query->where(fn ($q) => $q->where('audience', 'system')->orWhere('type', 'message'));
-            } else {
-                $query->where('audience', '!=', 'system');
-            }
+        if ($role === 'broker') {
+            $teamUserIds = TeamMember::query()
+                ->whereHas('team', fn ($teamQuery) => $teamQuery->where('user_id', $user->user_id))
+                ->pluck('user_id')
+                ->all();
+
+            $candidateUserIds = array_values(array_unique(array_merge([$user->user_id], $teamUserIds)));
+
+            return $query
+                ->whereIn('app_notifications.user_id', $candidateUserIds)
+                ->where('audience', '!=', 'system');
         }
 
-        return $query;
+        if ($role === 'lead_broker') {
+            if ($user->actingRole() === 'admin') {
+                return $query
+                    ->where(function ($q) {
+                        $q->where('audience', 'system')
+                            ->orWhere('type', 'message');
+                    });
+            }
+
+            $teamUserIds = TeamMember::query()
+                ->whereHas('team', fn ($teamQuery) => $teamQuery->where('user_id', $user->user_id))
+                ->pluck('user_id')
+                ->all();
+
+            $candidateUserIds = array_values(array_unique(array_merge([$user->user_id], $teamUserIds)));
+
+            return $query
+                ->whereIn('app_notifications.user_id', $candidateUserIds)
+                ->where('audience', '!=', 'system');
+        }
+
+        return $query->where('app_notifications.user_id', $user->user_id);
     }
 
     protected function casts(): array

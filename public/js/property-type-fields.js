@@ -29,13 +29,14 @@ document.addEventListener('DOMContentLoaded', () => {
             input.disabled = !show;
         });
 
-        detailFields.forEach((name) => {
-            const input = form.querySelector(`[name="${name}"]`);
-            if (!input) return;
-            input.required = required.includes(name);
-            const mark = input.closest('label')?.querySelector('.detail-required-mark');
-            if (mark) mark.hidden = !required.includes(name);
-        });
+        //TO MAKE THE FIELDS REQUIRED
+        // detailFields.forEach((name) => {
+        //     const input = form.querySelector(`[name="${name}"]`);
+        //     if (!input) return;
+        //     input.required = required.includes(name);
+        //     const mark = input.closest('label')?.querySelector('.detail-required-mark');
+        //     if (mark) mark.hidden = !required.includes(name);
+        // });
 
         if (hint) {
             hint.textContent = !type

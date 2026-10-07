@@ -90,6 +90,7 @@ Route::get('/properties', function (Request $request) {
         ->when($request->filled('search'), fn ($query) => $query->where(function ($query) use ($request) {
             $search = $request->string('search');
             $query->where('property_name', 'like', "%{$search}%")
+                ->orWhere('property_type', 'like', "%{$search}%")
                 ->orWhere('city', 'like', "%{$search}%")
                 ->orWhere('province', 'like', "%{$search}%");
         }))

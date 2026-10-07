@@ -308,7 +308,7 @@ class MessageController extends Controller
         ]);
     }
 
-    public function notifications()
+    public function notifications(Request $request)
     {
         $user = $this->user();
         $relations = [
@@ -326,7 +326,16 @@ class MessageController extends Controller
             ->latest()
             ->orderByDesc('notification_id')
             ->paginate(5)
-            ->withQueryString();
+            ->appends($request->except(['list_only', 'page']));
+
+        if ($request->boolean('list_only')) {
+            return response()->json([
+                'html' => view('pages.partials.notification-list', [
+                    'notifications' => $notifications,
+                    'selectedNotification' => null,
+                ])->render(),
+            ]);
+        }
 
         $selectedId = request()->integer('selected');
         $selectedNotification = $selectedId

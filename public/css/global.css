@@ -221,7 +221,7 @@ select:not([multiple]):not([size]) {
     background-position: right 16px center;
     background-size: 14px;
 }
-.availability-calendar{position:absolute;z-index:60;top:100%;left:0;width:260px;margin-top:4px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;box-shadow:0 10px 24px rgba(15,23,42,.15)}
+.availability-calendar{position:fixed;z-index:3000;top:0;left:0;width:min(320px,calc(100vw - 24px));max-width:calc(100vw - 24px);margin:0;padding:10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;box-shadow:0 10px 24px rgba(15,23,42,.15);overflow:visible}
 .availability-calendar[hidden]{display:none}
 .availability-calendar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:13px}
 .availability-calendar-head button{width:28px;height:28px;border:0;border-radius:6px;background:#f1f5f9;color:#1f2937;font-size:16px;cursor:pointer}

@@ -30,6 +30,8 @@
 .appointment-detail-actions>form:first-child{display:flex;align-items:center;gap:10px}
 .appointment-detail-actions label{color:var(--color-text-muted);font-size:12px;font-weight:700}
 .appointment-detail-actions select{min-height:38px}
+.staff-property-table .appointment-status-control{margin-top:7px}
+.staff-property-table .appointment-status-control select{min-width:142px;min-height:34px;padding:6px 28px 6px 10px;border:1px solid var(--color-border);border-radius:6px;background-color:var(--color-surface);color:var(--color-text);font:inherit;font-size:12px;font-weight:700}
 .appointment-detail-panel .appointment-propose-time{flex:1 1 100%;margin-top:0}
 .appointment-detail-panel .appointment-propose-time form{max-width:760px}
 .appointment-pending-proposal{display:grid;gap:5px;margin:0 0 18px;padding:13px 15px;border-left:3px solid var(--color-warning);background:#fffbeb;color:var(--color-text);font-size:13px}
@@ -44,3 +46,21 @@
 .landing-page .appointments-client-page { width: min(1300px, calc(100% - 64px)); max-width: 1300px; margin: 28px auto 48px; padding: 26px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; box-shadow: 0 4px 16px rgba(15, 23, 42, .04); }
 .appointments-client-page .appointments-workspace { overflow: visible; }
 @media (max-width: 700px) { .landing-page .appointments-client-page { width: calc(100% - 24px); padding: 16px; } }
+
+.appointment-reschedule-trigger{min-height:34px;margin:6px 0 0;padding:7px 12px;border:1px solid var(--color-border);border-radius:6px;background:var(--color-surface);color:var(--color-primary);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.appointment-reschedule-trigger:hover{border-color:var(--color-primary);background:var(--color-primary-soft)}
+.appointment-reschedule-modal{position:fixed;inset:0;z-index:2500;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.56);overflow-y:auto;overscroll-behavior:contain}
+.appointment-reschedule-modal[hidden]{display:none}
+.appointment-reschedule-dialog{position:relative;width:min(620px,100%);max-height:calc(100vh - 40px);overflow-y:auto;padding:28px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-surface);box-shadow:0 20px 60px rgba(15,23,42,.24)}
+.appointment-reschedule-close{position:absolute;top:14px;right:14px;display:grid;width:36px;height:36px;place-items:center;border:1px solid var(--color-border);border-radius:6px;background:var(--color-surface);color:var(--color-text);font-size:22px;cursor:pointer}
+.appointment-reschedule-kicker{color:var(--color-primary);font-size:11px;font-weight:800}
+.appointment-reschedule-dialog h2{margin:6px 44px 4px 0;color:var(--color-text);font-size:21px}
+.appointment-reschedule-context,.appointment-reschedule-dialog .appointment-propose-note{margin:0 0 8px;color:var(--color-text-muted);font-size:13px}
+.appointment-reschedule-form-wrap{margin-top:16px}
+.appointment-reschedule-form-wrap form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:end}
+.appointment-reschedule-form-wrap label{display:grid;gap:5px;color:var(--color-text-muted);font-size:12px;font-weight:700}
+.appointment-reschedule-form-wrap input,.appointment-reschedule-form-wrap select{width:100%;min-width:0;min-height:40px;padding:8px 10px;border:1px solid var(--color-border);border-radius:6px;background:var(--color-surface);color:var(--color-text);font:inherit;font-size:13px}
+.appointment-reschedule-form-wrap label:nth-of-type(3),.appointment-reschedule-form-wrap .appointment-slots-status{grid-column:1/-1}
+.appointment-reschedule-form-wrap .appointment-slots-status{margin:0}
+.appointment-reschedule-form-wrap button[type="submit"]{grid-column:1/-1;justify-self:start;min-height:40px;padding:9px 16px;border:1px solid var(--color-primary);border-radius:6px;background:var(--color-primary);color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+@media(max-width:560px){.appointment-reschedule-modal{align-items:end;padding:10px}.appointment-reschedule-dialog{max-height:calc(100vh - 20px);padding:24px 18px 18px}.appointment-reschedule-form-wrap form{grid-template-columns:minmax(0,1fr)}.appointment-reschedule-form-wrap label:nth-of-type(3),.appointment-reschedule-form-wrap .appointment-slots-status,.appointment-reschedule-form-wrap button[type="submit"]{grid-column:auto}}

@@ -90,15 +90,20 @@ class Property extends Model
     }
 
     /** Detail fields a listing must fill in, by property type. Unknown or custom types require none. */
+    // public static function requiredDetailFields(?string $type): array
+    // {
+    //     return match (strtolower(trim((string) $type))) {
+    //         'house & lot', 'townhouse' => ['lot_area', 'floor_area', 'bedrooms', 'bathrooms'],
+    //         'condominium', 'apartment' => ['floor_area', 'bedrooms', 'bathrooms'],
+    //         'commercial', 'warehouse' => ['lot_area', 'floor_area'],
+    //         'lot', 'farm lot' => ['lot_area'],
+    //         default => [],
+    //     };
+    // }
+
     public static function requiredDetailFields(?string $type): array
     {
-        return match (strtolower(trim((string) $type))) {
-            'house & lot', 'townhouse' => ['lot_area', 'floor_area', 'bedrooms', 'bathrooms'],
-            'condominium', 'apartment' => ['floor_area', 'bedrooms', 'bathrooms'],
-            'commercial', 'warehouse' => ['lot_area', 'floor_area'],
-            'lot', 'farm lot' => ['lot_area'],
-            default => [],
-        };
+        return [];
     }
 
     public static function detailRules(?string $type): array

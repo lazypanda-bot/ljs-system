@@ -47,4 +47,19 @@ class AuthenticationWorkflowTest extends TestCase
             ->assertJsonStructure(['message', 'csrf_token']);
         $this->assertGuest();
     }
+
+    public function test_remember_me_is_removed_from_the_login_modal_only(): void
+    {
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('id="modal-login-panel"', false)
+            ->assertSee('Forgot password?')
+            ->assertDontSee('class="remember-me"', false)
+            ->assertDontSee('name="remember"', false);
+
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('Remember me')
+            ->assertSee('name="remember"', false);
+    }
 }

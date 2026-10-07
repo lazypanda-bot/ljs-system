@@ -89,12 +89,13 @@
                                     <label for="role" class="form-label">Role *</label>
                                     <select class="form-select" id="role" name="role_name" required>
                                         <option value="">Select a role</option>
-                                        <option value="Lead Broker" {{ old('role_name') === 'Lead Broker' ? 'selected' : '' }}>Lead Broker</option>
-                                        @if (auth()->user()?->role_name === 'Lead Broker')
+                                        @if (auth()->user()?->normalizedRole() === 'lead_broker')
+                                            <option value="Lead Broker" {{ old('role_name') === 'Lead Broker' ? 'selected' : '' }}>Lead Broker</option>
                                             <option value="Admin" {{ old('role_name') === 'Admin' ? 'selected' : '' }}>Admin</option>
+                                        @else
+                                            <option value="Broker" {{ old('role_name') === 'Broker' ? 'selected' : '' }}>Broker</option>
+                                            <option value="Agent" {{ old('role_name') === 'Agent' ? 'selected' : '' }}>Agent</option>
                                         @endif
-                                        <option value="Broker" {{ old('role_name') === 'Broker' ? 'selected' : '' }}>Broker</option>
-                                        <option value="Agent" {{ old('role_name') === 'Agent' ? 'selected' : '' }}>Agent</option>
                                     </select>
                                 </div>
 
@@ -120,96 +121,7 @@
                 </div>
             </div>
 
-            <!-- Users Table -->
-            <div class="au-table-container">
-                <div class="staff-property-table-wrap">
-                    <table class="staff-property-table au-users-table">
-                        <thead>
-                            <tr>
-                                <th>USER</th>
-                                <th>EMAIL</th>
-                                <th>CONTACT NUMBER</th>
-                                <th>CREDENTIALS</th>
-                                <th>ROLE</th>
-                                <th>STATUS</th>
-                                <th>DATE JOINED</th>
-                                <th class="text-end">ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if(isset($users) && $users->count() > 0)
-                                @forelse($users as $user)
-                                    <tr>
-                                        <td>
-                                            <div class="au-user-cell">
-                                                @if ($user->profile_photo)
-                                                    <img src="{{ str_starts_with($user->profile_photo, 'http') ? $user->profile_photo : asset('storage/' . $user->profile_photo) }}" alt="{{ $user->name }}" class="rounded-circle shadow-sm" width="40" height="40">
-                                                @else
-                                                    <span class="au-user-avatar role-{{ $user->normalizedRole() }}" aria-label="{{ $user->name }}">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
-                                                @endif
-                                                <span class="fw-semibold text-dark">{{ $user->name }}</span>
-                                            </div>
-                                        </td>
-                                        <td class="text-muted">{{ $user->email }}</td>
-                                        <td>{{ $user->contact_number }}</td>
-                                        <td>
-                                            @php($credentialFile = $user->professionalProfile?->document_file)
-                                            @if ($credentialFile)
-                                                <button type="button" class="badge bg-light text-primary border px-2 py-1" data-view-credential="{{ route('admin.users.credentials', $user) }}" data-credential-type="{{ strtolower(pathinfo($credentialFile, PATHINFO_EXTENSION)) === 'pdf' ? 'pdf' : 'image' }}" data-credential-owner="{{ $user->name }}">
-                                                    <i class="fas fa-file-shield text-success" aria-hidden="true"></i> View credential
-                                                </button>
-                                            @else
-                                                <span class="text-muted">No documents</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-1">{{ $user->role_name }}</span>
-                                        </td>
-                                        <td>
-                                            @if ((int) $user->user_id === (int) auth()->id())
-                                                <span class="badge rounded-pill px-3 py-1 bg-success-subtle text-success">{{ $user->account_status }}</span>
-                                            @else
-                                                <form method="POST" action="{{ route('admin.users.update', $user->user_id) }}" class="au-status-form">
-                                                    @csrf @method('PUT')
-                                                    <select name="account_status" class="au-status-select status-{{ strtolower($user->account_status) }}" aria-label="Account status for {{ $user->name }}" data-auto-submit>
-                                                        @foreach (['Active', 'Inactive'] as $statusOption)
-                                                            <option value="{{ $statusOption }}" @selected($user->account_status === $statusOption)>{{ $statusOption }}</option>
-                                                        @endforeach
-                                                        @unless (in_array($user->account_status, ['Active', 'Inactive'], true))
-                                                            <option value="{{ $user->account_status }}" selected disabled>{{ $user->account_status }}</option>
-                                                        @endunless
-                                                    </select>
-                                                </form>
-                                            @endif
-                                        </td>
-                                        <td class="text-muted">{{ $user->created_at->format('M d, Y') }}</td>
-                                        <td class="text-end">
-                                            <div class="au-action-group">
-                                                <button class="au-deleteuser-btn" data-delete-user="{{ $user->user_id }}" type="button">
-                                                    <i class="fas fa-trash text-danger"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="8" class="text-center text-muted py-5">No users found</td>
-                                    </tr>
-                                @endforelse
-                            @else
-                                <tr>
-                                    <td colspan="8" class="text-center text-muted py-5">No users found</td>
-                                </tr>
-                            @endif
-                        </tbody>
-                    </table>
-                </div>
-                @if(isset($users) && method_exists($users, 'hasPages') && $users->hasPages())
-                    <nav aria-label="Page navigation" class="au-pagination">
-                        {{ $users->links() }}
-                    </nav>
-                @endif
-            </div>
+            @include('admin.partials.users-table', ['users' => $users ?? null])
         </div>
 
         <!-- Teams Section -->
@@ -235,12 +147,6 @@
                     </section>
                 </div>
             @endif
-            <div class="au-section-header">
-                <div>
-                    <h2>Teams Management</h2>
-                    <p class="text-muted mb-0">You can manage your teams here.</p>
-                </div>
-            </div>
 
             <!-- Add Team Modal -->
             <div class="au-modal-overlay {{ $teamFailed ? 'open' : '' }}" id="addTeamModalOverlay">
@@ -278,6 +184,13 @@
                             @endforeach
                         </div></fieldset>
 
+                        <div class="au-section-header">
+                            <div>
+                                <h2>Teams Management</h2>
+                                <p class="text-muted mb-0">You can manage your teams here.</p>
+                            </div>
+                        </div>
+                        
                         <div class="au-form-actions">
                             <button type="submit" class="au-saveteam-btn">Create Team</button>
                             <button type="button" class="au-cancelteam-btn" id="cancelAddTeamForm">Cancel</button>

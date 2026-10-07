@@ -59,6 +59,45 @@ class AdminManagementPagesTest extends TestCase
         $this->actingAs($leadBroker)->post(route('admin.users.store'), $payload)->assertForbidden();
     }
 
+    public function test_admin_and_lead_broker_can_only_add_their_allowed_user_roles(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $leadBroker = User::factory()->create(['role_name' => 'Lead Broker']);
+
+        $this->actingAs($admin)->get('/app/users')
+            ->assertOk()
+            ->assertSee('<option value="Agent"', false)
+            ->assertSee('<option value="Broker"', false)
+            ->assertDontSee('<option value="Admin"', false)
+            ->assertDontSee('<option value="Lead Broker"', false);
+
+        $this->post(route('admin.users.store'), [
+            'name' => 'Disallowed Lead Broker', 'email' => 'disallowed-lead@example.test', 'password' => 'InitialPass1!',
+            'role_name' => 'Lead Broker', 'account_status' => 'Active',
+        ])->assertSessionHasErrors('role_name');
+        $this->assertDatabaseMissing('users', ['email' => 'disallowed-lead@example.test']);
+
+        $this->actingAs($leadBroker)->withSession(['acting_as' => 'admin'])->get('/app/users')
+            ->assertOk()
+            ->assertSee('<option value="Admin"', false)
+            ->assertSee('<option value="Lead Broker"', false)
+            ->assertDontSee('<option value="Agent"', false)
+            ->assertDontSee('<option value="Broker"', false);
+
+        foreach ([
+            ['Admin', 'added-admin@example.test'],
+            ['Lead Broker', 'added-lead-broker@example.test'],
+        ] as [$role, $email]) {
+            $this->post(route('admin.users.store'), [
+                'name' => 'Added ' . $role, 'email' => $email, 'password' => 'InitialPass1!',
+                'role_name' => $role, 'account_status' => 'Active',
+            ])->assertRedirect(route('admin.users.index'));
+
+            $this->assertDatabaseHas('users', ['email' => $email, 'role_name' => $role]);
+        }
+    }
+
     public function test_appointments_split_into_monitoring_and_admin_project_tabs(): void
     {
         $admin = User::factory()->create(['role_name' => 'Admin']);

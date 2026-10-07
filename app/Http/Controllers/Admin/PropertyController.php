@@ -82,8 +82,6 @@ class PropertyController extends Controller
                     'sold_at' => $this->normalizeStatus($validated['property_status']) === 'Sold' ? now() : null,
                     'approval_status' => $isAdminLister ? 'Approved' : 'Pending',
                     'listing_mode' => $isAdminLister ? 'admin' : 'professional',
-                    'latitude' => 10.3157,
-                    'longitude' => 123.8854,
                     'featured' => $request->boolean('featured'),
                 ]);
                 $createdPropertyId = $property->property_id;
@@ -158,7 +156,9 @@ class PropertyController extends Controller
             GeocodeProperty::dispatchSync($propertyId);
         } catch (\Throwable $exception) {
             report($exception);
-            GeocodeProperty::dispatch($propertyId);
+            if (config('queue.default') !== 'sync') {
+                GeocodeProperty::dispatch($propertyId);
+            }
         }
     }
 

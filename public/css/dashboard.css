@@ -208,6 +208,7 @@
     display: grid;
     gap: 8px;
     width: 100%;
+    overflow: visible;
 }
 
 .calendar-days,
@@ -215,6 +216,7 @@
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 6px;
+    overflow: visible;
 }
 
 .calendar-days {
@@ -509,6 +511,7 @@
 /* Ensure calendar cells are positioned so the absolute tooltip aligns properly */
 .calendar-cell {
     position: relative;
+    overflow: visible;
 }
 
 /* Custom Tooltip Card */
@@ -516,17 +519,22 @@
     visibility: hidden;
     opacity: 0;
     position: absolute;
-    bottom: 105%; /* Positions it right above the cell */
+    bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    background: #1e293b; /* Dark modern theme */
+    width: 180px;
+    max-width: min(180px, calc(100vw - 48px));
+    min-width: 140px;
+    background: #1e293b;
     color: #ffffff;
-    padding: 6px 10px;
+    padding: 7px 10px;
     border-radius: 6px;
     font-size: 11px;
-    white-space: nowrap;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    z-index: 100;
+    z-index: 200;
     pointer-events: none;
     transition: opacity 0.15s ease-in-out, visibility 0.15s ease-in-out;
 }

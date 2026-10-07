@@ -63,8 +63,12 @@
 
 .notifications-list {
     min-width: 0;
-    overflow: auto;
+    overflow: visible;
     border-right: 1px solid var(--color-border);
+}
+
+.notifications-page .notifications-list {
+    border-radius: 8px 0 0 8px;
 }
 
 .notification-list-item {
@@ -115,6 +119,10 @@
 .notification-detail-header {
     padding-bottom: 20px;
     border-bottom: 1px solid var(--color-border);
+}
+
+.notification-detail-back {
+    display: none;
 }
 
 .notification-detail-kicker {
@@ -393,7 +401,114 @@
     flex: 0 0 16px;
 }
 
+.notifications-list > nav.ljs-pagination {
+    display: flex;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    padding: 10px 8px;
+    border-top: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.notifications-list.is-loading {
+    opacity: .55;
+    pointer-events: none;
+}
+
+.notification-pagination-status:not(:empty) {
+    margin: 0;
+    padding: 0 8px 8px;
+    color: var(--color-danger);
+    font-size: 11px;
+}
+
+.notifications-list > nav.notification-pagination {
+    width: 100%;
+    align-items: center;
+    overflow-x: hidden;
+}
+
+.notification-pagination-pages {
+    display: contents;
+}
+
+.notification-pagination-pages.is-mobile {
+    display: none;
+}
+
+.notifications-list > nav.ljs-pagination a,
+.notifications-list > nav.ljs-pagination span {
+    display: inline-flex;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    flex: 0 0 32px;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1;
+}
+
+.notifications-list > nav.notification-pagination a[aria-label^="Go to page"] {
+    border-color: transparent;
+    background: transparent;
+    color: var(--color-text-muted);
+}
+
+.notifications-list > nav.notification-pagination a[aria-label^="Go to page"]:hover {
+    border-color: transparent;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+.notifications-list > nav.notification-pagination .notification-page-current {
+    display: inline-flex;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    flex: 0 0 32px;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #2563eb !important;
+    border-radius: 6px;
+    background: #2563eb !important;
+    background-color: #2563eb !important;
+    color: #fff !important;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, .16);
+}
+
+.notifications-list > nav.notification-pagination > a[aria-label="Previous page"],
+.notifications-list > nav.notification-pagination > a[aria-label="Next page"],
+.notifications-list > nav.notification-pagination > span[aria-label="Previous page"],
+.notifications-list > nav.notification-pagination > span[aria-label="Next page"] {
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+}
+
 @media (max-width: 768px) {
+    .notification-pagination-pages.is-desktop {
+        display: none;
+    }
+
+    .notification-pagination-pages.is-mobile {
+        display: contents;
+    }
+
     .landing-page > main:has(.notifications-page) {
         padding-top: 68px;
     }
@@ -431,7 +546,9 @@
     }
 
     .notifications-list {
-        max-height: 230px;
+        /* No max-height cap — all items on the current page are shown, pagination navigates between pages */
+        max-height: none;
+        overflow: visible;
         border-right: 0;
         border-bottom: 1px solid var(--color-border);
     }
@@ -504,10 +621,16 @@
     .notifications-page.mobile-detail-open .notification-detail-panel {
         position: fixed;
         z-index: 1491;
-        inset: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+        /* Dynamically size to content — center vertically, cap at screen height */
+        top: 50%;
+        left: 12px;
+        right: 12px;
+        bottom: auto;
+        transform: translateY(-50%);
         display: block;
         width: auto;
-        max-height: none;
+        height: auto;
+        max-height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)) - 24px);
         overflow-x: hidden;
         overflow-y: auto;
         padding: 20px 16px;
@@ -515,6 +638,7 @@
         border-radius: 12px;
         background: var(--color-surface);
         box-shadow: 0 20px 55px rgba(15, 23, 42, .24);
+        overscroll-behavior: contain;
     }
     .notification-detail-action {
         display: inline-flex;

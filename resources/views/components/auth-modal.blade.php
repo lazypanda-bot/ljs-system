@@ -25,7 +25,7 @@
                 <label for="modalLoginPassword">Password</label>
                 <div class="password-field"><input id="modalLoginPassword" name="password" type="password" placeholder="Enter your password" required autocomplete="current-password"><button type="button" class="password-toggle" data-password-target="modalLoginPassword" aria-label="Show password">Show</button></div>
             </div>
-            <div class="auth-form-options"><label class="remember-me"><input type="checkbox" name="remember" value="1"> Remember me</label><button type="button" class="forgot-password-link" id="authForgotLink">Forgot password?</button></div>
+            <div class="auth-form-options"><button type="button" class="forgot-password-link" id="authForgotLink">Forgot password?</button></div>
             <div class="auth-login-status" id="authLoginStatus" role="alert" aria-live="polite"></div>
             <button type="submit" class="login-submit-btn">Login</button>
         </form>

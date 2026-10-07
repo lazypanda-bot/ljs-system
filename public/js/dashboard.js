@@ -43,6 +43,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const dayAppointments = appointments.filter((app) => String(app.preferred_date).slice(0, 10) === dateString);
         const dayBlockedDates = blockedDates.filter((blocked) => String(blocked.date).slice(0, 10) === dateString);
+        const formatTime = (value) => {
+            if (!value) return '';
+            const [hours, minutes] = String(value).split(':').map(Number);
+            const date = new Date();
+            date.setHours(hours || 0, minutes || 0, 0, 0);
+            return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        };
         
         // CLEAR EXISTING BADGES & TOOLTIPS TO PREVENT DUPLICATES
         let badgeContainer = cell.querySelector('.day-badges');
@@ -104,8 +111,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const blocker = blocked.blocked_by ? `Blocked by ${blocked.blocked_by}` : 'Blocked date';
                 const reason = blocked.reason ? `: ${blocked.reason}` : '';
+                const startTime = blocked.start_time ? formatTime(blocked.start_time) : 'All day';
+                const endTime = blocked.end_time ? ` - ${formatTime(blocked.end_time)}` : '';
                 const blockedLine = document.createElement('div');
-                blockedLine.textContent = `[${blocker}${reason}]`;
+                blockedLine.textContent = `[${blocker}${reason}] ${startTime}${endTime}`;
                 customTooltip.appendChild(blockedLine);
             });
 

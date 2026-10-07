@@ -103,6 +103,25 @@
     height: 18px;
 }
 
+#propertyResults {
+    transition: opacity 140ms ease;
+}
+
+#propertyResults.is-loading {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.property-filter-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
 /* Lifestyle */
 .lifestyle {
     display: flex !important;

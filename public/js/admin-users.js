@@ -1,9 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('[data-delete-user]').forEach((button) => {
-        button.addEventListener('click', () => window.deleteUser(button.dataset.deleteUser));
-    });
-    document.querySelectorAll('[data-delete-team]').forEach((button) => {
-        button.addEventListener('click', () => window.deleteTeam(button.dataset.deleteTeam));
+    document.addEventListener('click', (event) => {
+        const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+        const deleteUserButton = target?.closest('[data-delete-user]');
+        const deleteTeamButton = target?.closest('[data-delete-team]');
+        if (deleteUserButton) window.deleteUser(deleteUserButton.dataset.deleteUser);
+        if (deleteTeamButton) window.deleteTeam(deleteTeamButton.dataset.deleteTeam);
     });
 
     // Tab switching
@@ -151,15 +152,19 @@ document.addEventListener('DOMContentLoaded', function() {
         credentialPdf.removeAttribute('src');
     }
 
-    document.querySelectorAll('[data-view-credential]').forEach((button) => {
-        button.addEventListener('click', () => {
-            const isPdf = button.dataset.credentialType === 'pdf';
-            document.getElementById('credentialViewerTitle').textContent = `${button.dataset.credentialOwner}'s credential`;
-            credentialImage.hidden = isPdf;
-            credentialPdf.hidden = !isPdf;
-            (isPdf ? credentialPdf : credentialImage).src = button.dataset.viewCredential;
-            openModal(credentialOverlay);
-        });
+    const openCredential = (button) => {
+        const isPdf = button.dataset.credentialType === 'pdf';
+        document.getElementById('credentialViewerTitle').textContent = `${button.dataset.credentialOwner}'s credential`;
+        credentialImage.hidden = isPdf;
+        credentialPdf.hidden = !isPdf;
+        (isPdf ? credentialPdf : credentialImage).src = button.dataset.viewCredential;
+        openModal(credentialOverlay);
+    };
+
+    document.addEventListener('click', (event) => {
+        const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+        const credentialButton = target?.closest('[data-view-credential]');
+        if (credentialButton) openCredential(credentialButton);
     });
     document.getElementById('closeCredentialViewer')?.addEventListener('click', closeCredentialViewer);
     credentialOverlay?.addEventListener('click', (event) => {
@@ -168,16 +173,71 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Search Users
     const searchUsers = document.getElementById('searchUsers');
-    if (searchUsers) {
-        searchUsers.addEventListener('input', function() {
-            const searchTerm = this.value.trim().toLowerCase();
-            const tableRows = document.querySelectorAll('.au-tab-content.active tbody tr');
-
-            tableRows.forEach(row => {
-                row.style.display = (row.textContent || '').toLowerCase().includes(searchTerm) ? '' : 'none';
-            });
+    const usersTable = document.getElementById('usersTableContent');
+    const filterUserRows = () => {
+        const searchTerm = (searchUsers?.value || '').trim().toLowerCase();
+        usersTable?.querySelectorAll('tbody tr').forEach((row) => {
+            row.style.display = !searchTerm || (row.textContent || '').toLowerCase().includes(searchTerm) ? '' : 'none';
         });
-    }
+    };
+    searchUsers?.addEventListener('input', filterUserRows);
+
+    let activeUsersRequest;
+    const loadUsersPage = async (url, updateHistory = true) => {
+        if (!usersTable) return;
+        const targetUrl = new URL(url, window.location.href);
+        if (targetUrl.hostname !== window.location.hostname) return;
+        targetUrl.searchParams.delete('table_only');
+        const relativeUrl = `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+
+        activeUsersRequest?.abort();
+        const request = new AbortController();
+        activeUsersRequest = request;
+        usersTable.setAttribute('aria-busy', 'true');
+        usersTable.classList.add('is-loading');
+
+        const fetchUrl = new URL(relativeUrl, window.location.href);
+        fetchUrl.searchParams.set('table_only', '1');
+
+        try {
+            const response = await fetch(fetchUrl, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+                signal: request.signal,
+            });
+            if (!response.ok) throw new Error(`Request failed (${response.status}).`);
+            const data = await response.json();
+            const template = document.createElement('template');
+            template.innerHTML = data.html;
+            const updatedTable = template.content.querySelector('#usersTableContent');
+            if (!updatedTable) throw new Error('User table was not returned.');
+
+            usersTable.innerHTML = updatedTable.innerHTML;
+            usersTable.querySelectorAll('select[data-auto-submit]').forEach((control) => {
+                control.addEventListener('change', () => control.form?.requestSubmit());
+            });
+            filterUserRows();
+            if (updateHistory) window.history.pushState({}, '', relativeUrl);
+        } catch (error) {
+            if (error.name !== 'AbortError') console.error('Unable to load users page:', error);
+        } finally {
+            if (activeUsersRequest === request) {
+                activeUsersRequest = null;
+                usersTable.removeAttribute('aria-busy');
+                usersTable.classList.remove('is-loading');
+            }
+        }
+    };
+
+    usersTable?.addEventListener('click', (event) => {
+        const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+        const link = target?.closest('.au-pagination a');
+        if (!link) return;
+        event.preventDefault();
+        loadUsersPage(link.href);
+    });
+
+    window.addEventListener('popstate', () => loadUsersPage(window.location.href, false));
 
     // Delete User
     window.deleteUser = async function(userId) {

@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\AppNotification;
 use App\Models\Property;
+use App\Models\Team;
+use App\Models\TeamMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -34,6 +36,108 @@ class RoleScopedNotificationsTest extends TestCase
 
         $foreign = AppNotification::where('user_id', $clientB->user_id)->first();
         $this->get(route('notifications.open', $foreign))->assertForbidden();
+    }
+
+    public function test_notifications_pagination_omits_the_result_summary(): void
+    {
+        $user = User::factory()->create(['role_name' => 'Agent']);
+        for ($index = 1; $index <= 100; $index++) {
+            $this->note($user, ['title' => 'Notification ' . $index]);
+        }
+
+        $this->actingAs($user)->get(route('notifications.index', ['page' => 10]))
+            ->assertOk()
+            ->assertSee('class="ljs-pagination notification-pagination"', false)
+            ->assertSee('aria-label="Next page"', false)
+            ->assertSeeInOrder([
+                'notification-pagination-pages is-desktop', '>7</a>', '>8</a>', '>9</a>', '>10</span>', '>11</a>', '>12</a>', '>13</a>', '>14</a>',
+                'notification-pagination-pages is-mobile', '>9</a>', '>10</span>', '>11</a>',
+            ], false)
+            ->assertSee('notification-page-current', false)
+            ->assertSee('href="/notifications?page=9"', false)
+            ->assertDontSee('href="http://', false)
+            ->assertDontSee('>15</a>', false)
+            ->assertDontSee('Showing');
+    }
+
+    public function test_notification_list_only_pagination_does_not_mark_items_read(): void
+    {
+        $user = User::factory()->create(['role_name' => 'Agent']);
+        for ($index = 1; $index <= 70; $index++) {
+            $this->note($user, ['title' => 'Ajax notification ' . $index]);
+        }
+
+        $pageTwoNotification = AppNotification::query()
+            ->where('user_id', $user->user_id)
+            ->where('title', 'Ajax notification 2')
+            ->firstOrFail();
+        $selectedNotification = AppNotification::query()
+            ->where('user_id', $user->user_id)
+            ->where('title', 'Ajax notification 70')
+            ->firstOrFail();
+
+        $response = $this->actingAs($user)
+            ->getJson(route('notifications.index', [
+                'selected' => $selectedNotification->notification_id,
+                'page' => 14,
+                'list_only' => 1,
+            ]))
+            ->assertOk()
+            ->assertJsonStructure(['html']);
+
+        $this->assertStringContainsString('Ajax notification 2', $response->json('html'));
+        $this->assertNull($pageTwoNotification->fresh()->read_at);
+    }
+
+    public function test_notification_detail_does_not_render_open_related_item_action(): void
+    {
+        $user = User::factory()->create(['role_name' => 'Agent']);
+        $notification = $this->note($user, [
+            'title' => 'Property listing notice',
+            'url' => route('properties'),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('notifications.index', ['selected' => $notification->notification_id]))
+            ->assertOk()
+            ->assertSee('Property listing notice')
+            ->assertDontSee('Open related item');
+    }
+
+    public function test_broker_sees_team_and_own_notifications_but_not_system_events(): void
+    {
+        $broker = User::factory()->create(['role_name' => 'Broker']);
+        $agent = User::factory()->create(['role_name' => 'Agent']);
+        $team = Team::create(['user_id' => $broker->user_id, 'team_name' => 'Alpha Team']);
+        TeamMember::create(['team_id' => $team->team_id, 'user_id' => $agent->user_id, 'status' => 'Approved']);
+
+        $this->note($broker, ['title' => 'Broker own listing']);
+        $this->note($agent, ['title' => 'Team agent listing']);
+        $this->note($broker, ['title' => 'System oversight', 'audience' => 'system']);
+
+        $this->actingAs($broker)
+            ->get(route('notifications.index'))
+            ->assertSee('Broker own listing')
+            ->assertSee('Team agent listing')
+            ->assertDontSee('System oversight');
+
+        $this->get(route('notifications.count'))->assertJson(['count' => 2]);
+    }
+
+    public function test_agent_only_sees_own_notifications(): void
+    {
+        $agentA = User::factory()->create(['role_name' => 'Agent']);
+        $agentB = User::factory()->create(['role_name' => 'Agent']);
+
+        $this->note($agentA, ['title' => 'Agent own item']);
+        $this->note($agentB, ['title' => 'Other agent item']);
+
+        $this->actingAs($agentA)
+            ->get(route('notifications.index'))
+            ->assertSee('Agent own item')
+            ->assertDontSee('Other agent item');
+
+        $this->get(route('notifications.count'))->assertJson(['count' => 1]);
     }
 
     public function test_lead_broker_feed_is_separated_by_mode(): void

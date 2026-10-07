@@ -15,14 +15,43 @@ window.LjsAvailability = {
         dateInput.readOnly = true;
         dateInput.placeholder = 'Select a date';
         dateInput.autocomplete = 'off';
-        const host = dateInput.closest('label') || dateInput.parentElement;
-        host.style.position = 'relative';
 
+        const inputWrapper = document.createElement('div');
+        inputWrapper.style.position = 'relative';
+        inputWrapper.style.width = '100%';
+        inputWrapper.style.display = 'block';
+        inputWrapper.style.minWidth = '0';
+
+        if (dateInput.parentNode) {
+            dateInput.parentNode.insertBefore(inputWrapper, dateInput);
+            inputWrapper.appendChild(dateInput);
+        }
+
+        const host = inputWrapper;
         const pop = document.createElement('div');
         pop.className = 'availability-calendar';
         pop.hidden = true;
-        host.appendChild(pop);
-        pop.addEventListener('click', (event) => event.preventDefault());
+        document.body.appendChild(pop);
+        pop.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+        });
+
+        const positionPop = () => {
+            if (pop.hidden) return;
+            const rect = host.getBoundingClientRect();
+            const width = Math.max(Math.min(rect.width || 260, 320), 240);
+            const maxLeft = window.innerWidth - width - 12;
+            const left = Math.min(Math.max(12, rect.left), maxLeft);
+            const height = pop.offsetHeight;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const top = spaceBelow >= height + 8 || spaceBelow >= rect.top
+                ? rect.bottom + 8
+                : rect.top - height - 8;
+            pop.style.width = `${width}px`;
+            pop.style.left = `${left}px`;
+            pop.style.top = `${Math.max(12, Math.min(top, window.innerHeight - height - 12))}px`;
+        };
 
         const isClosed = (d) => d < today || d > maxDate || unavailable.has(iso(d));
 
@@ -56,10 +85,11 @@ window.LjsAvailability = {
                 const response = await fetch(url, { headers: { Accept: 'application/json' } });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.message || 'Could not load available times.');
-                const slots = data.all_slots || data.slots.map((s) => ({ ...s, available: true }));
-                const open = slots.filter((s) => s.available).length;
+                const slots = (data.all_slots || data.slots || []).map((slot) => ({ ...slot, available: Boolean(slot.available) }));
+                const open = slots.filter((slot) => slot.available).length;
+                const orderedSlots = [...slots.filter((slot) => slot.available), ...slots.filter((slot) => !slot.available)];
                 timeSelect.replaceChildren(new Option(open ? 'Select an available time' : 'No times available', ''));
-                slots.forEach((slot) => {
+                orderedSlots.forEach((slot) => {
                     const option = new Option(slot.available ? slot.label : `${slot.label} (unavailable)`, slot.local_time);
                     option.dataset.slotUtc = slot.value;
                     option.disabled = !slot.available;
@@ -95,6 +125,7 @@ window.LjsAvailability = {
             if (!datesLoaded) loadDates();
             render();
             pop.hidden = false;
+            requestAnimationFrame(positionPop);
         };
 
         dateInput.addEventListener('click', open);
@@ -103,20 +134,30 @@ window.LjsAvailability = {
         pop.addEventListener('click', (event) => {
             const nav = event.target.closest('[data-nav]');
             if (nav) {
+                event.stopPropagation();
                 view = new Date(view.getFullYear(), view.getMonth() + Number(nav.dataset.nav), 1);
                 render();
+                positionPop();
                 return;
             }
             const day = event.target.closest('.availability-day');
             if (day && !day.disabled) {
+                event.stopPropagation();
                 dateInput.value = day.dataset.date;
                 pop.hidden = true;
                 loadSlots();
+                return;
             }
         });
         document.addEventListener('click', (event) => {
-            if (!host.contains(event.target)) pop.hidden = true;
+            if (!host.contains(event.target) && !pop.contains(event.target)) pop.hidden = true;
         });
+        window.addEventListener('resize', () => {
+            if (!pop.hidden) positionPop();
+        });
+        window.addEventListener('scroll', () => {
+            if (!pop.hidden) positionPop();
+        }, true);
 
         timeSelect.addEventListener('change', () => {
             utcField.value = timeSelect.selectedOptions[0]?.dataset.slotUtc || '';

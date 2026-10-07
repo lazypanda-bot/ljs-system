@@ -194,6 +194,29 @@ class MessagingSearchAttachmentTest extends TestCase
             ->assertSee('Team notification');
     }
 
+    public function test_team_conversation_menu_lists_members_before_delete(): void
+    {
+        $owner = User::factory()->create(['role_name' => 'Broker', 'name' => 'Team Owner']);
+        $agent = User::factory()->create(['role_name' => 'Agent', 'name' => 'Team Agent']);
+        $lead = User::factory()->create(['role_name' => 'Lead Broker', 'name' => 'Team Lead']);
+        $conversation = Conversation::create(['type' => 'team', 'created_by' => $owner->user_id]);
+        $conversation->participants()->createMany([
+            ['user_id' => $owner->user_id],
+            ['user_id' => $agent->user_id],
+            ['user_id' => $lead->user_id],
+        ]);
+
+        $this->actingAs($owner)->get(route('messages.inbox'))
+            ->assertOk()
+            ->assertSeeInOrder(['See Members', 'Delete'])
+            ->assertSee('Members')
+            ->assertSee('Team Owner')
+            ->assertSee('Team Agent')
+            ->assertSee('Team Lead')
+            ->assertSee('data-members-modal', false)
+            ->assertSee('role="dialog"', false);
+    }
+
     public function test_removing_conversation_hides_it_only_for_current_user_until_new_message(): void
     {
         [$firstUser, $secondUser] = [

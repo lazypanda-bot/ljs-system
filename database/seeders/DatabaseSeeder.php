@@ -16,21 +16,30 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $adminEmail = env('ADMIN_EMAIL');
-        $adminPassword = env('ADMIN_PASSWORD');
+        // $adminEmail = env('ADMIN_EMAIL');
+        // $adminPassword = env('ADMIN_PASSWORD');
 
-        if (! $adminEmail || ! $adminPassword) {
-            throw new \RuntimeException('ADMIN_EMAIL and ADMIN_PASSWORD must be set before seeding the admin account.');
-        }
+        // if (! $adminEmail || ! $adminPassword) {
+        //     throw new \RuntimeException('ADMIN_EMAIL and ADMIN_PASSWORD must be set before seeding the admin account.');
+        // }
 
-        $admin = User::withTrashed()->firstOrNew(['email' => $adminEmail]);
-        $admin->restore();
-        $admin->fill([
-            'name' => env('ADMIN_NAME', 'Admin'),
-            'password' => Hash::make($adminPassword),
-            'account_status' => 'Active',
-            'role_name' => 'Admin',
-        ]);
-        $admin->save();
+        // $admin = User::withTrashed()->firstOrNew(['email' => $adminEmail]);
+        // $admin->restore();
+        // $admin->fill([
+        //     'name' => env('ADMIN_NAME', 'Admin'),
+        //     'password' => Hash::make($adminPassword),
+        //     'account_status' => 'Active',
+        //     'role_name' => 'Admin',
+        // ]);
+        // $admin->save();
+        User::updateOrCreate(
+            ['email' => 'deanna.montejo@lsu.edu.ph'],
+            [
+                'name' => 'Lead Broker',
+                'password' => Hash::make('deannamontejo'),
+                'account_status' => 'Active',
+                'role_name' => 'Lead Broker', 
+            ]
+        );
     }
 }

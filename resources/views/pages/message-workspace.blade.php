@@ -32,12 +32,36 @@
                     <div class="thread-menu-wrap">
                         <button type="button" class="thread-menu-toggle" aria-label="Conversation actions" aria-haspopup="menu" aria-expanded="false" data-thread-menu-toggle><i data-lucide="ellipsis" aria-hidden="true"></i></button>
                         <div class="thread-action-menu" role="menu" hidden>
+                            @if ($item->type === 'team')
+                                <button type="button" class="thread-action-members" role="menuitem" data-open-members-modal="conversation-members-{{ $item->conversation_id }}">See Members</button>
+                            @endif
                             <form method="POST" action="{{ $removeConversationUrl }}" data-confirm-message="Remove this conversation from your inbox? Other participants will keep their conversation history.">
                                 @csrf @method('DELETE')
-                                        <button type="submit" role="menuitem">Delete</button>
+                                <button type="submit" role="menuitem">Delete</button>
                             </form>
                         </div>
                     </div>
+                    @if ($item->type === 'team')
+                        <div class="members-modal" id="conversation-members-{{ $item->conversation_id }}" data-members-modal hidden aria-hidden="true">
+                            <section class="members-dialog" role="dialog" aria-modal="true" aria-labelledby="conversation-members-title-{{ $item->conversation_id }}" tabindex="-1">
+                                <header class="members-dialog-header">
+                                    <div><span>GROUP CHAT</span><h2 id="conversation-members-title-{{ $item->conversation_id }}">Members</h2><p>{{ $item->participants->count() }} participants</p></div>
+                                    <button type="button" class="members-dialog-close" data-close-members-modal aria-label="Close members list">&times;</button>
+                                </header>
+                                <ul class="members-list">
+                                    @foreach ($item->participants as $participant)
+                                        @if ($participant->user)
+                                            <li class="member-list-item">
+                                                <span class="member-avatar role-{{ $participant->user->normalizedRole() }}">{{ strtoupper(substr($participant->user->name, 0, 1)) }}</span>
+                                                <span class="member-copy"><strong>{{ $participant->user->name }}</strong><small>{{ $participant->user->role_name }}</small></span>
+                                                @if ((int) $participant->user_id === (int) auth()->id())<span class="member-you-label">You</span>@endif
+                                            </li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                            </section>
+                        </div>
+                    @endif
                 </div>
             @empty
                 <p class="empty-chat">No conversations yet.</p>

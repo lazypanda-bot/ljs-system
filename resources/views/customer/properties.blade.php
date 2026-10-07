@@ -20,7 +20,7 @@
 
     {{-- SEARCH BAR --}}
     <div class="filter-bar">
-        <form action="{{ route('properties') }}" method="GET" class="filter-form">
+        <form action="{{ route('properties') }}" method="GET" class="filter-form" id="propertyFilterForm">
                 
             <!-- Type Filter -->
             <div class="filter-group">
@@ -49,9 +49,9 @@
                 <label>Price Range</label>
                 <select name="price_range" class="filter-select">
                     <option value="">All</option>
-                    <option value="0-5m">₱0 - ₱5M</option>
-                    <option value="5m-10m">₱5M - ₱10M</option>
-                    <option value="10m+">₱10M+</option>
+                    <option value="0-5m" @selected(request('price_range') === '0-5m')>₱0 - ₱5M</option>
+                    <option value="5m-10m" @selected(request('price_range') === '5m-10m')>₱5M - ₱10M</option>
+                    <option value="10m+" @selected(request('price_range') === '10m+')>₱10M+</option>
                 </select>
             </div>
 
@@ -59,10 +59,10 @@
             <div class="filter-group">
                 <label>Sort by</label>
                 <select name="sort" class="filter-select">
-                    <option value="featured">Featured</option>
-                    <option value="price_low">Price: Low to High</option>
-                    <option value="price_high">Price: High to Low</option>
-                    <option value="latest">Latest</option>
+                    <option value="featured" @selected(request('sort', 'featured') === 'featured')>Featured</option>
+                    <option value="price_low" @selected(request('sort') === 'price_low')>Price: Low to High</option>
+                    <option value="price_high" @selected(request('sort') === 'price_high')>Price: High to Low</option>
+                    <option value="latest" @selected(request('sort') === 'latest')>Latest</option>
                 </select>
             </div>
 
@@ -79,6 +79,7 @@
     </div>
 
         <!-- PROPERTIES GRID -->
+        <div id="propertyResults">
         <div class="properties-grid">
             @forelse ($properties as $item)
                 @php
@@ -137,7 +138,108 @@
             @endforelse
         </div>
         {{ $properties->links('pagination.ljs') }}
+        </div>
+        <p class="property-filter-status" id="propertyFilterStatus" role="status" aria-live="polite" aria-atomic="true"></p>
 
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('propertyFilterForm');
+        const results = document.getElementById('propertyResults');
+        const status = document.getElementById('propertyFilterStatus');
+        if (!form || !results) return;
+
+        let activeRequest;
+        let searchTimer;
+
+        const loadResults = async (url, updateHistory = true) => {
+            activeRequest?.abort();
+            const request = new AbortController();
+            activeRequest = request;
+            form.setAttribute('aria-busy', 'true');
+            results.classList.add('is-loading');
+
+            try {
+                const response = await fetch(url, {
+                    headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' },
+                    signal: request.signal,
+                });
+                if (!response.ok) throw new Error('Unable to load properties.');
+
+                const documentFromResponse = new DOMParser().parseFromString(await response.text(), 'text/html');
+                const updatedResults = documentFromResponse.querySelector('#propertyResults');
+                if (!updatedResults) throw new Error('Property results were not found.');
+
+                results.innerHTML = updatedResults.innerHTML;
+                if (updateHistory && url.href !== window.location.href) {
+                    window.history.pushState({}, '', url);
+                }
+                const count = results.querySelectorAll('.property-card').length;
+                if (status) status.textContent = `${count} ${count === 1 ? 'property' : 'properties'} shown.`;
+            } catch (error) {
+                if (error.name !== 'AbortError' && status) {
+                    status.textContent = 'Unable to update properties. Please try again.';
+                }
+            } finally {
+                if (activeRequest === request) {
+                    activeRequest = null;
+                    form.removeAttribute('aria-busy');
+                    results.classList.remove('is-loading');
+                }
+            }
+        };
+
+        const submitFilters = () => {
+            const url = new URL(form.action, window.location.href);
+            new FormData(form).forEach((value, name) => {
+                if (String(value).trim()) url.searchParams.set(name, String(value));
+                else url.searchParams.delete(name);
+            });
+            url.searchParams.delete('page');
+            loadResults(url);
+        };
+
+        const restoreFiltersFromUrl = () => {
+            const url = new URL(window.location.href);
+            form.querySelectorAll('select[name], input[name="search"]').forEach((field) => {
+                const defaultValue = field.name === 'sort' ? 'featured' : '';
+                field.value = url.searchParams.get(field.name) ?? defaultValue;
+            });
+            loadResults(url, false);
+        };
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            submitFilters();
+        });
+
+        const autoSubmitFields = form.querySelectorAll('select, input[name="search"]');
+        autoSubmitFields.forEach((field) => {
+            if (field.matches('select')) {
+                field.addEventListener('change', submitFilters);
+                return;
+            }
+
+            field.addEventListener('input', () => {
+                window.clearTimeout(searchTimer);
+                searchTimer = window.setTimeout(submitFilters, 350);
+            });
+        });
+
+        results.addEventListener('click', (event) => {
+            const link = event.target.closest('a[href]');
+            if (!link) return;
+            const url = new URL(link.href, window.location.href);
+            if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return;
+            event.preventDefault();
+            loadResults(url);
+        });
+
+        window.addEventListener('popstate', restoreFiltersFromUrl);
+    });
+</script>
+@endpush

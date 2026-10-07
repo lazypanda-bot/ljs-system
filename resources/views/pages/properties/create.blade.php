@@ -72,10 +72,10 @@
                 <div class="property-create-section-title"><span>04</span><div><h2 id="createDetailsHeading">Property details</h2><p>Measurements and practical details for prospective clients.</p></div></div>
                 <p class="property-detail-hint" data-detail-hint aria-live="polite"></p>
                 <div class="property-create-fields property-create-fields-four">
-                    <label class="property-create-field"><span>Lot area (sqm)<b class="detail-required-mark" hidden> *</b></span><input type="number" min="0" step="0.01" name="lot_area" value="{{ old('lot_area') }}"></label>
-                    <label class="property-create-field"><span>Floor area (sqm)<b class="detail-required-mark" hidden> *</b></span><input type="number" min="0" step="0.01" name="floor_area" value="{{ old('floor_area') }}"></label>
-                    <label class="property-create-field"><span>Bedrooms<b class="detail-required-mark" hidden> *</b></span><input type="number" min="0" name="bedrooms" value="{{ old('bedrooms') }}"></label>
-                    <label class="property-create-field"><span>Bathrooms<b class="detail-required-mark" hidden> *</b></span><input type="number" min="0" name="bathrooms" value="{{ old('bathrooms') }}"></label>
+                    <label class="property-create-field"><span>Lot area (sqm)</span><input type="number" min="0" step="0.01" name="lot_area" value="{{ old('lot_area') }}"></label>
+                    <label class="property-create-field"><span>Floor area (sqm)</span><input type="number" min="0" step="0.01" name="floor_area" value="{{ old('floor_area') }}"></label>
+                    <label class="property-create-field"><span>Bedrooms</span><input type="number" min="0" name="bedrooms" value="{{ old('bedrooms') }}"></label>
+                    <label class="property-create-field"><span>Bathrooms</span><input type="number" min="0" name="bathrooms" value="{{ old('bathrooms') }}"></label>
                     <label class="property-create-field"><span>Parking spaces</span><input type="number" min="0" name="parking_spaces" value="{{ old('parking_spaces', 0) }}"></label>
                     <label class="property-create-field"><span>Number of floors</span><input type="number" min="1" name="number_of_floors" value="{{ old('number_of_floors', 1) }}"></label>
                     <label class="property-create-field"><span>Property condition</span><input name="property_condition" value="{{ old('property_condition') }}" maxlength="255" placeholder="Optional"></label>
@@ -204,32 +204,105 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // const fileInput = document.getElementById('propertyImages');
+    // const dropzone = document.getElementById('dropzoneTrigger');
+    // const previews = document.getElementById('imagePreviewContainer');
+    // if (fileInput && dropzone && previews) {
+    //     dropzone.addEventListener('click', function () { fileInput.click(); });
+    //     fileInput.addEventListener('change', function () {
+    //         previews.replaceChildren();
+    //         Array.from(fileInput.files).forEach(function (file) {
+    //             const card = document.createElement('div');
+    //             card.className = 'property-image-preview';
+    //             const image = document.createElement('img');
+    //             image.alt = file.name;
+    //             image.src = URL.createObjectURL(file);
+    //             const caption = document.createElement('span');
+    //             caption.textContent = file.name;
+    //             card.append(image, caption);
+    //             previews.appendChild(card);
+    //         });
+    //     });
+    //     dropzone.addEventListener('dragover', function (event) { event.preventDefault(); dropzone.classList.add('is-dragging'); });
+    //     dropzone.addEventListener('dragleave', function () { dropzone.classList.remove('is-dragging'); });
+    //     dropzone.addEventListener('drop', function (event) {
+    //         event.preventDefault();
+    //         dropzone.classList.remove('is-dragging');
+    //         fileInput.files = event.dataTransfer.files;
+    //         fileInput.dispatchEvent(new Event('change'));
+    //     });
+    // }
+
     const fileInput = document.getElementById('propertyImages');
     const dropzone = document.getElementById('dropzoneTrigger');
     const previews = document.getElementById('imagePreviewContainer');
+    
     if (fileInput && dropzone && previews) {
-        dropzone.addEventListener('click', function () { fileInput.click(); });
-        fileInput.addEventListener('change', function () {
+        let selectedFiles = []; // Array to store accumulated files
+
+        function updateFileList() {
+            const dataTransfer = new DataTransfer();
+            selectedFiles.forEach(file => dataTransfer.items.add(file));
+            fileInput.files = dataTransfer.files;
+        }
+
+        function renderPreviews() {
             previews.replaceChildren();
-            Array.from(fileInput.files).forEach(function (file) {
+            selectedFiles.forEach((file, index) => {
                 const card = document.createElement('div');
                 card.className = 'property-image-preview';
+                
                 const image = document.createElement('img');
                 image.alt = file.name;
                 image.src = URL.createObjectURL(file);
+                
                 const caption = document.createElement('span');
                 caption.textContent = file.name;
-                card.append(image, caption);
+
+                // Create individual remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'property-remove-image';
+                removeBtn.textContent = '×';
+                
+                removeBtn.addEventListener('click', function () {
+                    selectedFiles.splice(index, 1);
+                    updateFileList();
+                    renderPreviews();
+                });
+
+                card.append(image, caption, removeBtn);
                 previews.appendChild(card);
             });
+        }
+
+        dropzone.addEventListener('click', function () { fileInput.click(); });
+
+        fileInput.addEventListener('change', function () {
+            Array.from(fileInput.files).forEach(file => {
+                // Prevent duplicate files based on name and size
+                if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                }
+            });
+            updateFileList();
+            renderPreviews();
         });
+
         dropzone.addEventListener('dragover', function (event) { event.preventDefault(); dropzone.classList.add('is-dragging'); });
         dropzone.addEventListener('dragleave', function () { dropzone.classList.remove('is-dragging'); });
+        
         dropzone.addEventListener('drop', function (event) {
             event.preventDefault();
             dropzone.classList.remove('is-dragging');
-            fileInput.files = event.dataTransfer.files;
-            fileInput.dispatchEvent(new Event('change'));
+            
+            Array.from(event.dataTransfer.files).forEach(file => {
+                if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                }
+            });
+            updateFileList();
+            renderPreviews();
         });
     }
 });

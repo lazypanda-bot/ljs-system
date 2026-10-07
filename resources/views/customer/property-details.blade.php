@@ -196,7 +196,7 @@
     @auth
     <div id="appointmentModal" class="modal-overlay {{ $errors->any() ? 'active' : '' }}" @if ($errors->any()) style="display:flex" @endif>
         <div class="modal-content appointment-create-page" role="dialog" aria-modal="true" aria-labelledby="appointmentModalTitle">
-            <button type="button" onclick="closeAppointmentModal()" aria-label="Close">&times;</button>
+            <button type="button" class="appointment-modal-close" onclick="closeAppointmentModal()" aria-label="Close">&times;</button>
             <h1 id="appointmentModalTitle">Book a viewing</h1>
             <p>{{ $property->property_name }}</p>
             @if ($errors->any())

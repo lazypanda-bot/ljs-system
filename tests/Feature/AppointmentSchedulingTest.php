@@ -106,6 +106,20 @@ class AppointmentSchedulingTest extends TestCase
         $this->get(route('notifications.index'))->assertRedirect(route('home'));
     }
 
+    public function test_booking_modal_renders_an_explicit_close_button(): void
+    {
+        $professional = User::factory()->create(['role_name' => 'Agent']);
+        $client = User::factory()->create(['role_name' => 'Client']);
+        [$property] = $this->createAssignment($professional, 'Close button home');
+
+        $this->actingAs($client)
+            ->get(route('properties.show', $property))
+            ->assertOk()
+            ->assertSee('class="appointment-modal-close"', false)
+            ->assertSee('onclick="closeAppointmentModal()"', false)
+            ->assertSee('aria-label="Close"', false);
+    }
+
     public function test_public_availability_endpoint_returns_client_local_labels_and_utc_values(): void
     {
         $this->actingAs(User::factory()->create(['role_name' => 'Client']));
@@ -193,6 +207,7 @@ class AppointmentSchedulingTest extends TestCase
         $this->assertSame('Accepted', $proposal->fresh()->status);
         $this->assertSame($clientLocalProposal->toDateString(), $appointment->fresh()->preferred_date->format('Y-m-d'));
         $this->assertSame($clientLocalProposal->format('H:i'), substr($appointment->fresh()->preferred_time, 0, 5));
+        $this->assertSame('Confirmed', $appointment->fresh()->appointment_status);
         $this->assertDatabaseHas('app_notifications', [
             'user_id' => $client->user_id,
             'title' => 'Appointment time proposal accepted',
@@ -209,6 +224,7 @@ class AppointmentSchedulingTest extends TestCase
         $originalStart = CarbonImmutable::parse('2030-01-10 10:00', 'Asia/Manila')->utc();
         $newStart = CarbonImmutable::parse('2030-01-10 11:00', 'Asia/Manila')->utc();
         $appointment = $this->createAppointment($assignment, $client, $originalStart, $client->timezone);
+        $appointment->update(['appointment_status' => 'Confirmed']);
         $professionalLocalProposal = $newStart->setTimezone($professional->timezone);
 
         $this->actingAs($professional)
@@ -245,9 +261,19 @@ class AppointmentSchedulingTest extends TestCase
             ->assertRedirect();
 
         $this->assertTrue($appointment->fresh()->starts_at_utc->equalTo($newStart));
+        $this->assertSame('Pending', $appointment->fresh()->appointment_status);
         $this->assertDatabaseHas('app_notifications', [
             'user_id' => $professional->user_id,
             'title' => 'Appointment time proposal accepted',
+        ]);
+
+        $this->actingAs($professional)
+            ->patch(route('appointments.status', $appointment), ['appointment_status' => 'Confirmed'])
+            ->assertRedirect();
+        $this->assertSame('Confirmed', $appointment->fresh()->appointment_status);
+        $this->assertDatabaseHas('app_notifications', [
+            'user_id' => $client->user_id,
+            'title' => 'Appointment confirmed',
         ]);
     }
 
@@ -273,7 +299,7 @@ class AppointmentSchedulingTest extends TestCase
         ]);
     }
 
-    public function test_status_update_is_one_time_and_the_updated_status_stays_locked(): void
+    public function test_confirmed_appointment_keeps_status_controls_until_a_terminal_status(): void
     {
         Mail::fake();
         $professional = User::factory()->create(['role_name' => 'Agent']);
@@ -281,10 +307,16 @@ class AppointmentSchedulingTest extends TestCase
         [, $assignment] = $this->createAssignment($professional, 'Locked status home');
         $appointment = $this->createAppointment($assignment, $client, CarbonImmutable::now('UTC')->addDays(3));
 
-        $this->actingAs($professional)
-            ->get(route('appointments.index'))
+        $pendingView = $this->actingAs($professional)->get(route('appointments.index'));
+        $pendingView
             ->assertOk()
-            ->assertSee('Update status');
+            ->assertSee('Update status')
+            ->assertSee('class="appointment-status-control"', false);
+        $statusHeaderPosition = strpos($pendingView->getContent(), '<th>STATUS</th>');
+        $statusControlPosition = strpos($pendingView->getContent(), 'class="appointment-status-control"');
+        $actionsCellPosition = strpos($pendingView->getContent(), '<td class="text-end">', $statusControlPosition);
+        $this->assertGreaterThan($statusHeaderPosition, $statusControlPosition);
+        $this->assertGreaterThan($statusControlPosition, $actionsCellPosition);
 
         $this->patch(route('appointments.status', $appointment), ['appointment_status' => 'Confirmed'])
             ->assertRedirect();
@@ -292,13 +324,21 @@ class AppointmentSchedulingTest extends TestCase
         $this->get(route('appointments.index'))
             ->assertOk()
             ->assertSee('Confirmed')
-            ->assertDontSee('Update status')
+            ->assertSee('class="appointment-status-control"', false)
+            ->assertSee('<option value="Confirmed" selected>Confirmed</option>', false)
             ->assertDontSee('(Asia/Manila)');
 
         $this->patch(route('appointments.status', $appointment), ['appointment_status' => 'Completed'])
-            ->assertStatus(409);
+            ->assertRedirect();
 
-        $this->assertSame('Confirmed', $appointment->fresh()->appointment_status);
+        $this->assertSame('Completed', $appointment->fresh()->appointment_status);
+        $this->assertDatabaseHas('app_notifications', [
+            'user_id' => $client->user_id,
+            'title' => 'How was your experience?',
+        ]);
+        $this->patch(route('appointments.status', $appointment), ['appointment_status' => 'Cancelled'])
+            ->assertStatus(409);
+        $this->assertSame('Completed', $appointment->fresh()->appointment_status);
     }
 
     public function test_clients_only_see_their_appointments_but_admins_see_all(): void
@@ -324,6 +364,28 @@ class AppointmentSchedulingTest extends TestCase
             ->assertOk()
             ->assertSee('Private client home')
             ->assertSee('Other client home');
+    }
+
+    public function test_staff_reschedule_form_uses_a_modal_while_client_form_stays_inline(): void
+    {
+        $professional = User::factory()->create(['role_name' => 'Agent']);
+        $client = User::factory()->create(['role_name' => 'Client']);
+        [, $assignment] = $this->createAssignment($professional, 'Modal reschedule home');
+        $appointment = $this->createAppointment($assignment, $client, CarbonImmutable::now('UTC')->addDays(4)->setTime(9, 0));
+        $appointment->update(['appointment_status' => 'Confirmed']);
+
+        $this->actingAs($professional)
+            ->get(route('appointments.index'))
+            ->assertOk()
+            ->assertSee('Reschedule appointment')
+            ->assertSee('data-reschedule-modal', false)
+            ->assertSee('data-proposal-availability-url', false);
+
+        $this->actingAs($client)
+            ->get(route('appointments.index', ['selected' => $appointment->appointment_id]))
+            ->assertOk()
+            ->assertSee('Propose a new time')
+            ->assertDontSee('data-reschedule-modal', false);
     }
 
     public function test_appointment_master_list_paginates_five_per_page(): void

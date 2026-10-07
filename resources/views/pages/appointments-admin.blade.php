@@ -65,46 +65,42 @@
                     <tbody>
                         @forelse ($appointments as $appointment)
                             @php($start = $appointment->startInTimezone($viewerTimezone))
+                            @php($isOwnerAdmin = $isProjects && (int) $appointment->assignment?->user_id === (int) auth()->id())
+                            @php($canUpdateStatus = ($staffMode || $isOwnerAdmin) && (int) $appointment->assignment?->user_id === (int) auth()->id() && in_array($appointment->appointment_status, ['Pending', 'Confirmed'], true))
+                            @php($canProposeTime = $canUpdateStatus && ! $appointment->proposals->contains('status', 'Pending'))
                             <tr>
                                 <td class="fw-semibold">{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }}</td>
                                 <td>{{ $appointment->contact_name }}<br><small class="text-muted">{{ $appointment->contact_email }}</small></td>
                                 <td>{{ $appointment->assignment?->user?->name ?? 'Listing team' }}<br><small class="text-muted">{{ $appointment->assignment?->user?->role_name }}</small></td>
                                 <td>{{ $start->format('M j, Y') }}<br><small class="text-muted">{{ $start->format('g:i A') }}</small></td>
                                 <td>{{ $appointment->appointment_type }}</td>
-                                <td><span class="staff-status-pill status-{{ strtolower($appointment->appointment_status) }}">{{ $appointment->appointment_status }}</span>@if ($appointment->proposals->contains('status', 'Pending'))<br><small class="staff-readonly-note">Reschedule pending</small>@endif</td>
-                                <td class="text-end">
-                                    @php($isOwnerAdmin = $isProjects && (int) $appointment->assignment?->user_id === (int) auth()->id())
-                                    @if ($isProjects && $appointment->appointment_status === 'Pending' && (int) $appointment->assignment?->user_id === (int) auth()->id())
-                                        <form method="POST" action="{{ route('appointments.status', $appointment) }}">
+                                <td>
+                                    <span class="staff-status-pill status-{{ strtolower($appointment->appointment_status) }}">{{ $appointment->appointment_status }}</span>
+                                    @if ($appointment->proposals->contains('status', 'Pending'))<br><small class="staff-readonly-note">Reschedule pending</small>@endif
+                                    @if ($canUpdateStatus)
+                                        <form method="POST" action="{{ route('appointments.status', $appointment) }}" class="appointment-status-control">
                                             @csrf @method('PATCH')
                                             <select name="appointment_status" aria-label="Update status" data-auto-submit>
-                                                <option selected disabled>Update status</option>
-                                                <option>Confirmed</option>
-                                                <option>Completed</option>
-                                                <option>Cancelled</option>
+                                                @if ($appointment->appointment_status === 'Pending')
+                                                    <option value="" selected disabled>Update status</option>
+                                                @endif
+                                                <option value="Confirmed" @selected($appointment->appointment_status === 'Confirmed')>Confirmed</option>
+                                                <option value="Completed">Completed</option>
+                                                <option value="Cancelled">Cancelled</option>
                                             </select>
                                         </form>
-                                    @elseif ($isProjects && $appointment->appointment_status === 'Pending')
+                                    @endif
+                                </td>
+                                <td class="text-end">
+                                    @if ($isProjects && $appointment->appointment_status === 'Pending' && ! $canUpdateStatus)
                                         <span class="staff-readonly-note">Handled by {{ $appointment->assignment?->user?->name ?? 'the assigned admin' }}</span>
-                                    @elseif ($isProjects)
+                                    @elseif ($isProjects && ! $canProposeTime)
                                         <span class="staff-readonly-note">No action needed</span>
-                                    @else
+                                    @elseif (! $isProjects)
                                         <span class="staff-readonly-note">View only</span>
                                     @endif
-                                    @if ($isOwnerAdmin && in_array($appointment->appointment_status, ['Pending', 'Confirmed'], true) && ! $appointment->proposals->contains('status', 'Pending'))
-                                        <details class="appointment-propose-time">
-                                            <summary>Reschedule</summary>
-                                            <form method="POST" action="{{ route('appointments.proposals.store', $appointment) }}" data-proposal-availability-url="{{ route('appointments.proposals.availability', $appointment) }}">
-                                                @csrf
-                                                <label>New date<input type="date" name="preferred_date" min="{{ now($viewerTimezone)->toDateString() }}" required></label>
-                                                <label>Available time<select name="preferred_time" required disabled><option value="">Choose a date first</option></select></label>
-                                                <input type="hidden" name="slot_start_utc">
-                                                <input type="hidden" name="timezone" value="{{ $viewerTimezone }}">
-                                                <label>Message (optional)<input type="text" name="message" maxlength="500"></label>
-                                                <p class="appointment-slots-status" role="status" aria-live="polite">Times are shown in your local time.</p>
-                                                <button type="submit">Send proposal</button>
-                                            </form>
-                                        </details>
+                                    @if ($canProposeTime)
+                                        <button type="button" class="appointment-reschedule-trigger" data-open-reschedule-modal="reschedule-modal-{{ $appointment->appointment_id }}" aria-haspopup="dialog">Reschedule</button>
                                     @endif
                                 </td>
                             </tr>
@@ -119,4 +115,31 @@
             @endif
         </div>
     </div>
+
+    @foreach ($appointments as $appointment)
+        @php($canProposeTime = ($staffMode || ($isProjects && (int) $appointment->assignment?->user_id === (int) auth()->id())) && in_array($appointment->appointment_status, ['Pending', 'Confirmed'], true) && ! $appointment->proposals->contains('status', 'Pending') && (int) $appointment->assignment?->user_id === (int) auth()->id())
+        @if ($canProposeTime)
+            <div class="appointment-reschedule-modal" id="reschedule-modal-{{ $appointment->appointment_id }}" data-reschedule-modal hidden>
+                <section class="appointment-reschedule-dialog" role="dialog" aria-modal="true" aria-labelledby="reschedule-title-{{ $appointment->appointment_id }}" tabindex="-1">
+                    <button type="button" class="appointment-reschedule-close" data-reschedule-close aria-label="Close reschedule form">&times;</button>
+                    <span class="appointment-reschedule-kicker">APPOINTMENT CHANGE</span>
+                    <h2 id="reschedule-title-{{ $appointment->appointment_id }}">Reschedule appointment</h2>
+                    <p class="appointment-reschedule-context">{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }} · {{ $appointment->contact_name }}</p>
+                    <p class="appointment-propose-note">The other participant must accept. The scheduled time stays unchanged until then.</p>
+                    <div class="appointment-propose-time appointment-reschedule-form-wrap">
+                        <form method="POST" action="{{ route('appointments.proposals.store', $appointment) }}" data-proposal-availability-url="{{ route('appointments.proposals.availability', $appointment) }}">
+                            @csrf
+                            <label>New date<input type="date" name="preferred_date" min="{{ now($viewerTimezone)->toDateString() }}" required></label>
+                            <label>Available time<select name="preferred_time" required disabled><option value="">Choose a date first</option></select></label>
+                            <input type="hidden" name="slot_start_utc">
+                            <input type="hidden" name="timezone" value="{{ $viewerTimezone }}">
+                            <label>Message (optional)<input type="text" name="message" maxlength="500" placeholder="Add a note for the other participant"></label>
+                            <p class="appointment-slots-status" role="status" aria-live="polite">Times are shown in your local time.</p>
+                            <button type="submit">Send proposal</button>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        @endif
+    @endforeach
 @endsection

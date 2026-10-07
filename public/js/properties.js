@@ -1,9 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
-	document.querySelectorAll('.property-card').forEach(function (card) {
-		card.addEventListener('click', function (event) {
-			if (event.target.closest('button, a, select, input')) return;
-			card.querySelector('.property-btn')?.click();
-		});
+    document.addEventListener('click', function (event) {
+        const card = event.target.closest('.property-card');
+        if (!card || event.target.closest('button, a, select, input')) return;
+        card.querySelector('.property-btn')?.click();
 	});
 });
 

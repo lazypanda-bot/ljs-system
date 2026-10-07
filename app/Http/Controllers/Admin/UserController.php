@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
@@ -20,12 +21,24 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $this->authorizeAdmin();
 
+        $users = User::with('professionalProfile')
+            ->where('role_name', '!=', 'Client')
+            ->orderBy('user_id')
+            ->paginate(7)
+            ->appends($request->except(['table_only', 'page']));
+
+        if ($request->boolean('table_only')) {
+            return response()->json([
+                'html' => view('admin.partials.users-table', compact('users'))->render(),
+            ]);
+        }
+
         return view('admin.admin-users', [
-            'users' => User::with('professionalProfile')->where('role_name', '!=', 'Client')->orderBy('user_id')->paginate(7),
+            'users' => $users,
             'allUsers' => User::where('role_name', '!=', 'Client')->get(),
             'teams' => Team::with(['user', 'members.user'])->latest()->get(),
         ]);
@@ -47,24 +60,23 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $this->authorizeAdmin();
+        $creator = Auth::user();
+        if (! ($creator instanceof User)) {
+            abort(403);
+        }
+        $allowedRoles = $creator->normalizedRole() === 'lead_broker'
+            ? ['Admin', 'Lead Broker']
+            : ['Agent', 'Broker'];
 
-        // 1. Validate inputs first (including 'Admin' in the allowed roles)
         \App\Support\InputRules::normalize($request);
         $validated = $request->validate([
             'name' => \App\Support\InputRules::name(),
             'email' => \App\Support\InputRules::email(),
-            'role_name' => 'required|in:Admin,Lead Broker,Broker,Agent', // Added 'Admin' here
+            'role_name' => ['required', Rule::in($allowedRoles)],
             'account_status' => 'required|in:Active,Inactive,Suspended',
             'password' => 'required|string|min:8',
             'credential_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ], \App\Support\InputRules::messages());
-
-        // 2. Check if trying to create an Admin, and ensure the creator is a Lead Broker
-        if ($validated['role_name'] === 'Admin' && Auth::user()->role_name !== 'Lead Broker') {
-            throw ValidationException::withMessages([
-                'role_name' => 'Only a Lead Broker is authorized to add an Admin user.',
-            ]);
-        }
 
         unset($validated['credential_document']);
 

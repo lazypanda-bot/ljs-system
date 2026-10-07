@@ -19,7 +19,7 @@
                 <div class="professional-score"><i data-lucide="star" aria-hidden="true"></i> {{ $rating }} <small>({{ $professional->received_reviews_count }} reviews)</small></div>
                 <dl class="professional-details">
                     <div><dt>Experience</dt><dd>{{ $professional->professionalProfile?->years_experience ?? 0 }} years</dd></div>
-                    <div><dt>PRC License No.</dt><dd>{{ $professional->professionalProfile?->license_number ?? 'Not listed' }}</dd></div>
+                    <div><dt>{{ in_array($professional->role_name, ['Agent', 'Broker', 'Lead Broker'], true) ? 'Accreditation' : 'PRC License No.' }}</dt><dd>{{ $professional->professionalProfile?->license_number ?? 'Not listed' }}</dd></div>
                     <div><dt>Contact</dt><dd>{{ $professional->contact_number ?? 'Not listed' }}</dd></div>
                     <div><dt>Email</dt><dd>{{ $professional->email }}</dd></div>
                     @if ($supervisors->isNotEmpty())

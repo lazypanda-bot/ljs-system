@@ -241,6 +241,23 @@ body {
     align-items: center;
     justify-content: center;
 }
+.map-bubble-badge .bubble-count {
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    display: grid;
+    min-width: 22px;
+    height: 22px;
+    place-items: center;
+    padding: 0 5px;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+}
 .map-legend {
     display: flex;
     justify-content: center;
@@ -757,9 +774,11 @@ body.client-messages-open .floating-actions { z-index: 1302; }
 .site-footer-full .footer-tagline { margin: 8px 0 0; font-size: 12px; }
 .site-footer-full .footer-col h4 { margin: 0 0 6px; font-size: 14px; }
 .site-footer-full .footer-col ul { gap: 10px; }
-.site-footer-full .footer-col ul li a, .site-footer-full .contact-list li { display: inline-flex; align-items: flex-start; gap: 8px; color: #111827; font-size: 13px; }
+.site-footer-full .footer-col ul li a, .site-footer-full .contact-list li { display: inline-flex; align-items: flex-start; gap: 8px; color: #111827; font-size: 13px; transition: color 0.2s ease, opacity 0.2s ease, transform 0.2s ease; }
+.site-footer-full .footer-col ul li a:hover, .site-footer-full .contact-list a:hover, .site-footer-full .footer-social-link:hover { color: #1d4ed8; opacity: 1; transform: translateY(-1px); }
 .site-footer-full .contact-list svg { width: 15px; height: 15px; flex: 0 0 auto; margin-top: 2px; }
 .site-footer-full .footer-address { display: flex; gap: 8px; }
+.site-footer-full .footer-social-link { transition: color 0.2s ease, transform 0.2s ease, background-color 0.2s ease; }
 .footer-social { display: flex; gap: 12px; }
 .footer-social-link { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: #fff; }
 .footer-social-facebook { background: #1877f2; }

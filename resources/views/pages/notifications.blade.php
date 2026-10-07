@@ -31,24 +31,12 @@
         @endphp
 
         <div class="notifications-workspace">
-            <nav class="notifications-list" aria-label="Notification list">
-            @forelse ($notifications as $notification)
-                <a class="notification-list-item notification-{{ $notification->type }} {{ $notification->read_at ? 'read' : 'unread' }} {{ (int) $selected?->notification_id === (int) $notification->notification_id ? 'active' : '' }}"
-                   href="{{ route('notifications.index', ['selected' => $notification->notification_id]) }}"
-                   @if ((int) $selected?->notification_id === (int) $notification->notification_id) aria-current="true" @endif>
-                    <span class="notification-page-icon">{{ $notification->type === 'message' ? 'M' : ($notification->type === 'team' ? 'T' : ($notification->appointment_proposal_id ? 'A' : 'L')) }}</span>
-                    <span class="notification-list-copy"><strong>{{ $notification->title }}</strong><small>{{ $notification->body }}</small><time>{{ $notification->created_at->diffForHumans() }}</time></span>
-                </a>
-            @empty
-                <p class="notifications-empty">You have no notifications yet.</p>
-            @endforelse
-                {{ $notifications->links() }}
-            </nav>
+            @include('pages.partials.notification-list', ['notifications' => $notifications, 'selectedNotification' => $selected])
 
             <section class="notification-detail-panel" aria-live="polite" aria-label="Notification details">
                 @if ($selected)
                     <header class="notification-detail-header">
-                        <button type="button" class="notification-detail-back" data-close-notification-detail data-list-url="{{ route('notifications.index') }}" aria-label="Back to notifications"><i data-lucide="arrow-left" aria-hidden="true"></i><span>Notifications</span></button>
+                        {{-- <button type="button" class="notification-detail-back" data-close-notification-detail data-list-url="{{ route('notifications.index') }}" aria-label="Back to notifications"><i data-lucide="arrow-left" aria-hidden="true"></i><span>Notifications</span></button> --}}
                         <span class="notification-detail-kicker">{{ $selected->type === 'listing' ? 'APPOINTMENT & LISTING' : strtoupper($selected->type) }}</span>
                         <h2>{{ $selected->title }}</h2>
                         <p>{{ $selected->body }}</p>
@@ -90,9 +78,6 @@
                         </section>
                     @endif
 
-                    @if (! $appointment && $selected->url && $selected->url !== route('notifications.index'))
-                        <a class="notification-detail-action" href="{{ $selected->url }}">Open related item</a>
-                    @endif
                 @else
                     <div class="notification-detail-empty"><h2>Select a notification</h2><p>Choose one from the list to see its details here.</p></div>
                 @endif
@@ -108,17 +93,87 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const page = document.querySelector('.notifications-page');
-    const isMobile = window.matchMedia('(max-width: 768px)');
-    const setDetailMode = () => {
-        page?.classList.toggle('mobile-detail-open', isMobile.matches && page.dataset.mobileSelected === 'true');
+(function () {
+    const initializeNotifications = () => {
+        const page = document.querySelector('.notifications-page');
+        const list = page?.querySelector('.notifications-list');
+        if (!page || !list) return;
+
+        const isMobile = window.matchMedia('(max-width: 768px)');
+        const setDetailMode = () => {
+            page.classList.toggle('mobile-detail-open', isMobile.matches && page.dataset.mobileSelected === 'true');
+        };
+        setDetailMode();
+        isMobile.addEventListener?.('change', setDetailMode);
+        document.querySelector('[data-close-notification-detail]')?.addEventListener('click', (event) => {
+            window.location.href = event.currentTarget.dataset.listUrl;
+        });
+
+        let activeRequest;
+        const loadNotificationPage = async (url, updateHistory = true) => {
+            activeRequest?.abort();
+            const request = new AbortController();
+            activeRequest = request;
+            list.setAttribute('aria-busy', 'true');
+            list.classList.add('is-loading');
+            list.querySelector('.notification-pagination-status').textContent = '';
+
+            const requestedUrl = new URL(url, window.location.href);
+            if (requestedUrl.hostname !== window.location.hostname) {
+                throw new Error('Pagination link points to another site.');
+            }
+            const relativeUrl = `${requestedUrl.pathname}${requestedUrl.search}${requestedUrl.hash}`;
+            const fetchUrl = new URL(relativeUrl, window.location.href);
+            fetchUrl.searchParams.set('list_only', '1');
+
+            try {
+                const response = await fetch(fetchUrl, {
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                    signal: request.signal,
+                });
+                if (!response.ok) throw new Error(`Request failed (${response.status}).`);
+                const body = await response.text();
+                let html = body;
+                try {
+                    html = JSON.parse(body).html || body;
+                } catch {}
+                const template = document.createElement('template');
+                template.innerHTML = html;
+                const updatedList = template.content.querySelector('.notifications-list');
+                if (!updatedList) throw new Error('Notification list was not returned.');
+
+                list.innerHTML = updatedList.innerHTML;
+                if (updateHistory) window.history.pushState({}, '', relativeUrl);
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    list.querySelector('.notification-pagination-status').textContent = `Unable to update notifications. ${error.message}`;
+                }
+            } finally {
+                if (activeRequest === request) {
+                    activeRequest = null;
+                    list.removeAttribute('aria-busy');
+                    list.classList.remove('is-loading');
+                }
+            }
+        };
+
+        document.addEventListener('click', (event) => {
+            const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+            const link = target?.closest('.notification-pagination a');
+            if (!link || !list.contains(link)) return;
+            event.preventDefault();
+            loadNotificationPage(link.href);
+        });
+
+        window.addEventListener('popstate', () => loadNotificationPage(window.location.href, false));
     };
-    setDetailMode();
-    isMobile.addEventListener?.('change', setDetailMode);
-    document.querySelector('[data-close-notification-detail]')?.addEventListener('click', (event) => {
-        window.location.href = event.currentTarget.dataset.listUrl;
-    });
-});
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeNotifications, { once: true });
+    } else {
+        initializeNotifications();
+    }
+})();
 </script>
 @endpush

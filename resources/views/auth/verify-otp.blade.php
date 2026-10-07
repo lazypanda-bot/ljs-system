@@ -24,6 +24,7 @@
             <label for="otpCode" class="form-label">Verification code</label>
             <input id="otpCode" name="code" class="otp-input" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="000000" required autofocus>
         </div>
+        <p class="text-muted text-center" style="margin: 0 0 14px; font-size: 0.82rem;">Please check your inbox or spam folder for the verification code.</p>
         <button type="submit" class="btn-login">Verify and continue</button>
     </form>
 

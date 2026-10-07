@@ -68,11 +68,111 @@ class PropertyManagementTest extends TestCase
 
         $this->get('/properties')
             ->assertOk()
+            ->assertSee('id="propertyResults"', false)
             ->assertSee('Condominium')
             ->assertSee('Cebu City')
             ->assertSee('Cebu')
             ->assertDontSee('Townhouse')
             ->assertDontSee('Mandaue City');
+    }
+
+    public function test_keyword_search_matches_property_type_when_name_does_not(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        foreach ([
+            ['name' => 'Cebu City Apartment', 'type' => 'Apartment'],
+            ['name' => 'Seaside Unit', 'type' => 'Apartment'],
+            ['name' => 'Family House', 'type' => 'House & Lot'],
+        ] as $listing) {
+            Property::create([
+                'user_id' => $admin->user_id,
+                'property_name' => $listing['name'],
+                'property_type' => $listing['type'],
+                'street' => '1 Search Street',
+                'city' => 'Cebu City',
+                'province' => 'Cebu',
+                'price' => 5000000,
+                'property_status' => 'For Sale',
+                'approval_status' => 'Approved',
+            ]);
+        }
+
+        $this->get('/properties?search=Apartment')
+            ->assertOk()
+            ->assertSee('Cebu City Apartment')
+            ->assertSee('Seaside Unit')
+            ->assertDontSee('Family House');
+    }
+
+    public function test_properties_page_preserves_filter_values_for_async_updates(): void
+    {
+        $this->get('/properties?price_range=5m-10m&sort=price_high')
+            ->assertOk()
+            ->assertSee('value="5m-10m" selected', false)
+            ->assertSee('value="price_high" selected', false)
+            ->assertSee('id="propertyFilterStatus"', false);
+    }
+
+    public function test_home_map_data_includes_all_approved_properties_without_search(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        foreach (['Shared Pin Home One', 'Shared Pin Home Two'] as $name) {
+            Property::create([
+                'user_id' => $admin->user_id,
+                'property_name' => $name,
+                'property_type' => 'Lot',
+                'street' => '1 Map Street',
+                'city' => 'Cebu City',
+                'province' => 'Cebu',
+                'price' => 1000000,
+                'property_status' => 'For Sale',
+                'approval_status' => 'Approved',
+            ]);
+        }
+        Property::create([
+            'user_id' => $admin->user_id,
+            'property_name' => 'Pending Map Listing',
+            'property_type' => 'Lot',
+            'street' => '2 Map Street',
+            'city' => 'Cebu City',
+            'province' => 'Cebu',
+            'price' => 1000000,
+            'property_status' => 'For Sale',
+            'approval_status' => 'Pending',
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('Shared Pin Home One')
+            ->assertSee('Shared Pin Home Two')
+            ->assertDontSee('Pending Map Listing');
+    }
+
+    public function test_geocoder_uses_philippines_qualified_queries_and_stores_coordinates(): void
+    {
+        $owner = User::factory()->create(['role_name' => 'Admin']);
+        $property = Property::create([
+            'user_id' => $owner->user_id,
+            'property_name' => 'Geocoded Map Home',
+            'property_type' => 'Lot',
+            'street' => '1 Map Street',
+            'city' => 'Cebu City',
+            'province' => 'Cebu',
+            'price' => 1000000,
+            'property_status' => 'For Sale',
+            'approval_status' => 'Approved',
+        ]);
+        Http::fake([
+            'nominatim.openstreetmap.org/search*' => Http::sequence()
+                ->push([], 200)
+                ->push([['lat' => '10.3157', 'lon' => '123.8854']], 200),
+        ]);
+
+        GeocodeProperty::dispatchSync($property->property_id);
+
+        $this->assertEquals(10.3157, (float) $property->fresh()->latitude);
+        $this->assertEquals(123.8854, (float) $property->fresh()->longitude);
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'Philippines') && str_contains($request->url(), 'countrycodes=ph'));
     }
 
     public function test_admin_can_create_a_property_and_it_appears_on_the_public_listing(): void

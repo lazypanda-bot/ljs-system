@@ -24,6 +24,37 @@ class UserManagementPaginationTest extends TestCase
         $this->assertSame(2, substr_count($secondPage->getContent(), 'class="au-user-cell"'));
     }
 
+    public function test_ajax_pagination_returns_only_the_requested_users_table_page(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin', 'name' => 'First Page Admin']);
+        User::factory()->count(8)->create(['role_name' => 'Agent']);
+
+        $response = $this->actingAs($admin)->getJson(route('admin.users.index', [
+            'page' => 2,
+            'table_only' => 1,
+        ]))->assertOk()->assertJsonStructure(['html']);
+
+        $html = $response->json('html');
+        $this->assertSame(2, substr_count($html, 'class="au-user-cell"'));
+        $this->assertStringContainsString('id="usersTableContent"', $html);
+        $this->assertStringContainsString('class="au-pagination"', $html);
+        $this->assertStringContainsString('page=1', $html);
+        $this->assertStringNotContainsString('table_only=1', $html);
+        $this->assertStringNotContainsString('Staff management', $html);
+    }
+
+    public function test_credential_action_uses_the_shared_users_table_style(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $agent = User::factory()->create(['role_name' => 'Agent']);
+        $agent->professionalProfile()->create(['document_file' => 'professional-credentials/license.pdf']);
+
+        $this->actingAs($admin)->get(route('admin.users.index'))
+            ->assertOk()
+            ->assertSee('class="au-view-credential-btn"', false)
+            ->assertSee('View credential');
+    }
+
     public function test_user_tabs_use_text_only_shared_pill_controls(): void
     {
         $admin = User::factory()->create(['role_name' => 'Admin']);

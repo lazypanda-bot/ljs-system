@@ -32,8 +32,8 @@ class GeocodeProperty implements ShouldQueue
         }
 
         $queries = [
-            collect([$property->house_number, $property->street, $property->city, $property->province])->filter()->implode(', '),
-            collect([$property->city, $property->province])->filter()->implode(', '),
+            collect([$property->house_number, $property->street, $property->city, $property->province, 'Philippines'])->filter()->implode(', '),
+            collect([$property->city, $property->province, 'Philippines'])->filter()->implode(', '),
         ];
 
         foreach (array_unique(array_filter($queries)) as $index => $address) {
@@ -48,6 +48,7 @@ class GeocodeProperty implements ShouldQueue
                     'format' => 'json',
                     'q' => $address,
                     'limit' => 1,
+                    'countrycodes' => 'ph',
                 ]);
             } catch (ConnectionException $exception) {
                 Log::warning('Property geocoding request failed and will be retried.', ['property_id' => $this->propertyId]);
@@ -66,6 +67,7 @@ class GeocodeProperty implements ShouldQueue
             }
         }
 
-        Log::info('No coordinates found for property address.', ['property_id' => $this->propertyId]);
+        Log::warning('No coordinates found for property address; geocoding will be retried.', ['property_id' => $this->propertyId]);
+        throw new \RuntimeException('No coordinates found for property address.');
     }
 }

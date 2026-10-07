@@ -30,6 +30,7 @@
 </head>
 <body class="landing-page">
     @include('components.flash-messages')
+    @if (!request()->has('modal'))
     <header class="landing-nav {{ request()->routeIs(['home', 'about']) ? 'transparent-nav' : '' }}">
     {{-- <header class="landing-nav {{ request()->routeIs('home') ? 'transparent-nav' : '' }}"> --}}
     {{-- <header class="landing-nav"> --}}
@@ -75,6 +76,9 @@
             </div>
         </div>
     </header>
+    @endif
+
+    @if (!request()->has('modal'))
 
     <div class="floating-actions" aria-label="Messages and notifications">
         @auth
@@ -169,11 +173,13 @@
             </div>
         @endif
     @endauth
+    @endif
 
     <main>
         @yield('content')
     </main>
 
+    @if (!request()->has('modal'))
     <footer class="site-footer site-footer-full" id="siteFooter">
         <div class="footer-container footer-grid">
             <div class="footer-col brand-col">
@@ -189,23 +195,38 @@
                     <li><a href="{{ route('about') }}">About Us</a></li>
                 </ul>
             </div>
-            <div class="footer-col">
+            {{-- <div class="footer-col">
                 <h4>Contact Us</h4>
                 <ul class="contact-list">
                     <li><a href="tel:+639213456789"><i data-lucide="phone" aria-hidden="true"></i> +63 921 345 6789</a></li>
                     <li><a href="mailto:ljsrealty@gmail.com"><i data-lucide="mail" aria-hidden="true"></i> ljsrealty@gmail.com</a></li>
                     <li class="footer-address"><i data-lucide="map-pin" aria-hidden="true"></i> <span>Unit 6 Labangon Town Center<br>Katipunan St, Cebu City</span></li>
                 </ul>
-            </div>
+            </div> --}}
+            <div class="footer-col">
+                <h4>Contact Us</h4>
+                <ul class="contact-list">
+                    @if(!empty($contactInfo['phone']))
+                        <li><a href="tel:{{ $contactInfo['phone'] }}"><i data-lucide="phone" aria-hidden="true"></i> {{ $contactInfo['phone'] }}</a></li>
+                    @endif
+                    @if(!empty($contactInfo['email']))
+                        <li><a href="mailto:{{ $contactInfo['email'] }}"><i data-lucide="mail" aria-hidden="true"></i> {{ $contactInfo['email'] }}</a></li>
+                    @endif
+                    @if(!empty($contactInfo['address']))
+                        <li class="footer-address"><i data-lucide="map-pin" aria-hidden="false"></i> <span>{{ $contactInfo['address'] }}</span></li>
+                    @endif
+                </ul>
+            </div>  
             <div class="footer-col">
                 <h4>Social Media</h4>
                 <div class="footer-social">
-                    <a href="#" class="footer-social-link footer-social-facebook" aria-label="Facebook"><i data-lucide="facebook" aria-hidden="true"></i></a>
-                    <a href="#" class="footer-social-link footer-social-messenger" aria-label="Messenger"><i data-lucide="message-circle" aria-hidden="true"></i></a>
+                    <a href="https://www.facebook.com/sweethomecebu" class="footer-social-link footer-social-facebook" aria-label="Facebook"><i data-lucide="facebook" aria-hidden="true"></i></a>
+                    <a href="https://www.facebook.com/sweethomecebu" class="footer-social-link footer-social-messenger" aria-label="Messenger"><i data-lucide="message-circle" aria-hidden="true"></i></a>
                 </div>
             </div>
         </div>
     </footer>
+    @endif
 
     @include('components.auth-modal')
     @include('components.popup-message')
@@ -219,6 +240,7 @@
                 'status' => $property->property_status ?? 'Available',
                 'price' => (float) ($property->price ?? 0),
                 'location' => trim(($property->city ?? '') . ', ' . ($property->province ?? '')),
+                'approximate' => ! is_numeric($property->latitude) || ! is_numeric($property->longitude),
                 'lat' => (float) ($property->latitude ?? 10.3157),
                 'lng' => (float) ($property->longitude ?? 123.8854),
             ];

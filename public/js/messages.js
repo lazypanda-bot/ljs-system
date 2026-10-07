@@ -105,6 +105,56 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.key === 'Escape') closeThreadMenus();
     });
 
+    let activeMembersModal = null;
+    document.querySelectorAll('[data-members-modal]').forEach((modal) => document.body.appendChild(modal));
+
+    const closeMembersModal = (modal) => {
+        modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+        if (activeMembersModal === modal) activeMembersModal = null;
+        modal._opener?.focus();
+    };
+
+    document.querySelectorAll('[data-open-members-modal]').forEach((button) => {
+        const modal = document.getElementById(button.dataset.openMembersModal);
+        if (!modal) return;
+
+        button.addEventListener('click', () => {
+            closeThreadMenus();
+            activeMembersModal = modal;
+            modal._opener = button.closest('.thread-menu-wrap')?.querySelector('[data-thread-menu-toggle]');
+            modal.hidden = false;
+            modal.setAttribute('aria-hidden', 'false');
+            modal.querySelector('[data-close-members-modal]')?.focus();
+        });
+
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) closeMembersModal(modal);
+        });
+        modal.querySelector('[data-close-members-modal]')?.addEventListener('click', () => closeMembersModal(modal));
+        modal.addEventListener('keydown', (event) => {
+            if (event.key !== 'Tab') return;
+            const focusable = [...modal.querySelectorAll('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')];
+            if (!focusable.length) {
+                event.preventDefault();
+                return;
+            }
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        });
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && activeMembersModal) closeMembersModal(activeMembersModal);
+    });
+
     const chatMessages = document.querySelector('.chat-messages');
     const replyInput = document.querySelector('.reply-input');
 
