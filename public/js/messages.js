@@ -1,10 +1,38 @@
 document.addEventListener('DOMContentLoaded', function() {
     const composeModal = document.getElementById('composeMessageModal');
-    const closeCompose = () => composeModal?.classList.remove('open');
+    const attachmentInput = document.getElementById('messageAttachment');
+    const attachmentStatus = document.getElementById('messageAttachmentStatus');
+    const resetComposeAttachment = () => {
+        if (attachmentInput) attachmentInput.value = '';
+        if (attachmentStatus) {
+            attachmentStatus.textContent = 'No file attached';
+            attachmentStatus.classList.remove('has-file');
+        }
+    };
+    const closeCompose = () => {
+        composeModal?.classList.remove('open');
+        resetComposeAttachment();
+    };
     document.getElementById('openComposeMessage')?.addEventListener('click', () => composeModal?.classList.add('open'));
     document.querySelector('.compose-close')?.addEventListener('click', closeCompose);
     document.querySelector('.compose-cancel')?.addEventListener('click', closeCompose);
     composeModal?.addEventListener('click', (event) => { if (event.target === composeModal) closeCompose(); });
+    attachmentInput?.addEventListener('change', () => {
+        const file = attachmentInput.files?.[0];
+        if (!attachmentStatus) return;
+
+        if (!file) {
+            attachmentStatus.textContent = 'No file attached';
+            attachmentStatus.classList.remove('has-file');
+            return;
+        }
+
+        const sizeLabel = file.size >= 1024 * 1024
+            ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+            : `${Math.max(1, Math.round(file.size / 1024))} KB`;
+        attachmentStatus.textContent = `${file.name} (${sizeLabel})`;
+        attachmentStatus.classList.add('has-file');
+    });
 
     const closeMessageMenus = (except = null) => {
         document.querySelectorAll('[data-message-menu-toggle]').forEach((button) => {
@@ -51,11 +79,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const toggle = button.closest('.message-actions')?.querySelector('[data-message-menu-toggle]');
             const display = row?.querySelector('[data-message-display]');
             const form = row?.querySelector('[data-message-edit-form]');
+            const bubble = row?.querySelector('.message-bubble');
             if (!form || !display) return;
             if (menu) menu.hidden = true;
             toggle?.setAttribute('aria-expanded', 'false');
             display.hidden = true;
             form.hidden = false;
+            bubble?.classList.add('is-editing');
             form.querySelector('textarea')?.focus();
         });
     });
@@ -65,8 +95,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const row = button.closest('.message-row');
             const display = row?.querySelector('[data-message-display]');
             const form = row?.querySelector('[data-message-edit-form]');
+            const bubble = row?.querySelector('.message-bubble');
             if (form) form.hidden = true;
             if (display) display.hidden = false;
+            bubble?.classList.remove('is-editing');
         });
     });
 
@@ -157,6 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const chatMessages = document.querySelector('.chat-messages');
     const replyInput = document.querySelector('.reply-input');
+    const replyAttachment = document.getElementById('replyAttachment');
+    const replyAttachmentStatus = document.getElementById('replyAttachmentStatus');
 
     if (replyInput) {
         replyInput.addEventListener('input', function() {
@@ -164,6 +198,23 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.height = (this.scrollHeight) + 'px';
         });
     }
+
+    replyAttachment?.addEventListener('change', () => {
+        const file = replyAttachment.files?.[0];
+        if (!replyAttachmentStatus) return;
+
+        if (!file) {
+            replyAttachmentStatus.hidden = true;
+            replyAttachmentStatus.textContent = '';
+            return;
+        }
+
+        const sizeLabel = file.size >= 1024 * 1024
+            ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+            : `${Math.max(1, Math.round(file.size / 1024))} KB`;
+        replyAttachmentStatus.textContent = `${file.name} (${sizeLabel})`;
+        replyAttachmentStatus.hidden = false;
+    });
 
     if (chatMessages) {
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -185,13 +236,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     const sent = message.sender_id === currentUserId;
                     const row = document.createElement('div');
                     row.className = `message-row ${sent ? 'message-row-sent' : 'message-row-received'}`;
-                    row.innerHTML = `<span class="message-avatar role-${message.sender_role}"></span><div class="message-bubble role-${message.sender_role} ${sent ? 'message-sent' : 'message-received'}"><div class="message-author"></div><div class="message-text"></div><div class="message-meta"></div></div>`;
+                    row.innerHTML = `<span class="message-avatar role-${message.sender_role}"></span><div class="message-bubble role-${message.sender_role} ${sent ? 'message-sent' : 'message-received'}"><div class="message-author"></div><div class="message-text"></div><a class="message-attachment" target="_blank" rel="noopener" hidden><i data-lucide="paperclip" aria-hidden="true"></i> Attachment</a><div class="message-meta"></div></div>`;
                     const bubble = row.querySelector('.message-bubble');
                     row.querySelector('.message-avatar').textContent = message.sender_name.charAt(0).toUpperCase();
                     bubble.querySelector('.message-author').textContent = message.sender_name;
                     bubble.querySelector('.message-text').textContent = message.body;
+                    const attachment = bubble.querySelector('.message-attachment');
+                    if (message.attachment_url && attachment) {
+                        attachment.href = message.attachment_url;
+                        attachment.hidden = false;
+                    }
                     bubble.querySelector('.message-meta').textContent = message.sent_at;
                     chatMessages.appendChild(row);
+                    window.lucide?.createIcons();
                     chatMessages.dataset.lastMessageId = message.id;
                 });
 

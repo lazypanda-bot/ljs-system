@@ -64,6 +64,45 @@ class Appointment extends Model
         return $this->hasMany(AppointmentTimeProposal::class, 'appointment_id', 'appointment_id');
     }
 
+    public function pendingProposal(): ?AppointmentTimeProposal
+    {
+        if ($this->relationLoaded('proposals')) {
+            return $this->proposals->firstWhere('status', 'Pending');
+        }
+
+        return $this->proposals()->where('status', 'Pending')->latest('proposal_id')->first();
+    }
+
+    public function displayStatus(): string
+    {
+        $pendingProposal = $this->pendingProposal();
+        if (! $pendingProposal) {
+            return $this->appointment_status;
+        }
+
+        return $this->proposalWasMadeByClient($pendingProposal)
+            ? 'Awaiting professional confirmation'
+            : 'Awaiting client confirmation';
+    }
+
+    public function displayStatusClass(): string
+    {
+        return str($this->displayStatus())->lower()->replace(' ', '-')->toString();
+    }
+
+    private function proposalWasMadeByClient(AppointmentTimeProposal $proposal): bool
+    {
+        if ($this->client_id && (int) $proposal->proposed_by_user_id === (int) $this->client_id) {
+            return true;
+        }
+
+        $proposer = $proposal->relationLoaded('proposedBy') ? $proposal->proposedBy : null;
+
+        return $proposer instanceof User
+            && $proposer->normalizedRole() === 'client'
+            && strcasecmp($this->contact_email, $proposer->email) === 0;
+    }
+
     public function reminders()
     {
         return $this->hasMany(AppointmentReminder::class, 'appointment_id', 'appointment_id');

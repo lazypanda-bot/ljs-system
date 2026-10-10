@@ -236,12 +236,30 @@ class PropertyController extends Controller
 
         $validated = $request->validate([
             'approval_status' => ['required', 'in:Approved,Rejected'],
-            'rejection_note' => ['required_if:approval_status,Rejected', 'nullable', 'string', 'max:2000'],
+            'rejection_reasons' => ['required_if:approval_status,Rejected', 'array', 'min:1'],
+            'rejection_reasons.*' => ['string', 'in:Incomplete property details,Same property already listed,Missing or invalid images,Incorrect price or property information,Location/address needs correction,Listing does not meet requirements,Other'],
+            'rejection_note_other' => ['nullable', 'string', 'max:1000'],
         ]);
         $isRejected = $validated['approval_status'] === 'Rejected';
+        $rejectionNote = null;
+        if ($isRejected) {
+            $reasons = collect($validated['rejection_reasons'] ?? [])->unique()->values();
+            if ($reasons->contains('Other') && blank($validated['rejection_note_other'] ?? null)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'rejection_note_other' => 'Please add details when selecting Other.',
+                ]);
+            }
+
+            $rejectionNote = $reasons
+                ->map(fn (string $reason) => $reason === 'Other'
+                    ? 'Other: ' . trim($validated['rejection_note_other'] ?? '')
+                    : $reason)
+                ->implode('; ');
+        }
+
         $property->update([
             'approval_status' => $validated['approval_status'],
-            'rejection_note' => $isRejected ? $validated['rejection_note'] : null,
+            'rejection_note' => $rejectionNote,
         ]);
 
         $referralCode = null;
@@ -259,7 +277,7 @@ class PropertyController extends Controller
                 ? 'Listing rejected'
                 : ($referralCode ? 'Listing approved; referral link ready' : 'Listing approved'),
             'body' => $isRejected
-                ? $property->property_name . ': ' . $validated['rejection_note']
+                ? $property->property_name . ': ' . $rejectionNote
                 : ($referralCode
                     ? $property->property_name . ' is live. Referral link: ' . route('referrals.open', $referralCode->code)
                     : $property->property_name . ' is now live.'),
@@ -292,6 +310,11 @@ class PropertyController extends Controller
             && $user->actingRole() !== 'admin';
         abort_unless(($isAdmin && $property->isManageableByAdmin($user)) || $isProfessionalOwner, 403);
 
+        if ($isProfessionalOwner && $property->blocksResubmission()) {
+            return redirect()->route('app.page', ['page' => 'listings'])
+                ->with('error', 'This listing was rejected because the same property is already listed, so it cannot be resubmitted.');
+        }
+
         $property->load(['details.amenities', 'images']);
 
         return view('pages.properties.edit', compact('property'));
@@ -306,6 +329,11 @@ class PropertyController extends Controller
             && in_array($user->normalizedRole(), ['agent', 'broker', 'lead_broker'], true)
             && $user->actingRole() !== 'admin';
         abort_unless(($isAdmin && $property->isManageableByAdmin($user)) || $isProfessionalOwner, 403);
+
+        if ($isProfessionalOwner && $property->blocksResubmission()) {
+            return redirect()->route('app.page', ['page' => 'listings'])
+                ->with('error', 'This listing was rejected because the same property is already listed, so it cannot be resubmitted.');
+        }
 
         $validated = $request->validate([
             'property_name' => ['required', 'string', 'max:255'],
@@ -360,10 +388,11 @@ class PropertyController extends Controller
         ];
         $detailFields = Property::normalizeDetails($validated);
         $storedImagePaths = [];
+        $needsApprovalAfterEdit = $isProfessionalOwner && $property->approval_status !== 'Approved';
 
         try {
-            DB::transaction(function () use ($property, $propertyFields, $detailFields, $validated, $newImages, $imagesToRemove, $isProfessionalOwner, $request, &$storedImagePaths): void {
-                $property->update($isProfessionalOwner
+            DB::transaction(function () use ($property, $propertyFields, $detailFields, $validated, $newImages, $imagesToRemove, $needsApprovalAfterEdit, $request, &$storedImagePaths): void {
+                $property->update($needsApprovalAfterEdit
                     ? [...$propertyFields, 'approval_status' => 'Pending', 'rejection_note' => null]
                     : $propertyFields);
 
@@ -406,7 +435,7 @@ class PropertyController extends Controller
             NotificationService::soldReviewPrompts($property);
         }
 
-        if ($isProfessionalOwner) {
+        if ($needsApprovalAfterEdit) {
             NotificationService::oversight([
                 'type' => 'listing',
                 'title' => 'Listing resubmitted for approval',
@@ -416,7 +445,7 @@ class PropertyController extends Controller
         }
 
         return redirect()->route('app.page', ['page' => $isAdmin ? 'property' : 'listings'])
-            ->with('success', $isProfessionalOwner ? 'Listing resubmitted for Admin approval.' : 'Property updated.');
+            ->with('success', $needsApprovalAfterEdit ? 'Listing resubmitted for Admin approval.' : 'Property updated.');
     }
 
     public function updateStatus(Request $request, Property $property)

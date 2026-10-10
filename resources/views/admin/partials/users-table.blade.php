@@ -74,8 +74,6 @@
         </table>
     </div>
     @if ($users && $users->hasPages())
-        <nav aria-label="User pages" class="au-pagination">
-            {{ $users->links('pagination.ljs') }}
-        </nav>
+        {{ $users->links('pagination.ljs') }}
     @endif
 </div>

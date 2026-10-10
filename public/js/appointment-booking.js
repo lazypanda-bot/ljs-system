@@ -38,10 +38,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     assignmentField?.addEventListener('change', () => picker.reload());
     form.addEventListener('submit', (event) => {
+        if (!dateField.value) {
+            event.preventDefault();
+            status.textContent = 'Choose an appointment date before requesting the appointment.';
+            dateField.focus();
+            return;
+        }
+
+        if (!timeField.value) {
+            event.preventDefault();
+            status.textContent = 'Choose an available time before requesting the appointment.';
+            timeField.focus();
+            return;
+        }
+
         if (!slotField.value) {
             event.preventDefault();
             status.textContent = 'Choose an available date and time before requesting the appointment.';
-            dateField.focus();
+            timeField.focus();
         }
     });
 });

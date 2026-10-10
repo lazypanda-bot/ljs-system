@@ -76,12 +76,26 @@
                     <div class="profile-section-heading"><h2>Reviews</h2><span>{{ $professional->received_reviews_count }} total</span></div>
                     @if (session('success'))<p class="profile-success">{{ session('success') }}</p>@endif
                     @if ($canReview)
-                        <form class="client-review-form" method="POST" action="{{ route('agents.reviews.store', $professional) }}">
-                            @csrf
-                            <label for="rating">Your rating</label><select id="rating" name="rating" required>@foreach ([5 => 'Excellent', 4 => 'Good', 3 => 'Fair', 2 => 'Poor', 1 => 'Very poor'] as $value => $label)<option value="{{ $value }}" @selected((int) old('rating', $myReview?->rating ?? 5) === $value)>{{ $value }} - {{ $label }}</option>@endforeach</select>
-                            <label for="review">Your review</label><textarea id="review" name="review" rows="4" maxlength="2000" required placeholder="Share your experience with this professional.">{{ old('review', $myReview?->review) }}</textarea>
-                            <button type="submit">Save review</button>
-                        </form>
+                        <button type="button" class="client-review-toggle" data-review-toggle aria-expanded="{{ $errors->any() ? 'true' : 'false' }}" aria-controls="clientReviewForm">
+                            {{ $myReview ? 'Edit Review' : 'Write Review' }}
+                        </button>
+                        <div class="client-review-panel" id="clientReviewForm" @if (! $errors->any()) hidden @endif>
+                            <form class="client-review-form" method="POST" action="{{ route('agents.reviews.store', $professional) }}">
+                                @csrf
+                                <label for="rating">Your rating</label><select id="rating" name="rating" required>@foreach ([5 => 'Excellent', 4 => 'Good', 3 => 'Fair', 2 => 'Poor', 1 => 'Very poor'] as $value => $label)<option value="{{ $value }}" @selected((int) old('rating', $myReview?->rating ?? 5) === $value)>{{ $value }} - {{ $label }}</option>@endforeach</select>
+                                <label for="review">Your review</label><textarea id="review" name="review" rows="4" maxlength="2000" required placeholder="Share your experience with this professional.">{{ old('review', $myReview?->review) }}</textarea>
+                                @error('review')<small class="client-review-error">{{ $message }}</small>@enderror
+                                <div class="client-review-actions">
+                                    <button type="submit">Save review</button>
+                                </div>
+                            </form>
+                            @if ($myReview)
+                                <form method="POST" action="{{ route('agents.reviews.destroy', $professional) }}" class="client-review-delete-form" data-review-delete>
+                                    @csrf @method('DELETE')
+                                    <button type="submit">Delete my review</button>
+                                </form>
+                            @endif
+                        </div>
                     @endif
                     <div class="profile-reviews-list">
                         @forelse ($professional->receivedReviews as $review)
@@ -94,4 +108,21 @@
             </div>
         </div>
     </section>
+    <script>
+        document.querySelector('[data-review-toggle]')?.addEventListener('click', function () {
+            const panel = document.getElementById(this.getAttribute('aria-controls'));
+            const willOpen = panel?.hidden;
+            if (!panel) return;
+            panel.hidden = !willOpen;
+            this.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            if (willOpen) panel.querySelector('select, textarea, button')?.focus();
+        });
+        document.querySelector('[data-review-delete]')?.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const confirmed = window.appConfirm
+                ? await window.appConfirm('Delete your review? This action cannot be undone.')
+                : window.confirm('Delete your review? This action cannot be undone.');
+            if (confirmed) this.submit();
+        });
+    </script>
 @endsection

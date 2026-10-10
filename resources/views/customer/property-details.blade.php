@@ -24,7 +24,7 @@
         <span>{{ $property->property_name }}</span>
     </nav>
 
-    <section class="property-gallery" aria-label="Property photos">
+    <section class="property-gallery {{ $property->images->count() > 1 ? 'has-thumbnails' : 'single-image' }}" aria-label="Property photos">
         <div class="property-image-frame">
             @if ($property->images->isNotEmpty())
                 <img id="mainImage" class="property-main-image" src="{{ asset('storage/' . $property->images->first()->image_path) }}" data-fallback-src="{{ asset('images/ljs-logo.jpg') }}" alt="{{ $property->property_name }}">
@@ -65,38 +65,40 @@
 
                 // Which facts make sense for this property type; custom types show whatever was filled in.
                 $metrics = collect([
-                    ['icon' => 'fa-bed', 'text' => ($details?->bedroom ?? 0) . ' beds', 'show' => $show('bedrooms') && ($isResidential || $hasValue($details?->bedroom))],
-                    ['icon' => 'fa-bath', 'text' => ($details?->bathroom ?? 0) . ' baths', 'show' => $show('bathrooms') && ($isResidential || $hasValue($details?->bathroom))],
-                    ['icon' => 'fa-car', 'text' => ($details?->parking_spaces ?? 0) . ' parking', 'show' => $show('parking_spaces') && $hasValue($details?->parking_spaces)],
-                    ['icon' => 'fa-vector-square', 'text' => number_format($details?->floor_area ?? 0, 2) . ' m² floor', 'show' => $show('floor_area') && $hasValue($details?->floor_area)],
-                    ['icon' => 'fa-expand', 'text' => number_format($details?->lot_area ?? 0, 2) . ' m² lot', 'show' => $show('lot_area') && $hasValue($details?->lot_area)],
+                    ['icon' => 'fa-bed', 'label' => 'Bedrooms', 'value' => ($details?->bedroom ?? 0) . ' beds', 'show' => $show('bedrooms') && ($isResidential || $hasValue($details?->bedroom))],
+                    ['icon' => 'fa-bath', 'label' => 'Bathrooms', 'value' => ($details?->bathroom ?? 0) . ' baths', 'show' => $show('bathrooms') && ($isResidential || $hasValue($details?->bathroom))],
+                    ['icon' => 'fa-car', 'label' => 'Parking', 'value' => ($details?->parking_spaces ?? 0) . ' parking', 'show' => $show('parking_spaces') && $hasValue($details?->parking_spaces)],
+                    ['icon' => 'fa-vector-square', 'label' => 'Floor area', 'value' => number_format($details?->floor_area ?? 0, 2) . ' m²', 'show' => $show('floor_area') && $hasValue($details?->floor_area)],
+                    ['icon' => 'fa-expand', 'label' => 'Lot area', 'value' => number_format($details?->lot_area ?? 0, 2) . ' m²', 'show' => $show('lot_area') && $hasValue($details?->lot_area)],
                 ])->where('show', true);
 
-                $facts = collect([
-                    'Property type' => $property->property_type,
-                    'Year built' => $show('year_built') ? $details?->year_built : null,
-                    'Condition' => $show('property_condition') ? $details?->property_condition : null,
-                    'Floors' => $show('number_of_floors') ? $details?->number_of_floors : null,
-                ])->filter(fn ($value) => $value !== null && $value !== '' && $value !== 0);
+                $detailTiles = $metrics
+                    ->map(fn ($metric) => [
+                        'icon' => $metric['icon'],
+                        'label' => $metric['label'],
+                        'value' => $metric['value'],
+                    ])
+                    ->merge(collect([
+                        ['icon' => 'fa-house', 'label' => 'Property type', 'value' => $property->property_type],
+                        ['icon' => 'fa-layer-group', 'label' => 'Floors', 'value' => $show('number_of_floors') ? $details?->number_of_floors : null],
+                        ['icon' => 'fa-calendar', 'label' => 'Year built', 'value' => $show('year_built') ? $details?->year_built : null],
+                        ['icon' => 'fa-clipboard-check', 'label' => 'Condition', 'value' => $show('property_condition') ? $details?->property_condition : null],
+                    ])->filter(fn ($item) => $item['value'] !== null && $item['value'] !== '' && $item['value'] !== 0))
+                    ->values();
             @endphp
-            @if ($metrics->isNotEmpty() || $facts->isNotEmpty() || $details?->remarks)
+            @if ($detailTiles->isNotEmpty() || $details?->remarks)
                 <section class="property-details-panel">
                     <h2>Property details</h2>
-                    @if ($metrics->isNotEmpty())
-                        <div class="property-metrics" aria-label="Key figures">
-                            @foreach ($metrics as $metric)
-                                <div><i class="fas {{ $metric['icon'] }}" aria-hidden="true"></i><span>{{ $metric['text'] }}</span></div>
+                    @if ($detailTiles->isNotEmpty())
+                        <div class="property-metrics" aria-label="Property facts">
+                            @foreach ($detailTiles as $tile)
+                                <div><i class="fas {{ $tile['icon'] }}" aria-hidden="true"></i><span>{{ $tile['label'] }}</span><strong>{{ $tile['value'] }}</strong></div>
                             @endforeach
                         </div>
                     @endif
-                    <dl class="property-facts">
-                        @foreach ($facts as $label => $value)
-                            <div><dt>{{ $label }}</dt><dd>{{ $value }}</dd></div>
-                        @endforeach
-                        @if ($details?->remarks)
-                            <div class="property-facts-wide"><dt>Remarks</dt><dd>{{ $details->remarks }}</dd></div>
-                        @endif
-                    </dl>
+                    @if ($details?->remarks)
+                        <div class="property-remarks"><strong>Remarks</strong><p>{{ $details->remarks }}</p></div>
+                    @endif
                 </section>
             @endif
 
@@ -104,8 +106,84 @@
                 $lifestyleTags = collect(explode(',', (string) $property->lifestyle_tag))->map(fn ($tag) => trim($tag))->filter();
                 $locationTags = collect(explode(',', (string) $property->location_tag))->map(fn ($tag) => trim($tag))->filter();
             @endphp
-            @if ($lifestyleTags->isNotEmpty() || $locationTags->isNotEmpty())
+            @if (filled($property->property_description))
                 <section class="property-details-panel">
+                    <h2>Description</h2>
+                    <p class="property-description">{{ $property->property_description }}</p>
+                </section>
+            @endif
+
+        </div>
+
+        <aside class="property-sidebar">
+            <section class="professional-contact-card" aria-labelledby="contactProfessionalHeading">
+                <p class="contact-card-kicker">Listing {{ $isAdminListing ? 'administrator' : 'professional' }}</p>
+                <h2 id="contactProfessionalHeading">Contact {{ $isAdminListing ? 'administrator' : 'professional' }}</h2>
+
+                <div class="professional-contact-identity">
+                    <div class="professional-avatar">
+                        @if ($contactUser?->profile_photo)
+                            <img src="{{ str_starts_with($contactUser->profile_photo, 'http') ? $contactUser->profile_photo : asset('storage/' . $contactUser->profile_photo) }}" data-fallback-src="{{ asset('images/ljs-logo.jpg') }}" alt="{{ $contactUser->name }}">
+                        @else
+                            <span aria-hidden="true">{{ strtoupper(substr($contactUser?->name ?? 'L', 0, 1)) }}</span>
+                        @endif
+                    </div>
+                    <div class="professional-contact-name">
+                        @php $contactIsProfessional = $contactUser && $contactUser->account_status === 'Active' && in_array($contactUser->role_name, ['Broker', 'Agent', 'Lead Broker'], true); @endphp
+                        <h3><a id="referralContactName" class="professional-name-link" @if ($contactIsProfessional) href="{{ route('agents.show', $contactUser) }}" @endif>{{ $contactUser->name ?? 'LJS Realty Professional' }}</a></h3>
+                        <p id="referralContactRole">{{ $contactUser->role_name ?? 'Listing Professional' }}</p>
+                    </div>
+                </div>
+
+                <div class="professional-contact-details">
+                    <p><i class="fas fa-phone" aria-hidden="true"></i><span id="referralContactPhone">{{ $contactUser?->contact_number ?: 'Contact number not provided' }}</span></p>
+                    <p><i class="fas fa-envelope" aria-hidden="true"></i><span id="referralContactEmail">{{ $contactUser->email ?? 'Contact details unavailable' }}</span></p>
+                </div>
+
+                <div class="professional-contact-actions">
+                    @auth
+                        @if ($property->acceptsAppointments())
+                            <button type="button" id="referralAppointmentLink" class="contact-action contact-action-secondary" @if ($hasActiveAppointment ?? false) onclick="showPopup('Already booked', 'You already have an active appointment for this property. Wait for it to finish or cancel it before booking again.')" @else onclick="openAppointmentModal()" @endif>
+                                Book appointment
+                            </button>
+                        @else
+                            <button type="button" class="contact-action contact-action-secondary" disabled>{{ $property->property_status }} · Booking closed</button>
+                        @endif
+                    @else
+                        <!-- Triggers login or redirects if not logged in -->
+                        <button type="button" class="contact-action contact-action-secondary" id="openLoginModal">
+                            Sign in to book
+                        </button>
+                    @endauth
+                    
+                    @auth
+                        @if (auth()->user()?->normalizedRole() === 'client' && ($isAdminListing || $referralCode || in_array($contactUser?->role_name, ['Broker', 'Agent', 'Lead Broker'], true)))
+                            <form method="POST" action="{{ $messageUrl }}" id="propertyMessageForm">
+                                @csrf
+                                <input type="hidden" name="panel" value="1">
+                                <input type="hidden" name="recipient_id" id="referralMessageRecipient" value="{{ $contactUser->user_id }}">
+                                <button class="contact-action contact-action-primary" type="submit">Send message</button>
+                            </form>
+                        @endif
+                    @else
+                        <button class="contact-action contact-action-primary" type="button" id="openLoginModal">Sign in to send a message</button>
+                    @endauth
+                </div>
+            </section>
+
+            @if ($property->details?->amenities?->isNotEmpty())
+                <section class="property-details-panel property-sidebar-panel">
+                    <h2>Features &amp; amenities</h2>
+                    <ul class="property-amenities-list">
+                        @foreach ($property->details->amenities as $amenity)
+                            <li><i class="fas fa-check-circle" aria-hidden="true"></i>{{ $amenity->amenity_name }}</li>
+                        @endforeach
+                    </ul>
+                </section>
+            @endif
+
+            @if ($lifestyleTags->isNotEmpty() || $locationTags->isNotEmpty())
+                <section class="property-details-panel property-sidebar-panel">
                     <h2>Lifestyle Match</h2>
                     <div class="property-match-tags">
                         @foreach ($lifestyleTags as $tag)
@@ -117,79 +195,6 @@
                     </div>
                 </section>
             @endif
-
-            @if (filled($property->property_description))
-                <section class="property-details-panel">
-                    <h2>Description</h2>
-                    <p class="property-description">{{ $property->property_description }}</p>
-                </section>
-            @endif
-
-            @if ($property->details?->amenities?->isNotEmpty())
-                <section class="property-details-panel">
-                    <h2>Features &amp; amenities</h2>
-                    <ul class="property-amenities-list">
-                        @foreach ($property->details->amenities as $amenity)
-                            <li><i class="fas fa-check-circle" aria-hidden="true"></i>{{ $amenity->amenity_name }}</li>
-                        @endforeach
-                    </ul>
-                </section>
-            @endif
-        </div>
-
-        <aside class="professional-contact-card" aria-labelledby="contactProfessionalHeading">
-            <p class="contact-card-kicker">Listing {{ $isAdminListing ? 'administrator' : 'professional' }}</p>
-            <h2 id="contactProfessionalHeading">Contact {{ $isAdminListing ? 'administrator' : 'professional' }}</h2>
-
-            <div class="professional-contact-identity">
-                <div class="professional-avatar">
-                    @if ($contactUser?->profile_photo)
-                        <img src="{{ str_starts_with($contactUser->profile_photo, 'http') ? $contactUser->profile_photo : asset('storage/' . $contactUser->profile_photo) }}" data-fallback-src="{{ asset('images/ljs-logo.jpg') }}" alt="{{ $contactUser->name }}">
-                    @else
-                        <span aria-hidden="true">{{ strtoupper(substr($contactUser?->name ?? 'L', 0, 1)) }}</span>
-                    @endif
-                </div>
-                <div class="professional-contact-name">
-                    @php $contactIsProfessional = $contactUser && $contactUser->account_status === 'Active' && in_array($contactUser->role_name, ['Broker', 'Agent', 'Lead Broker'], true); @endphp
-                    <h3><a id="referralContactName" class="professional-name-link" @if ($contactIsProfessional) href="{{ route('agents.show', $contactUser) }}" @endif>{{ $contactUser->name ?? 'LJS Realty Professional' }}</a></h3>
-                    <p id="referralContactRole">{{ $contactUser->role_name ?? 'Listing Professional' }}</p>
-                </div>
-            </div>
-
-            <div class="professional-contact-details">
-                <p><i class="fas fa-phone" aria-hidden="true"></i><span id="referralContactPhone">{{ $contactUser?->contact_number ?: 'Contact number not provided' }}</span></p>
-                <p><i class="fas fa-envelope" aria-hidden="true"></i><span id="referralContactEmail">{{ $contactUser->email ?? 'Contact details unavailable' }}</span></p>
-            </div>
-
-            <div class="professional-contact-actions">
-                @auth
-                    @if ($property->acceptsAppointments())
-                        <button type="button" id="referralAppointmentLink" class="contact-action contact-action-secondary" @if ($hasActiveAppointment ?? false) onclick="showPopup('Already booked', 'You already have an active appointment for this property. Wait for it to finish or cancel it before booking again.')" @else onclick="openAppointmentModal()" @endif>
-                            Book appointment
-                        </button>
-                    @else
-                        <button type="button" class="contact-action contact-action-secondary" disabled>{{ $property->property_status }} · Booking closed</button>
-                    @endif
-                @else
-                    <!-- Triggers login or redirects if not logged in -->
-                    <button type="button" class="contact-action contact-action-secondary" id="openLoginModal">
-                        Sign in to book
-                    </button>
-                @endauth
-                
-                @auth
-                    @if (auth()->user()?->normalizedRole() === 'client' && ($isAdminListing || $referralCode || in_array($contactUser?->role_name, ['Broker', 'Agent', 'Lead Broker'], true)))
-                        <form method="POST" action="{{ $messageUrl }}" id="propertyMessageForm">
-                            @csrf
-                            <input type="hidden" name="panel" value="1">
-                            <input type="hidden" name="recipient_id" id="referralMessageRecipient" value="{{ $contactUser->user_id }}">
-                            <button class="contact-action contact-action-primary" type="submit">Send message</button>
-                        </form>
-                    @endif
-                @else
-                    <button class="contact-action contact-action-primary" type="button" id="openLoginModal">Sign in to send a message</button>
-                @endauth
-            </div>
         </aside>
     </div>
 
@@ -202,7 +207,7 @@
             @if ($errors->any())
                 <div class="appointment-errors" role="alert">{{ $errors->first() }}</div>
             @endif
-            <form method="POST" action="{{ route('appointments.store', $property) }}" id="appointmentBookingForm" data-slots-url="{{ route('appointments.availability', $property) }}">
+            <form method="POST" action="{{ route('appointments.store', $property) }}" id="appointmentBookingForm" data-slots-url="{{ route('appointments.availability', $property) }}" data-no-confirm>
                 @csrf
                 <input type="hidden" name="client_timezone" id="appointmentTimezone" value="{{ auth()->user()->timezone ?? '' }}">
                 <input type="hidden" name="slot_start_utc" id="appointmentSlotUtc">

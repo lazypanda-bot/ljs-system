@@ -390,6 +390,11 @@
 .au-credential-viewer img { display: block; max-width: 100%; max-height: 75vh; margin: 12px auto 0; border-radius: 8px; }
 .au-credential-viewer iframe { display: block; width: 100%; height: 75vh; margin-top: 12px; border: 1px solid #e2e8f0; border-radius: 8px; }
 .au-credential-viewer [hidden] { display: none; }
+
+.au-member-choice.is-disabled{opacity:.52;cursor:not-allowed;background:#f1f5f9;color:#64748b}
+.au-member-choice.is-disabled:hover{border-color:var(--color-border)}
+.au-member-choice.is-disabled input{cursor:not-allowed}
+.au-member-choice.is-leader{display:none}
 .au-modal-overlay .au-credential-viewer { width: min(860px, 100%); }
 
 .au-status-form { margin: 0; }

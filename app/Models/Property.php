@@ -10,6 +10,8 @@ class Property extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public const DUPLICATE_REJECTION_REASON = 'Same property already listed';
+
     // Explicitly tell Laravel to use your actual database table name
     protected $table = 'property_listings';
 
@@ -54,6 +56,40 @@ class Property extends Model
     }
 
     public const DETAIL_FIELDS = ['lot_area', 'floor_area', 'bedrooms', 'bathrooms', 'parking_spaces', 'number_of_floors', 'property_condition', 'year_built'];
+
+    public function blocksResubmission(): bool
+    {
+        if ($this->approval_status !== 'Rejected') {
+            return false;
+        }
+
+        return collect(explode(';', (string) $this->rejection_note))
+            ->map(fn (string $reason) => trim($reason))
+            ->contains(self::DUPLICATE_REJECTION_REASON);
+    }
+
+    public function listingGroup(): string
+    {
+        if ($this->blocksResubmission() || in_array($this->property_status, ['Sold', 'Unavailable'], true)) {
+            return 'history';
+        }
+
+        if (in_array($this->approval_status, ['Pending', 'Rejected'], true)) {
+            return 'needs_action';
+        }
+
+        return 'active';
+    }
+
+    public static function publicStatusOrderSql(): string
+    {
+        return "CASE WHEN property_status IN ('Sold', 'Unavailable') THEN 1 ELSE 0 END";
+    }
+
+    public function scopeReportable($query)
+    {
+        return $query->where('approval_status', 'Approved');
+    }
 
     /** Land types only use land fields; buildings and any custom type keep the full set (optional unless required). */
     public static function visibleDetailFields(?string $type): array

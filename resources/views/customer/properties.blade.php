@@ -2,21 +2,21 @@
 
 @section('content')
 <div class="properties">
-    <div class="lifestyle">
-        <!-- Left Half: Image -->
+    <section class="lifestyle" aria-label="Lifestyle property match">
         <div class="media">
-            <img src="{{ asset('images/your-lifestyle-image.jpg') }}" 
+            <img src="{{ $lifestyleBannerUrl ?? asset('images/lifestyle.png') }}" 
                 alt="Lifestyle Match" 
-                data-fallback-src="{{ asset('images/ljs-logo.jpg') }}">
+                data-fallback-src="{{ asset('images/lifestyle.png') }}"
+                data-lifestyle-images='@json(($lifestyleBannerUrls ?? collect([asset('images/lifestyle.png')]))->values())'>
         </div>
 
-        <!-- Right Half: Content (Must be a direct child of .lifestyle, right next to .media) -->
         <div class="lifestyle-content">
+            <span class="lifestyle-kicker">Personalized property finder</span>
             <h2>We <span>find places</span> that people love</h2>
-            <p>Answer a few quick questions to match your preferences with the ideal property.</p>
+            <p>Answer a few quick questions and discover listings that fit your budget, location, and everyday routine.</p>
             <a href="{{ route('lifestyle.match') }}" class="lifestyle-action">Lifestyle Match</a>
         </div>
-    </div>
+    </section>
 
     {{-- SEARCH BAR --}}
     <div class="filter-bar">
@@ -49,9 +49,9 @@
                 <label>Price Range</label>
                 <select name="price_range" class="filter-select">
                     <option value="">All</option>
-                    <option value="0-5m" @selected(request('price_range') === '0-5m')>₱0 - ₱5M</option>
-                    <option value="5m-10m" @selected(request('price_range') === '5m-10m')>₱5M - ₱10M</option>
-                    <option value="10m+" @selected(request('price_range') === '10m+')>₱10M+</option>
+                    @foreach ($priceRanges as $priceRange)
+                        <option value="{{ $priceRange['value'] }}" @selected(request('price_range') === $priceRange['value'])>{{ $priceRange['label'] }}</option>
+                    @endforeach
                 </select>
             </div>
 
@@ -86,15 +86,16 @@
                     $firstImage = $item->images->first();
                     $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
                     $imageCount = $item->images->count() > 0 ? $item->images->count() : 1;
+                    $statusClass = Str::slug($item->property_status ?: 'available');
                 @endphp
 
-                <article class="property-card">
+                <article class="property-card property-status-card-{{ $statusClass }}">
                     <div class="property-card-img-container">
                         <img src="{{ $imageUrl }}" alt="{{ $item->property_name }}">
                         
                         {{-- TEMPORARY --}}
                         <div class="property-badges">
-                            <span class="badge-sale">FOR SALE</span>
+                            <span class="badge-sale badge-status-{{ $statusClass }}">{{ strtoupper($item->property_status ?: 'Available') }}</span>
                         </div>
 
                         <span class="property-img-count">1/{{ $imageCount }}</span>
@@ -116,7 +117,7 @@
                         <h3 class="property-title">{{ $item->property_name }}</h3>
                         <p class="property-location">{{ $item->city }}, {{ $item->province }}</p>
                         
-                        <div class="property-category-tag">{{ $item->property_type ?? 'Condominium' }} - For Sale</div>
+                        <div class="property-category-tag">{{ $item->property_type ?? 'Property' }} - {{ $item->property_status ?: 'Available' }}</div>
 
                         <hr class="property-divider">
 
@@ -240,6 +241,30 @@
         });
 
         window.addEventListener('popstate', restoreFiltersFromUrl);
+
+        const lifestyleImage = document.querySelector('[data-lifestyle-images]');
+        if (lifestyleImage) {
+            let images = [];
+            try {
+                images = JSON.parse(lifestyleImage.dataset.lifestyleImages || '[]');
+            } catch {
+                images = [];
+            }
+
+            images = images.filter(Boolean);
+            if (images.length > 1) {
+                let currentIndex = Math.max(0, images.indexOf(lifestyleImage.getAttribute('src')));
+                images.forEach((imageUrl) => {
+                    const preload = new Image();
+                    preload.src = imageUrl;
+                });
+
+                lifestyleImage.addEventListener('animationiteration', () => {
+                    currentIndex = (currentIndex + 1) % images.length;
+                    lifestyleImage.src = images[currentIndex];
+                });
+            }
+        }
     });
 </script>
 @endpush

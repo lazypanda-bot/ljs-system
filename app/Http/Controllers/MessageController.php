@@ -196,9 +196,15 @@ class MessageController extends Controller
         $user = $this->user();
         abort_unless($this->participates($conversation, $user), 403);
 
-        $validated = $request->validate(['body' => ['required', 'string', 'max:4000']]);
+        $validated = $request->validate([
+            'body' => ['required', 'string', 'max:4000'],
+            'attachment' => ['nullable', 'file', 'max:5120'],
+        ]);
+        $attachmentPath = $request->hasFile('attachment')
+            ? $request->file('attachment')->store('message-attachments', 'local')
+            : null;
 
-        $this->createMessage($conversation, $user, $validated['body']);
+        $this->createMessage($conversation, $user, $validated['body'], null, $attachmentPath);
 
         return redirect()->route('messages.inbox', [
             'conversation' => $conversation->conversation_id,
@@ -273,6 +279,7 @@ class MessageController extends Controller
                 'sender_name' => $message->sender->name,
                 'sender_role' => $message->sender->normalizedRole(),
                 'sent_at' => $message->created_at->format('M d, g:i A'),
+                'attachment_url' => $message->attachment_path ? route('messages.attachments.download', $message) : null,
             ]);
 
         return response()->json(['messages' => $messages]);
@@ -289,7 +296,11 @@ class MessageController extends Controller
         $absolutePath = Storage::disk('local')->path($path);
         abort_unless(is_file($absolutePath), 404);
 
-        return response()->download($absolutePath, basename($path));
+        $filename = str_replace('"', '', basename($path));
+
+        return response()->file($absolutePath, [
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
     }
 
     public function notificationCount(Request $request)
@@ -311,6 +322,7 @@ class MessageController extends Controller
     public function notifications(Request $request)
     {
         $user = $this->user();
+        $filter = $request->query('filter', 'all');
         $relations = [
             'appointment',
             'appointment.assignment.property',
@@ -321,8 +333,32 @@ class MessageController extends Controller
             'appointmentProposal.appointment.client',
             'appointmentProposal.proposedBy',
         ];
+
+        $appointmentScope = fn ($query) => $query
+            ->whereNotNull('appointment_id')
+            ->orWhereNotNull('appointment_proposal_id');
+        $countNotifications = function (?callable $scope = null) use ($user): int {
+            $query = AppNotification::visibleTo($user);
+            if ($scope) {
+                $scope($query);
+            }
+
+            return $query->count();
+        };
+        $notificationSummary = [
+            'all' => $countNotifications(),
+            'unread' => $countNotifications(fn ($query) => $query->whereNull('read_at')),
+            'appointments' => $countNotifications(fn ($query) => $query->where($appointmentScope)),
+            'messages' => $countNotifications(fn ($query) => $query->where('type', 'message')),
+            'team' => $countNotifications(fn ($query) => $query->where('type', 'team')),
+        ];
+
         $notifications = AppNotification::visibleTo($user)
             ->with($relations)
+            ->when($filter === 'unread', fn ($query) => $query->whereNull('read_at'))
+            ->when($filter === 'appointments', fn ($query) => $query->where($appointmentScope))
+            ->when($filter === 'messages', fn ($query) => $query->where('type', 'message'))
+            ->when($filter === 'team', fn ($query) => $query->where('type', 'team'))
             ->latest()
             ->orderByDesc('notification_id')
             ->paginate(5)
@@ -339,7 +375,7 @@ class MessageController extends Controller
 
         $selectedId = request()->integer('selected');
         $selectedNotification = $selectedId
-            ? $notifications->getCollection()->firstWhere('notification_id', $selectedId)
+            ? AppNotification::visibleTo($user)->with($relations)->whereKey($selectedId)->first()
             : null;
 
         if ($selectedNotification && ! $selectedNotification->read_at) {
@@ -349,13 +385,18 @@ class MessageController extends Controller
 
         $selectedNotification ??= $notifications->getCollection()->first();
 
-        return view('pages.notifications', compact('notifications', 'selectedNotification'));
+        return view('pages.notifications', compact('notifications', 'selectedNotification', 'notificationSummary', 'filter'));
     }
 
     public function openNotification(AppNotification $notification)
     {
         $user = $this->user();
-        abort_unless((int) $notification->user_id === (int) $user->user_id, 403);
+        abort_unless(
+            AppNotification::visibleTo($user)
+                ->whereKey($notification->notification_id)
+                ->exists(),
+            403
+        );
 
         $notification->update(['read_at' => now()]);
 
@@ -377,7 +418,10 @@ class MessageController extends Controller
             );
             $participantIds = $team->members->pluck('user_id')->push($team->user_id)->unique();
             foreach ($participantIds as $participantId) {
-                $conversation->participants()->firstOrCreate(['user_id' => $participantId]);
+                $conversation->participants()->updateOrCreate(
+                    ['user_id' => $participantId],
+                    ['hidden_at' => null]
+                );
             }
         }
     }

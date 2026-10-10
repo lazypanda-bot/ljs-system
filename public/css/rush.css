@@ -168,6 +168,13 @@
     font-weight: 600;
 }
 
+.badge-status-for-rent { background: #16a34a; }
+.badge-status-reserved { background: #f59e0b; }
+.badge-status-sold,
+.badge-status-unavailable { background: #64748b; }
+.rush-status-card-sold .rush-card-img-container img,
+.rush-status-card-unavailable .rush-card-img-container img { filter: grayscale(.25); }
+
 .rush-favorite-btn {
     position: absolute;
     top: 10px;

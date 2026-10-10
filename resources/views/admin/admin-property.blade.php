@@ -109,9 +109,13 @@
                     @php
                         $firstImage = $property->images->first();
                         $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
+                        $imageCount = $property->images->count();
                     @endphp
                     <tr data-request-row data-request-text="{{ strtolower($property->property_name . ' ' . ($property->user?->name ?? '')) }}" data-request-status="{{ $property->approval_status }}">
-                        <td class="staff-property-image-cell"><img src="{{ $imageUrl }}" alt="{{ $property->property_name }}"></td>
+                        <td class="staff-property-image-cell">
+                            <img src="{{ $imageUrl }}" alt="{{ $property->property_name }}">
+                            <span class="staff-property-image-count">{{ $imageCount }} {{ Str::plural('image', $imageCount) }}</span>
+                        </td>
                         <td class="staff-property-name-cell"><strong>{{ $property->property_name }}</strong><small>{{ Str::limit($property->property_description, 110) }}</small></td>
                         <td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }}</td>
                         <td>{{ $property->property_type }}</td>
@@ -125,15 +129,7 @@
                                         @csrf
                                         <button class="staff-approve-button" type="submit" name="approval_status" value="Approved"><i class="fas fa-check" aria-hidden="true"></i> Approve</button>
                                     </form>
-                                    <form method="POST" action="{{ route('admin.properties.review', $property) }}" class="staff-reject-form" data-reject-form>
-                                        @csrf
-                                        <button class="staff-reject-button" type="button" data-reject-open><i class="fas fa-xmark" aria-hidden="true"></i> Reject</button>
-                                        <div class="staff-reject-fields" hidden>
-                                            <label class="visually-hidden" for="rejection-note-{{ $property->property_id }}">Rejection reason</label>
-                                            <textarea id="rejection-note-{{ $property->property_id }}" name="rejection_note" rows="2" maxlength="2000" placeholder="Reason for rejecting"></textarea>
-                                            <button class="staff-reject-button" type="submit" name="approval_status" value="Rejected">Confirm reject</button>
-                                        </div>
-                                    </form>
+                                    <button class="staff-reject-button" type="button" data-reject-open data-reject-url="{{ route('admin.properties.review', $property) }}" data-reject-property="{{ $property->property_name }}"><i class="fas fa-xmark" aria-hidden="true"></i> Reject</button>
                                 </div>
                             </div>
                             @else
@@ -149,6 +145,43 @@
                 </table>
             </div>
         </section>
+    </div>
+
+    <div class="staff-reject-modal" id="listingRejectModal" hidden>
+        <div class="staff-reject-dialog" role="dialog" aria-modal="true" aria-labelledby="listingRejectTitle">
+            <button type="button" class="staff-reject-close" data-reject-close aria-label="Close">&times;</button>
+            <h3 id="listingRejectTitle">Reject listing</h3>
+            <p id="listingRejectProperty" class="staff-reject-property"></p>
+            <form method="POST" id="listingRejectForm">
+                @csrf
+                <input type="hidden" name="approval_status" value="Rejected">
+                <fieldset class="staff-reject-checklist">
+                    <legend>Reason for rejection</legend>
+                    @foreach ([
+                        'Incomplete property details',
+                        'Same property already listed',
+                        'Missing or invalid images',
+                        'Incorrect price or property information',
+                        'Location/address needs correction',
+                        'Listing does not meet requirements',
+                        'Other',
+                    ] as $reason)
+                        <label>
+                            <input type="checkbox" name="rejection_reasons[]" value="{{ $reason }}" @if ($reason === 'Other') data-reject-other @endif>
+                            <span>{{ $reason }}</span>
+                        </label>
+                    @endforeach
+                </fieldset>
+                <div class="staff-reject-other" id="listingRejectOther" hidden>
+                    <label for="listingRejectOtherNote">Other reason</label>
+                    <textarea id="listingRejectOtherNote" name="rejection_note_other" rows="3" maxlength="1000" placeholder="Add the custom rejection reason"></textarea>
+                </div>
+                <div class="staff-reject-modal-actions">
+                    <button type="button" class="staff-view-button" data-reject-close>Cancel</button>
+                    <button type="submit" class="staff-reject-button">Confirm reject</button>
+                </div>
+            </form>
+        </div>
     </div>
 
 @endsection
@@ -169,15 +202,59 @@ document.querySelectorAll('[data-admin-property-tab]').forEach(function (tab) {
     });
 });
 (function () {
-    document.querySelectorAll('[data-reject-form]').forEach(function (form) {
-        const open = form.querySelector('[data-reject-open]');
-        const fields = form.querySelector('.staff-reject-fields');
-        const note = form.querySelector('textarea');
-        open.addEventListener('click', function () {
-            fields.hidden = !fields.hidden;
-            note.required = !fields.hidden;
-            if (!fields.hidden) note.focus();
+    const modal = document.getElementById('listingRejectModal');
+    const form = document.getElementById('listingRejectForm');
+    const propertyLabel = document.getElementById('listingRejectProperty');
+    const otherCheckbox = form?.querySelector('[data-reject-other]');
+    const otherWrap = document.getElementById('listingRejectOther');
+    const otherNote = document.getElementById('listingRejectOtherNote');
+
+    const closeRejectModal = function () {
+        if (!modal || !form) return;
+        modal.hidden = true;
+        form.reset();
+        if (otherWrap) otherWrap.hidden = true;
+        if (otherNote) otherNote.required = false;
+    };
+
+    document.querySelectorAll('[data-reject-open]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            if (!modal || !form) return;
+            form.action = button.dataset.rejectUrl;
+            propertyLabel.textContent = button.dataset.rejectProperty || '';
+            modal.hidden = false;
+            form.querySelector('input[name="rejection_reasons[]"]')?.focus();
         });
+    });
+
+    otherCheckbox?.addEventListener('change', function () {
+        if (otherWrap) otherWrap.hidden = !otherCheckbox.checked;
+        if (otherNote) otherNote.required = otherCheckbox.checked;
+        if (otherCheckbox.checked) otherNote?.focus();
+    });
+    form?.addEventListener('submit', function (event) {
+        const firstReason = form.querySelector('input[name="rejection_reasons[]"]');
+        const hasReason = Boolean(form.querySelector('input[name="rejection_reasons[]"]:checked'));
+        firstReason?.setCustomValidity(hasReason ? '' : 'Select at least one rejection reason.');
+        if (!hasReason) {
+            event.preventDefault();
+            firstReason?.reportValidity();
+        }
+    });
+    form?.querySelectorAll('input[name="rejection_reasons[]"]').forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            form.querySelector('input[name="rejection_reasons[]"]')?.setCustomValidity('');
+        });
+    });
+
+    modal?.addEventListener('click', function (event) {
+        if (event.target === modal) closeRejectModal();
+    });
+    document.querySelectorAll('[data-reject-close]').forEach(function (button) {
+        button.addEventListener('click', closeRejectModal);
+    });
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && modal && !modal.hidden) closeRejectModal();
     });
 })();
 (function () {

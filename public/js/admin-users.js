@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     usersTable?.addEventListener('click', (event) => {
         const target = event.target instanceof Element ? event.target : event.target?.parentElement;
-        const link = target?.closest('.au-pagination a');
+        const link = target?.closest('.au-pagination a, .ljs-pagination a');
         if (!link) return;
         event.preventDefault();
         loadUsersPage(link.href);
@@ -278,4 +278,33 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error:', error));
         }
     };
+
+    function syncTeamMemberPicker(form) {
+        const leaderSelect = form.querySelector('.team-leader-select');
+        if (!leaderSelect) return;
+
+        const selectedLeaderId = leaderSelect.value;
+        form.querySelectorAll('.member-checkbox').forEach((checkbox) => {
+            const label = checkbox.closest('.au-member-choice');
+            const isTaken = checkbox.dataset.taken === 'true';
+            const isLeader = selectedLeaderId && checkbox.dataset.userid === selectedLeaderId;
+
+            checkbox.disabled = isTaken || isLeader;
+            label?.classList.toggle('is-disabled', isTaken);
+            label?.classList.toggle('is-leader', Boolean(isLeader));
+
+            if (isLeader) {
+                checkbox.checked = false;
+            }
+        });
+    }
+
+    document.querySelectorAll('form .team-leader-select').forEach((leaderSelect) => {
+        const form = leaderSelect.closest('form');
+        if (!form) return;
+
+        leaderSelect.addEventListener('change', () => syncTeamMemberPicker(form));
+        form.addEventListener('reset', () => setTimeout(() => syncTeamMemberPicker(form), 0));
+        syncTeamMemberPicker(form);
+    });
 });

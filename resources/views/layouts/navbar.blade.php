@@ -92,10 +92,10 @@
                             </div>
                         </div>
 
-                        <a href="{{ route('app.page', ['page' => 'settings']) }}" class="profile-menu-item">Settings</a>
+                        <a href="{{ route('app.page', ['page' => 'settings']) }}" class="profile-menu-item"><i data-lucide="settings" aria-hidden="true"></i> Settings</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="profile-menu-item profile-menu-logout">Logout</button>
+                            <button type="submit" class="profile-menu-item profile-menu-logout"><i data-lucide="log-out" aria-hidden="true"></i> Logout</button>
                         </form>
                     </div>
                 </div>

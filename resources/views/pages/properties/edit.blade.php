@@ -5,7 +5,7 @@
 @section('content')
     @php($isAdmin = auth()->user()?->actingRole() === 'admin')
     <div class="property-edit-page staff-page-surface">
-        <a class="property-edit-back" href="{{ route('app.page', ['page' => $isAdmin ? 'property' : 'listings']) }}"><i class="fas fa-arrow-left" aria-hidden="true"></i> Back to {{ $isAdmin ? 'properties' : 'listings' }}</a>
+        <a class="property-edit-back" href="{{ route('app.page', ['page' => $isAdmin ? 'property' : 'listings']) }}">&larr; Back to {{ $isAdmin ? 'properties' : 'listings' }}</a>
         <header class="property-edit-heading"><span>LISTING MANAGEMENT</span><h1>Edit Property</h1><p>Update the listing, property details, and photo gallery.</p></header>
         @if ($property->rejection_note)
             <div class="listing-rejection-note"><strong>Admin requested these changes</strong><p>{{ $property->rejection_note }}</p></div>

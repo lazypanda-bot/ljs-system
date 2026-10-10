@@ -27,6 +27,7 @@ use App\Http\Controllers\ContactController;
 Route::get('/', function () {
     $properties = Property::with(['images', 'details'])
         ->where('approval_status', 'Approved')
+        ->orderByRaw(Property::publicStatusOrderSql())
         ->latest()
         ->get();
 
@@ -35,6 +36,7 @@ Route::get('/', function () {
     $featuredProperties = Property::with(['images', 'details', 'user.professionalProfile'])
         ->where('featured', true)
         ->where('approval_status', 'Approved')
+        ->whereNotIn('property_status', ['Sold', 'Unavailable'])
         ->latest()
         ->take(5)
         ->get();
@@ -56,6 +58,91 @@ Route::get('/', function () {
 // PROPERTIES CATALOG
 Route::get('/properties', function (Request $request) {
     $approvedProperties = Property::query()->where('approval_status', 'Approved');
+    $propertyTable = (new Property)->getTable();
+    $lifestyleBannerImages = DB::table('property_images')
+        ->join($propertyTable, 'property_images.property_id', '=', "{$propertyTable}.property_id")
+        ->where("{$propertyTable}.approval_status", 'Approved')
+        ->whereNull("{$propertyTable}.deleted_at")
+        ->inRandomOrder()
+        ->limit(8)
+        ->pluck('property_images.image_path')
+        ->map(fn ($path) => asset('storage/' . $path))
+        ->values();
+    $lifestyleBannerUrls = $lifestyleBannerImages->isNotEmpty()
+        ? $lifestyleBannerImages
+        : collect([asset('images/lifestyle.png')]);
+    $lifestyleBannerUrl = $lifestyleBannerUrls->first();
+
+    $formatPrice = function (float|int $price): string {
+        if ($price >= 1000000) {
+            $millions = $price / 1000000;
+            $amount = floor($millions) == $millions
+                ? number_format($millions, 0)
+                : rtrim(rtrim(number_format($millions, 1), '0'), '.');
+
+            return '₱' . $amount . 'M';
+        }
+
+        if ($price >= 1000) {
+            $thousands = $price / 1000;
+            $amount = floor($thousands) == $thousands
+                ? number_format($thousands, 0)
+                : rtrim(rtrim(number_format($thousands, 1), '0'), '.');
+
+            return '₱' . $amount . 'k';
+        }
+
+        return '₱' . number_format($price, 0);
+    };
+    $priceBounds = (clone $approvedProperties)
+        ->whereNotNull('price')
+        ->selectRaw('MIN(price) as min_price, MAX(price) as max_price')
+        ->first();
+    $minPrice = $priceBounds?->min_price !== null ? (int) floor($priceBounds->min_price) : null;
+    $maxPrice = $priceBounds?->max_price !== null ? (int) ceil($priceBounds->max_price) : null;
+    $priceCaps = ($maxPrice !== null && $maxPrice <= 500000)
+        ? [50000, 100000, 250000, 500000]
+        : [5000000, 10000000, 20000000, 50000000];
+    $priceRanges = collect();
+    if ($minPrice !== null && $maxPrice !== null) {
+        $rangeStart = $minPrice;
+        foreach ($priceCaps as $cap) {
+            if ($cap < $rangeStart) {
+                continue;
+            }
+
+            $rangeEnd = $cap;
+            $hasPropertiesInRange = (clone $approvedProperties)
+                ->whereBetween('price', [$rangeStart, $rangeEnd])
+                ->exists();
+
+            if ($hasPropertiesInRange) {
+                $priceRanges->push([
+                    'value' => $rangeStart . '-' . $rangeEnd,
+                    'label' => $formatPrice($rangeStart) . ' - ' . $formatPrice($rangeEnd),
+                ]);
+            }
+
+            $rangeStart = $cap + 1;
+            if ($rangeStart > $maxPrice) {
+                break;
+            }
+        }
+
+        if ($rangeStart <= $maxPrice) {
+            $priceRanges->push([
+                'value' => $rangeStart . '+',
+                'label' => $formatPrice($rangeStart) . '+',
+            ]);
+        }
+    }
+    $requestedPriceRange = (string) $request->input('price_range', '');
+    $priceRangeBounds = null;
+    if (preg_match('/^(\d+)-(\d+)$/', $requestedPriceRange, $matches)) {
+        $priceRangeBounds = [(int) $matches[1], (int) $matches[2]];
+    } elseif (preg_match('/^(\d+)\+$/', $requestedPriceRange, $matches)) {
+        $priceRangeBounds = [(int) $matches[1], null];
+    }
     $propertyTypes = (clone $approvedProperties)
         ->whereNotNull('property_type')
         ->whereRaw("TRIM(property_type) != ''")
@@ -94,16 +181,19 @@ Route::get('/properties', function (Request $request) {
                 ->orWhere('city', 'like', "%{$search}%")
                 ->orWhere('province', 'like', "%{$search}%");
         }))
-        ->when($request->price_range === '0-5m', fn ($query) => $query->whereBetween('price', [0, 5000000]))
-        ->when($request->price_range === '5m-10m', fn ($query) => $query->whereBetween('price', [5000000, 10000000]))
-        ->when($request->price_range === '10m+', fn ($query) => $query->where('price', '>=', 10000000))
+        ->when($priceRangeBounds !== null, function ($query) use ($priceRangeBounds) {
+            return $priceRangeBounds[1] === null
+                ? $query->where('price', '>=', $priceRangeBounds[0])
+                : $query->whereBetween('price', $priceRangeBounds);
+        })
+        ->orderByRaw(Property::publicStatusOrderSql())
         ->when($request->sort === 'price_low', fn ($query) => $query->orderBy('price'))
         ->when($request->sort === 'price_high', fn ($query) => $query->orderByDesc('price'))
         ->when($request->sort === 'latest', fn ($query) => $query->latest())
         ->when($request->sort === 'featured' || ! $request->filled('sort'), fn ($query) => $query->orderByDesc('featured')->latest())
         ->paginate(12)
         ->withQueryString();
-    return view('customer.properties', compact('properties', 'propertyTypes', 'propertyLocations'));
+    return view('customer.properties', compact('properties', 'propertyTypes', 'propertyLocations', 'priceRanges', 'lifestyleBannerUrl', 'lifestyleBannerUrls'));
 })->name('properties');
 
 // ABOUT
@@ -172,6 +262,9 @@ Route::get('/notifications/{notification}', [MessageController::class, 'openNoti
 Route::post('/agents/{professional}/reviews', [AgentController::class, 'storeReview'])
     ->middleware('auth')
     ->name('agents.reviews.store');
+Route::delete('/agents/{professional}/reviews', [AgentController::class, 'destroyReview'])
+    ->middleware('auth')
+    ->name('agents.reviews.destroy');
 
 // USERS
 Route::get('/app/users', [UserController::class, 'index'])->middleware('auth');

@@ -127,26 +127,34 @@
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    background: #f0f6ff;
-    /* border-radius: 16px; */
+    background:
+        radial-gradient(circle at 82% 18%, rgba(34, 197, 94, 0.16), transparent 28%),
+        linear-gradient(120deg, #eff6ff 0%, #f8fbff 48%, #ecfdf5 100%);
+    border: 1px solid rgba(37, 99, 235, 0.1);
     overflow: hidden;
     margin-bottom: 24px;
     width: 100%;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    animation: lifestyleBannerGlow 14s ease-in-out infinite alternate;
 }
 
 /* Left Side: Image with gradient fade effect */
 .media {
     flex: 0 0 50% !important;
     width: 50% !important;
-    height: 220px;
+    height: 270px;
     position: relative;
+    overflow: hidden;
     background: #e2e8f0;
 }
 
 .media img {
     width: 100%;
-    height: 100%;
+    height: 160%;
     object-fit: cover;
+    object-position: center top;
+    animation: lifestyleImagePan 4s linear infinite alternate;
+    will-change: transform;
     -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0) 100%);
     mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0) 100%);
 }
@@ -155,18 +163,29 @@
 .lifestyle-content {
     flex: 0 0 50% !important;
     width: 50% !important;
-    padding: 30px 40px;
+    padding: 34px 44px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    position: relative;
+}
+
+.lifestyle-kicker {
+    color: #2563eb;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
 }
 
 .lifestyle-content h2 {
-    font-size: 1.8rem;
+    font-size: 2rem;
     font-weight: 800;
     color: #111827;
     line-height: 1.2;
-    margin: 0 0 8px 0;
+    margin: 0 0 10px 0;
+    max-width: 560px;
 }
 
 .lifestyle-content h2 span {
@@ -174,9 +193,11 @@
 }
 
 .lifestyle-content p {
-    font-size: 0.9rem;
+    font-size: 0.96rem;
     color: #4b5563;
-    margin: 0 0 16px 0;
+    line-height: 1.6;
+    margin: 0 0 18px 0;
+    max-width: 560px;
 }
 
 /* Lifestyle Button */
@@ -187,38 +208,52 @@
     padding: 12px 28px;
     border: none;
     outline: none;
-    color: #141414;
-    background: linear-gradient(270deg, #8be1ac, #22c55e, #10b981, #8be1ac);
-    background-size: 800% 800%;
-    animation: gradientShift 8s ease infinite;
+    color: #ffffff;
+    background: #16a34a;
     cursor: pointer;
     position: relative;
     z-index: 0;
     border-radius: 10px;
-    font-weight: 600;
+    font-weight: 800;
     font-size: 0.9rem;
     text-decoration: none;
     width: fit-content;
     overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
-    margin-top: 20px;
+    box-shadow: 0 12px 24px rgba(22, 163, 74, 0.24);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    margin-top: 12px;
 }
 
 .lifestyle-action:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25);
-    color: #ffffff; 
+    background: #15803d;
+    transform: translateY(-2px);
+    box-shadow: 0 16px 30px rgba(22, 163, 74, 0.3);
 }
 
 .lifestyle-action:active {
     transform: translateY(-1px);
 }
 
-/* Keyframes for internal button color shifting */
-@keyframes gradientShift {
+@keyframes lifestyleBannerGlow {
     0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+@keyframes lifestyleImagePan {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-37.5%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .media img {
+        animation: none;
+        height: 100%;
+        transform: none;
+    }
+
+    .lifestyle {
+        animation: none;
+    }
 }
 
 /* 4-Column Properties Grid */
@@ -276,6 +311,15 @@
     border-radius: 4px;
     font-weight: 600;
 }
+
+.badge-status-for-rent { background: #16a34a; }
+.badge-status-reserved { background: #f59e0b; }
+.badge-status-sold,
+.badge-status-unavailable { background: #64748b; }
+.property-status-card-sold .property-card-img-container img,
+.property-status-card-unavailable .property-card-img-container img { filter: grayscale(.25); }
+.property-status-card-sold .property-btn,
+.property-status-card-unavailable .property-btn { background: #475569; }
 
 .property-favorite-btn {
     position: absolute;

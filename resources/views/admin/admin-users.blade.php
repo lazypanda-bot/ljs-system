@@ -128,6 +128,7 @@
         <div class="au-tab-content {{ $showTeams ? 'active' : '' }}" id="teams">
             @if (isset($team))
                 @php($selectedMemberIds = old('member_ids', $team->members->pluck('user_id')->all()))
+                @php($currentTeamUserIds = $team->members->pluck('user_id')->push($team->user_id)->unique()->all())
                 <div class="au-modal-overlay au-team-edit-modal open" role="presentation">
                     <section class="au-form-card" role="dialog" aria-modal="true" aria-labelledby="editTeamHeading">
                         <a href="{{ route('admin.teams.index') }}" class="au-modal-close" aria-label="Close">&times;</a>
@@ -135,19 +136,36 @@
                         <p class="au-team-edit-description">Update the team name, leader, and members.</p>
                         <form method="POST" action="{{ route('admin.teams.update', $team->team_id) }}">
                             @csrf @method('PUT')
-                            <label class="au-team-field"><span>Team name</span><input class="form-control" name="team_name" value="{{ old('team_name', $team->team_name) }}" maxlength="255" required></label>
-                            <label class="au-team-field"><span>Team leader</span><select class="form-select" name="user_id" required>@foreach($allUsers->whereIn('role_name', ['Broker', 'Lead Broker']) as $user)<option value="{{ $user->user_id }}" @selected((int) old('user_id', $team->user_id) === (int) $user->user_id)>{{ $user->name }} ({{ $user->role_name }})</option>@endforeach</select></label>
-                            <fieldset class="au-member-picker-fieldset"><legend>Team members</legend><div class="au-member-picker">
-                                @foreach($allUsers as $user)
-                                    <label class="au-member-choice"><input type="checkbox" name="member_ids[]" value="{{ $user->user_id }}" @checked(in_array($user->user_id, $selectedMemberIds))><span>{{ $user->name }}</span><small>{{ $user->role_name }}</small></label>
-                                @endforeach
-                            </div></fieldset>
+                                <label class="au-team-field"><span>Team name</span><input class="form-control" name="team_name" value="{{ old('team_name', $team->team_name) }}" maxlength="255" required></label>
+                                <label class="au-team-field"><span>Team leader</span><select class="form-select team-leader-select" name="user_id" required>
+                                    @foreach($allUsers->whereIn('role_name', ['Broker', 'Lead Broker']) as $user)
+                                        @php($isTakenOutsideTeam = in_array($user->user_id, $takenUserIds ?? [], true) && ! in_array($user->user_id, $currentTeamUserIds, true))
+                                        <option value="{{ $user->user_id }}" @selected((int) old('user_id', $team->user_id) === (int) $user->user_id) @disabled($isTakenOutsideTeam)>
+                                            {{ $user->name }} ({{ $user->role_name }}){{ $isTakenOutsideTeam ? ' - Already in team' : '' }}
+                                        </option>
+                                    @endforeach</select>
+                                </label>
+                            <fieldset class="au-member-picker-fieldset"><legend>Team members</legend>
+                                <div class="au-member-picker">
+                                    @foreach($allUsers as $user)
+                                        @php($isTakenOutsideTeam = in_array($user->user_id, $takenUserIds ?? [], true) && ! in_array($user->user_id, $currentTeamUserIds, true))
+                                        <label class="au-member-choice {{ $isTakenOutsideTeam ? 'is-disabled' : '' }}">
+                                            <input type="checkbox" class="member-checkbox" name="member_ids[]" value="{{ $user->user_id }}" data-userid="{{ $user->user_id }}" data-taken="{{ $isTakenOutsideTeam ? 'true' : 'false' }}"
+                                                @checked(in_array($user->user_id, $selectedMemberIds))
+                                                @disabled($isTakenOutsideTeam)>
+                                            <span>{{ $user->name }}</span>
+                                            <small>{{ $isTakenOutsideTeam ? $user->role_name . ' - Already in team' : $user->role_name }}</small>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </fieldset>
                             <div class="au-form-actions"><button class="au-saveteam-btn" type="submit">Save Team</button><a class="au-cancelteam-btn" href="{{ route('admin.teams.index') }}">Cancel</a></div>
                         </form>
                     </section>
                 </div>
             @endif
-
+            
+            {{-- WORKING --}}
             <!-- Add Team Modal -->
             <div class="au-modal-overlay {{ $teamFailed ? 'open' : '' }}" id="addTeamModalOverlay">
                 <div class="au-form-card">
@@ -168,29 +186,34 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="teamLeader" class="form-label">Team Leader *</label>
-                                    <select class="form-select" id="teamLeader" name="user_id" required>
+                                    <select class="form-select team-leader-select" id="teamLeader" name="user_id" required>
                                         <option value="">Select team leader (Broker or Lead Broker)</option>
                                         @foreach($allUsers->whereIn('role_name', ['Broker', 'Lead Broker']) as $user)
-                                            <option value="{{ $user->user_id }}">{{ $user->name }}</option>
+                                            @php($isTaken = in_array($user->user_id, $takenUserIds ?? [], true))
+                                            <option value="{{ $user->user_id }}" @selected((int) old('user_id') === (int) $user->user_id) @disabled($isTaken)>
+                                                {{ $user->name }}{{ $isTaken ? ' - Already in team' : '' }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
                         </div>
-
-                        <fieldset class="au-member-picker-fieldset"><legend>Team Members</legend><div class="au-member-picker">
-                            @foreach($allUsers as $user)
-                                <label class="au-member-choice"><input type="checkbox" name="member_ids[]" value="{{ $user->user_id }}"><span>{{ $user->name }}</span><small>{{ $user->role_name }}</small></label>
-                            @endforeach
-                        </div></fieldset>
-
-                        <div class="au-section-header">
-                            <div>
-                                <h2>Teams Management</h2>
-                                <p class="text-muted mb-0">You can manage your teams here.</p>
-                            </div>
-                        </div>
                         
+                        <fieldset class="au-member-picker-fieldset"><legend>Team Members</legend>
+                            <div class="au-member-picker">
+                                @foreach($allUsers as $user)
+                                    @php($isTaken = in_array($user->user_id, $takenUserIds ?? [], true))
+                                    <label class="au-member-choice {{ $isTaken ? 'is-disabled' : '' }}">
+                                        <input type="checkbox" class="member-checkbox" name="member_ids[]" value="{{ $user->user_id }}" data-userid="{{ $user->user_id }}" data-taken="{{ $isTaken ? 'true' : 'false' }}"
+                                            @checked(in_array($user->user_id, old('member_ids', [])))
+                                            @disabled($isTaken)>
+                                        <span>{{ $user->name }}</span>
+                                        <small>{{ $isTaken ? $user->role_name . ' - Already in team' : $user->role_name }}</small>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </fieldset>
+
                         <div class="au-form-actions">
                             <button type="submit" class="au-saveteam-btn">Create Team</button>
                             <button type="button" class="au-cancelteam-btn" id="cancelAddTeamForm">Cancel</button>
@@ -198,7 +221,7 @@
                     </form>
                 </div>
             </div>
-
+            
             <!-- Teams Table -->
             <div class="au-table-container">
                 <div class="staff-property-table-wrap">

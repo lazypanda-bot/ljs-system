@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\ActivityMail;
 use App\Models\User;
 use App\Models\Team;
+use App\Models\TeamMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -25,11 +26,8 @@ class UserController extends Controller
     {
         $this->authorizeAdmin();
 
-        $users = User::with('professionalProfile')
-            ->where('role_name', '!=', 'Client')
-            ->orderBy('user_id')
-            ->paginate(7)
-            ->appends($request->except(['table_only', 'page']));
+        $data = $this->adminUsersPageData($request);
+        $users = $data['users'];
 
         if ($request->boolean('table_only')) {
             return response()->json([
@@ -37,11 +35,7 @@ class UserController extends Controller
             ]);
         }
 
-        return view('admin.admin-users', [
-            'users' => $users,
-            'allUsers' => User::where('role_name', '!=', 'Client')->get(),
-            'teams' => Team::with(['user', 'members.user'])->latest()->get(),
-        ]);
+        return view('admin.admin-users', $data);
     }
 
     /**
@@ -51,7 +45,7 @@ class UserController extends Controller
     {
         $this->authorizeAdmin();
 
-        return view('admin.admin-users');
+        return view('admin.admin-users', $this->adminUsersPageData());
     }
 
     /**
@@ -132,9 +126,7 @@ class UserController extends Controller
         $this->authorizeAdmin();
 
         return view('admin.admin-users', [
-            'users' => User::where('role_name', '!=', 'Client')->orderBy('user_id')->paginate(7),
-            'allUsers' => User::where('role_name', '!=', 'Client')->get(),
-            'teams' => Team::with(['user', 'members.user'])->latest()->get(),
+            ...$this->adminUsersPageData(),
             'editUser' => $user,
         ]);
     }
@@ -147,9 +139,7 @@ class UserController extends Controller
         $this->authorizeAdmin();
 
         return view('admin.admin-users', [
-            'users' => User::where('role_name', '!=', 'Client')->orderBy('user_id')->paginate(7),
-            'allUsers' => User::where('role_name', '!=', 'Client')->get(),
-            'teams' => Team::with(['user', 'members.user'])->latest()->get(),
+            ...$this->adminUsersPageData(),
             'editUser' => $user,
         ]);
     }
@@ -220,5 +210,30 @@ class UserController extends Controller
         $user = Auth::user();
 
         abort_unless($user instanceof User && $user->actingRole() === 'admin', 403);
+    }
+
+    private function adminUsersPageData(?Request $request = null): array
+    {
+        $users = User::with('professionalProfile')
+            ->where('role_name', '!=', 'Client')
+            ->orderBy('user_id')
+            ->paginate(7);
+
+        if ($request) {
+            $users->appends($request->except(['table_only', 'page']));
+        }
+
+        $takenUserIds = Team::pluck('user_id')
+            ->merge(TeamMember::pluck('user_id'))
+            ->unique()
+            ->values()
+            ->all();
+
+        return [
+            'users' => $users,
+            'allUsers' => User::where('role_name', '!=', 'Client')->get(),
+            'teams' => Team::with(['user', 'members.user'])->latest()->get(),
+            'takenUserIds' => $takenUserIds,
+        ];
     }
 }

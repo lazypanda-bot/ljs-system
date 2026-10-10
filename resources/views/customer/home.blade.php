@@ -3,7 +3,12 @@
 @section('title', 'LJS Realty and Brokerage')
 
 @section('content')
-    <section class="hero-section">
+    <section class="hero-section"
+        data-hero-time-image
+        data-sunrise-image="{{ asset('images/sunrise.png') }}"
+        data-day-image="{{ asset('images/day.png') }}"
+        data-sunset-image="{{ asset('images/sunset.png') }}"
+        data-night-image="{{ asset('images/night.png') }}">
         <div class="hero-content">
             <h1 class="hero-title">Find Your <span class="highlight">Dream</span> Property</h1>
             <p class="hero-subtitle">
@@ -89,9 +94,10 @@
                         @php
                             $firstImage = $item->images->first();
                             $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
+                            $statusClass = Str::slug($item->property_status ?: 'available');
                         @endphp
                         
-                        <article class="rush-card">
+                        <article class="rush-card rush-status-card-{{ $statusClass }}">
                             <!-- Image Container -->
                             <div class="rush-card-img-container">
                                 <img src="{{ $imageUrl }}" alt="{{ $item->property_name }}">
@@ -99,7 +105,7 @@
                                 <!-- Top Badges -->
                                 <div class="rush-badges">
                                     <span class="badge-featured"><i data-lucide="star" aria-hidden="true"></i> Featured</span>
-                                    <span class="badge-sale">FOR SALE</span>
+                                    <span class="badge-sale badge-status-{{ $statusClass }}">{{ strtoupper($item->property_status ?: 'Available') }}</span>
                                 </div>
 
                                 <!-- Favorite Button -->
@@ -213,4 +219,26 @@
         </div>
     </section>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const hero = document.querySelector('[data-hero-time-image]');
+            if (!hero) return;
+
+            const hour = new Date().getHours();
+            const image = hour >= 5 && hour < 9
+                ? hero.dataset.sunriseImage
+                : hour >= 9 && hour < 17
+                    ? hero.dataset.dayImage
+                    : hour >= 17 && hour < 19
+                        ? hero.dataset.sunsetImage
+                        : hero.dataset.nightImage;
+
+            if (image) {
+                hero.style.setProperty('--hero-image', `url("${image}")`);
+            }
+        });
+    </script>
+@endpush
 

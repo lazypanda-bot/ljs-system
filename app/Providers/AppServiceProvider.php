@@ -76,7 +76,7 @@ class AppServiceProvider extends ServiceProvider
                 if ($user->normalizedRole() === 'client') {
                     $activeAppointmentCount = \App\Models\Appointment::activeForClient($user)->count();
                     $activeAppointments = \App\Models\Appointment::activeForClient($user)
-                        ->with('assignment.property')
+                        ->with(['assignment.property', 'proposals.proposedBy'])
                         ->orderByRaw('CASE WHEN starts_at_utc IS NULL THEN 1 ELSE 0 END')
                         ->orderBy('starts_at_utc')
                         ->take(5)

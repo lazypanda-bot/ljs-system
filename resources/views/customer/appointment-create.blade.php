@@ -11,7 +11,7 @@
 	@if ($errors->any())
 		<div class="appointment-errors" role="alert">{{ $errors->first() }}</div>
 	@endif
-	<form method="POST" action="{{ route('appointments.store', $property) }}" id="appointmentBookingForm" data-slots-url="{{ route('appointments.availability', $property) }}">
+	<form method="POST" action="{{ route('appointments.store', $property) }}" id="appointmentBookingForm" data-slots-url="{{ route('appointments.availability', $property) }}" data-no-confirm>
 		@csrf
 		<input type="hidden" name="client_timezone" id="appointmentTimezone" value="{{ $clientTimezone ?? '' }}">
 		<input type="hidden" name="slot_start_utc" id="appointmentSlotUtc">

@@ -26,7 +26,7 @@
     @endphp
 
     <div class="property-create-page staff-page-surface">
-        <a class="property-create-back" href="{{ route('app.page', ['page' => auth()->user()->actingRole() === 'admin' ? 'property' : 'listings']) }}"><i class="fas fa-arrow-left" aria-hidden="true"></i> Back to {{ auth()->user()->actingRole() === 'admin' ? 'properties' : 'listings' }}</a>
+        <a class="property-create-back" href="{{ route('app.page', ['page' => auth()->user()->actingRole() === 'admin' ? 'property' : 'listings']) }}">&larr; Back to {{ auth()->user()->actingRole() === 'admin' ? 'properties' : 'listings' }}</a>
         <header class="property-create-heading"><span>LISTING MANAGEMENT</span><h1>Add New Property</h1><p>Enter listing information and publish it to the property catalogue.</p></header>
         @if ($errors->any())
             <div class="property-create-errors" role="alert"><strong>Please review the form errors before continuing.</strong></div>

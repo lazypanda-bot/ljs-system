@@ -25,10 +25,12 @@
         </div>
 
         <div class="appointments-workspace">
-            <nav class="appointments-master-list" aria-label="Appointment list">
+            <div class="appointments-master-list" role="navigation" aria-label="Appointment list">
             @forelse ($appointments as $appointment)
                 @php
                     $appointmentStart = $appointment->startInTimezone($viewerTimezone);
+                    $statusLabel = $appointment->displayStatus();
+                    $statusClass = $appointment->displayStatusClass();
                 @endphp
                 <a class="appointment-master-item {{ (int) ($selectedAppointment?->appointment_id) === (int) $appointment->appointment_id ? 'active' : '' }}"
                    href="{{ route('appointments.index', array_merge(request()->except('selected'), ['selected' => $appointment->appointment_id])) }}"
@@ -37,14 +39,14 @@
                     <span class="appointment-master-copy">
                         <strong>{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }}</strong>
                         <small>{{ $appointment->contact_name }} · {{ $appointmentStart->format('g:i A') }}</small>
-                        <span class="appointment-status status-{{ strtolower($appointment->appointment_status) }}">{{ $appointment->appointment_status }}</span>
+                        <span class="appointment-status status-{{ $statusClass }}">{{ $statusLabel }}</span>
                     </span>
                 </a>
             @empty
                 <p class="appointments-empty">No appointments found.</p>
             @endforelse
-                {{ $appointments->links() }}
-            </nav>
+                {{ $appointments->links('pagination.ljs') }}
+            </div>
 
             <section class="appointment-detail-panel" aria-live="polite" aria-label="Appointment details">
                 @if ($selectedAppointment)
@@ -56,6 +58,8 @@
                         $isAppointmentClient = $viewer?->normalizedRole() === 'client'
                             && ((int) $selectedAppointment->client_id === (int) $viewer?->user_id
                                 || ($selectedAppointment->client_id === null && strcasecmp($selectedAppointment->contact_email, $viewer?->email ?? '') === 0));
+                        $selectedStatusLabel = $selectedAppointment->displayStatus();
+                        $selectedStatusClass = $selectedAppointment->displayStatusClass();
                     @endphp
                     <header class="appointment-detail-header">
                         <span>APPOINTMENT DETAILS</span>
@@ -63,7 +67,7 @@
                         <p>{{ $selectedAppointment->appointment_type }} · {{ $selectedStart->format('M j, Y · g:i A') }}</p>
                     </header>
                     <dl class="appointment-detail-grid">
-                        <div><dt>Status</dt><dd><span class="appointment-status status-{{ strtolower($selectedAppointment->appointment_status) }}">{{ $selectedAppointment->appointment_status }}</span></dd></div>
+                        <div><dt>Status</dt><dd><span class="appointment-status status-{{ $selectedStatusClass }}">{{ $selectedStatusLabel }}</span></dd></div>
                         <div><dt>Client</dt><dd>{{ $selectedAppointment->contact_name }}</dd></div>
                         <div><dt>Professional</dt><dd>{{ $selectedAppointment->assignment?->user?->name ?? 'Listing team' }}</dd></div>
                         <div><dt>Contact</dt><dd>{{ $selectedAppointment->contact_email }}{{ $selectedAppointment->contact_number ? ' · ' . $selectedAppointment->contact_number : '' }}</dd></div>
@@ -93,7 +97,7 @@
                                 <select id="appointmentStatusUpdate" name="appointment_status" data-auto-submit>
                                     <option selected disabled>Choose status</option>
                                     @if ($isAppointmentAdmin || $isAssignedProfessional)
-                                        <option>Confirmed</option>
+                                        <option value="Confirmed">Confirm</option>
                                         <option>Completed</option>
                                         <option>Rejected</option>
                                     @endif

@@ -92,7 +92,7 @@
                             <div class="message-author">{{ $message->sender->name }} <span>{{ $message->sender->role_name }}</span></div>
                             <div class="message-text" data-message-display>{{ $message->body }}</div>
                             @if ($message->attachment_path)
-                                <a class="message-attachment" href="{{ route('messages.attachments.download', $message) }}"><i class="fas fa-paperclip" aria-hidden="true"></i> Attachment</a>
+                                <a class="message-attachment" href="{{ route('messages.attachments.download', $message) }}" target="_blank" rel="noopener"><i class="fas fa-paperclip" aria-hidden="true"></i> Attachment</a>
                             @endif
                             <div class="message-meta">{{ $message->created_at->format('M d, g:i A') }}</div>
                             @if ($isOwnMessage)
@@ -119,9 +119,11 @@
                     </div>
                 @endforeach
             </div>
-            <form class="reply-box" method="POST" action="{{ $replyUrl }}">
+            <form class="reply-box" method="POST" action="{{ $replyUrl }}" enctype="multipart/form-data">
                 @csrf
+                <label class="reply-attach-button" for="replyAttachment" title="Attach a file" aria-label="Attach a file"><i data-lucide="plus" aria-hidden="true"></i><input id="replyAttachment" name="attachment" type="file"></label>
                 <div class="reply-input-wrapper"><textarea class="reply-input" name="body" placeholder="Type a message..." rows="1" maxlength="4000" required></textarea></div>
+                <div class="reply-attachment-status" id="replyAttachmentStatus" aria-live="polite" hidden></div>
                 <button class="message-send-button" type="submit"><span>Send</span></button>
             </form>
         @else
@@ -140,6 +142,7 @@
         <label for="messageSubject">Subject</label><input id="messageSubject" name="subject" maxlength="255" placeholder="What is this about?">
         <label for="messageBody">Message</label><textarea id="messageBody" name="body" rows="6" maxlength="4000" required placeholder="Write your message..."></textarea>
         <label for="messageAttachment" class="compose-attachment"><i class="fas fa-paperclip" aria-hidden="true"></i> Attach a file<input id="messageAttachment" name="attachment" type="file"></label>
+        <div class="compose-attachment-status" id="messageAttachmentStatus" aria-live="polite">No file attached</div>
         <div class="compose-actions"><button type="button" class="compose-cancel">Cancel</button><button type="submit" class="compose-send">Send message</button></div>
     </form>
 </div>

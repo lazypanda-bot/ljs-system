@@ -261,19 +261,10 @@ class AppointmentSchedulingTest extends TestCase
             ->assertRedirect();
 
         $this->assertTrue($appointment->fresh()->starts_at_utc->equalTo($newStart));
-        $this->assertSame('Pending', $appointment->fresh()->appointment_status);
+        $this->assertSame('Confirmed', $appointment->fresh()->appointment_status);
         $this->assertDatabaseHas('app_notifications', [
             'user_id' => $professional->user_id,
             'title' => 'Appointment time proposal accepted',
-        ]);
-
-        $this->actingAs($professional)
-            ->patch(route('appointments.status', $appointment), ['appointment_status' => 'Confirmed'])
-            ->assertRedirect();
-        $this->assertSame('Confirmed', $appointment->fresh()->appointment_status);
-        $this->assertDatabaseHas('app_notifications', [
-            'user_id' => $client->user_id,
-            'title' => 'Appointment confirmed',
         ]);
     }
 

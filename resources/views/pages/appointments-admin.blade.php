@@ -66,8 +66,11 @@
                         @forelse ($appointments as $appointment)
                             @php($start = $appointment->startInTimezone($viewerTimezone))
                             @php($isOwnerAdmin = $isProjects && (int) $appointment->assignment?->user_id === (int) auth()->id())
-                            @php($canUpdateStatus = ($staffMode || $isOwnerAdmin) && (int) $appointment->assignment?->user_id === (int) auth()->id() && in_array($appointment->appointment_status, ['Pending', 'Confirmed'], true))
+                            @php($hasPendingProposal = $appointment->proposals->contains('status', 'Pending'))
+                            @php($canUpdateStatus = ! $hasPendingProposal && ($staffMode || $isOwnerAdmin) && (int) $appointment->assignment?->user_id === (int) auth()->id() && in_array($appointment->appointment_status, ['Pending', 'Confirmed'], true))
                             @php($canProposeTime = $canUpdateStatus && ! $appointment->proposals->contains('status', 'Pending'))
+                            @php($statusLabel = $appointment->displayStatus())
+                            @php($statusClass = $appointment->displayStatusClass())
                             <tr>
                                 <td class="fw-semibold">{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }}</td>
                                 <td>{{ $appointment->contact_name }}<br><small class="text-muted">{{ $appointment->contact_email }}</small></td>
@@ -75,8 +78,8 @@
                                 <td>{{ $start->format('M j, Y') }}<br><small class="text-muted">{{ $start->format('g:i A') }}</small></td>
                                 <td>{{ $appointment->appointment_type }}</td>
                                 <td>
-                                    <span class="staff-status-pill status-{{ strtolower($appointment->appointment_status) }}">{{ $appointment->appointment_status }}</span>
-                                    @if ($appointment->proposals->contains('status', 'Pending'))<br><small class="staff-readonly-note">Reschedule pending</small>@endif
+                                    <span class="staff-status-pill status-{{ $statusClass }}">{{ $statusLabel }}</span>
+                                    @if ($hasPendingProposal)<br><small class="staff-readonly-note">Reschedule pending</small>@endif
                                     @if ($canUpdateStatus)
                                         <form method="POST" action="{{ route('appointments.status', $appointment) }}" class="appointment-status-control">
                                             @csrf @method('PATCH')
@@ -84,7 +87,7 @@
                                                 @if ($appointment->appointment_status === 'Pending')
                                                     <option value="" selected disabled>Update status</option>
                                                 @endif
-                                                <option value="Confirmed" @selected($appointment->appointment_status === 'Confirmed')>Confirmed</option>
+                                                <option value="Confirmed" @selected($appointment->appointment_status === 'Confirmed')>Confirm</option>
                                                 <option value="Completed">Completed</option>
                                                 <option value="Cancelled">Cancelled</option>
                                             </select>
@@ -111,7 +114,7 @@
                 </table>
             </div>
             @if ($appointments->hasPages())
-                <nav aria-label="Page navigation" class="au-pagination">{{ $appointments->links() }}</nav>
+                {{ $appointments->links('pagination.ljs') }}
             @endif
         </div>
     </div>

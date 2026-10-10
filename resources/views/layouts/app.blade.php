@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="{{ asset('css/rush.css') }}?v={{ filemtime(public_path('css/rush.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/about.css') }}">
     <link rel="stylesheet" href="{{ asset('css/properties.css') }}?v={{ filemtime(public_path('css/properties.css')) }}">
-    <link rel="stylesheet" href="{{ asset('css/property-details.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/property-details.css') }}?v={{ filemtime(public_path('css/property-details.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/agents.css') }}?v={{ filemtime(public_path('css/agents.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/lifestyle.css') }}">
 
@@ -64,8 +64,8 @@
                                     {{ Auth::user()->name }}<i class="fas fa-chevron-down"></i>
                                 </button>
                                 <div class="public-profile-menu" id="publicProfileMenu" aria-hidden="true">
-                                    <a href="{{ route('app.page', ['page' => 'settings']) }}" class="public-profile-item">Settings</a>
-                                    <form method="POST" action="{{ route('logout') }}">@csrf<button class="public-profile-item public-logout" type="submit"><i class="fas fa-right-from-bracket"></i> Logout</button></form>
+                                    <a href="{{ route('app.page', ['page' => 'settings']) }}" class="public-profile-item"><i data-lucide="settings" aria-hidden="true"></i> Settings</a>
+                                    <form method="POST" action="{{ route('logout') }}">@csrf<button class="public-profile-item public-logout" type="submit"><i data-lucide="log-out" aria-hidden="true"></i> Logout</button></form>
                                 </div>
                             </div>
                         </div>
@@ -96,7 +96,7 @@
                             @php
                                 $activeStart = $activeAppointment->startInTimezone(Auth::user()->timezone ?: config('appointments.default_timezone'));
                             @endphp
-                            <a href="{{ route('appointments.index', ['selected' => $activeAppointment->appointment_id]) }}" class="public-notification-item"><strong>{{ $activeAppointment->assignment?->property?->property_name ?? 'Property appointment' }}</strong><small>{{ $activeAppointment->appointment_status }} · {{ $activeAppointment->appointment_type }}</small><time>{{ $activeStart->format('M j, Y · g:i A') }}</time></a>
+                            <a href="{{ route('appointments.index', ['selected' => $activeAppointment->appointment_id]) }}" class="public-notification-item"><strong>{{ $activeAppointment->assignment?->property?->property_name ?? 'Property appointment' }}</strong><small>{{ $activeAppointment->displayStatus() }} · {{ $activeAppointment->appointment_type }}</small><time>{{ $activeStart->format('M j, Y · g:i A') }}</time></a>
                         @empty
                             <p>No active appointments.</p>
                         @endforelse

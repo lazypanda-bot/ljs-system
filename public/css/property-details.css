@@ -156,15 +156,19 @@
 .property-breadcrumb { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 18px; color: var(--color-text-muted); font-size: 14px; }
 .property-breadcrumb a { color: var(--color-primary); font-weight: 700; text-decoration: none; }
 .property-breadcrumb > span:last-child { min-width: 0; overflow-wrap: anywhere; color: var(--color-text); }
-.property-gallery { overflow: hidden; margin-bottom: 20px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06); }
-.property-image-frame { display: grid; min-height: 220px; max-height: 520px; place-items: center; overflow: hidden; background: #e8eef5; }
-.property-main-image { display: block; width: 100%; max-height: 520px; aspect-ratio: 16 / 7; object-fit: cover; }
+.property-gallery { display: grid; grid-template-columns: minmax(0, 1fr) 112px; gap: 14px; overflow: hidden; margin-bottom: 20px; padding: 16px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06); }
+.property-gallery.single-image { grid-template-columns: minmax(0, 1fr); }
+.property-image-frame { display: grid; min-height: 360px; height: clamp(380px, 50vw, 620px); place-items: center; overflow: hidden; border-radius: 10px; background: #f1f5f9; }
+.property-main-image { display: block; width: 100% !important; height: 100% !important; min-width: 0 !important; min-height: 0 !important; max-width: 100% !important; max-height: 100% !important; aspect-ratio: auto !important; object-fit: contain !important; object-position: center center !important; }
 .property-image-placeholder { display: grid; width: 100%; min-height: 220px; place-items: center; color: var(--color-text-muted); font-size: 14px; }
-.property-gallery-controls { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; gap: 10px; padding: 10px 14px; }
+.property-gallery-controls { display: grid; grid-template-rows: 40px minmax(0, 1fr) 40px; align-items: stretch; gap: 10px; min-height: 0; }
 .gallery-nav-button { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface); color: var(--color-text); cursor: pointer; }
 .gallery-nav-button:hover { border-color: var(--color-primary); color: var(--color-primary); }
-.property-thumbnail-strip { display: flex; min-width: 0; gap: 8px; overflow-x: auto; padding: 2px; }
-.property-thumbnail { display: block; width: 76px; height: 56px; flex: 0 0 76px; border: 2px solid transparent; border-radius: 6px; object-fit: cover; cursor: pointer; }
+.property-gallery-controls .gallery-nav-button { justify-self: center; }
+.property-gallery-controls #propertyImagePrevious i { transform: rotate(90deg); }
+.property-gallery-controls #propertyImageNext i { transform: rotate(90deg); }
+.property-thumbnail-strip { display: flex; min-width: 0; min-height: 0; flex-direction: column; gap: 8px; overflow-y: auto; overflow-x: hidden; padding: 2px; }
+.property-thumbnail { display: block; width: 92px; height: 70px; flex: 0 0 70px; border: 2px solid transparent; border-radius: 7px; object-fit: cover; cursor: pointer; }
 .property-thumbnail.active { border-color: var(--color-primary); }
 .property-content-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.8fr); align-items: start; gap: 20px; }
 .property-information-column { display: grid; min-width: 0; gap: 16px; }
@@ -175,16 +179,25 @@
 .property-details-location i { margin-top: 4px; color: var(--color-danger); }
 .property-details-panel,.professional-contact-card { min-width: 0; padding: 20px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface); box-shadow: 0 3px 12px rgba(15, 23, 42, 0.045); }
 .property-details-panel h2,.professional-contact-card h2 { margin: 0 0 14px; color: var(--color-text); font-size: 18px; }
-.property-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 10px; }
-.property-metrics > div { display: flex; min-width: 0; align-items: center; gap: 9px; padding: 11px; border-radius: 7px; background: var(--color-body); color: var(--color-text); font-size: 14px; }
+.property-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; }
+.property-metrics > div { display: grid; min-width: 0; grid-template-columns: 18px minmax(0, 1fr); gap: 4px 9px; align-items: center; padding: 12px; border-radius: 7px; background: var(--color-body); color: var(--color-text); font-size: 14px; }
+.property-metrics > div span { color: var(--color-text-muted); font-size: 12px; }
+.property-metrics > div strong { grid-column: 2; color: var(--color-text); font-size: 15px; overflow-wrap: anywhere; }
 .property-metrics i,.property-amenities-list i { flex: 0 0 auto; color: var(--color-primary); }
+.property-remarks { margin-top: 12px; padding: 12px; border-radius: 7px; background: var(--color-body); }
+.property-remarks strong { display: block; margin-bottom: 5px; color: var(--color-text); font-size: 13px; }
+.property-remarks p { margin: 0; color: var(--color-text-muted); line-height: 1.55; white-space: pre-line; overflow-wrap: anywhere; }
 .property-description { margin: 0; color: var(--color-text-muted); line-height: 1.65; white-space: pre-line; overflow-wrap: anywhere; }
 .property-match-tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .property-match-tags span { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-primary-soft); color: var(--color-text); font-size: 12px; font-weight: 700; }
 .property-match-tags i { color: var(--color-primary); }
 .property-amenities-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
 .property-amenities-list li { display: flex; min-width: 0; align-items: flex-start; gap: 9px; color: var(--color-text-muted); overflow-wrap: anywhere; }
-.professional-contact-card { position: sticky; top: 96px; }
+.property-sidebar { position: sticky; top: 96px; display: grid; min-width: 0; gap: 16px; }
+.professional-contact-card { min-width: 0; }
+.property-sidebar-panel { box-shadow: 0 3px 12px rgba(15, 23, 42, 0.045); }
+.property-sidebar .property-amenities-list { grid-template-columns: minmax(0, 1fr); gap: 9px; }
+.property-sidebar .property-match-tags { gap: 7px; }
 .contact-card-kicker { margin: 0 0 8px; color: var(--color-text-muted); font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .professional-contact-identity { display: flex; min-width: 0; align-items: center; gap: 14px; margin: 18px 0; }
 .professional-avatar { display: grid; width: 68px; height: 68px; flex: 0 0 68px; place-items: center; overflow: hidden; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-primary-soft); color: var(--color-primary); font-size: 24px; font-weight: 800; }
@@ -206,15 +219,23 @@
 
 @media (max-width: 900px) {
     .property-details-page { width: min(100% - 32px, 760px); padding-top: 88px; }
+    .property-gallery { grid-template-columns: minmax(0, 1fr); }
+    .property-image-frame { height: auto; min-height: 260px; }
+    .property-main-image { height: 100% !important; max-height: 100% !important; }
+    .property-gallery-controls { grid-template-columns: 40px minmax(0, 1fr) 40px; grid-template-rows: none; align-items: center; }
+    .property-gallery-controls #propertyImagePrevious i,
+    .property-gallery-controls #propertyImageNext i { transform: none; }
+    .property-thumbnail-strip { flex-direction: row; overflow-x: auto; overflow-y: hidden; }
+    .property-thumbnail { width: 76px; height: 56px; flex-basis: 76px; }
     .property-content-layout { grid-template-columns: minmax(0, 1fr); }
-    .professional-contact-card { position: static; }
+    .property-sidebar { position: static; }
 }
 
 @media (max-width: 600px) {
     .property-details-page { width: calc(100% - 24px); padding-top: 84px; padding-bottom: 32px; }
     .property-breadcrumb { margin-bottom: 12px; font-size: 13px; }
     .property-image-frame { min-height: 180px; }
-    .property-main-image { min-height: 180px; aspect-ratio: 4 / 3; }
+    .property-main-image { object-fit: contain !important; }
     .property-gallery-controls { grid-template-columns: 34px minmax(0, 1fr) 34px; gap: 6px; padding: 8px; }
     .gallery-nav-button { width: 34px; height: 34px; }
     .property-details-price { font-size: 24px; }

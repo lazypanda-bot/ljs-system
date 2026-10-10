@@ -7,6 +7,87 @@
     max-width: 1120px;
 }
 
+.notifications-page-header {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(0, 820px);
+    gap: 18px;
+    align-items: end;
+    padding: 4px 0 14px;
+    margin-bottom: 8px;
+}
+
+.notifications-overview {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+}
+
+.notification-summary-card {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+    min-height: 58px;
+    padding: 8px 10px;
+    border: 1px solid #dbe4f0;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--color-text);
+    text-decoration: none;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, .045);
+    transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+
+.notification-summary-card:hover,
+.notification-summary-card.active {
+    border-color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(37, 99, 235, .12);
+}
+
+.notification-summary-icon {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    place-items: center;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.notification-summary-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.notification-summary-card small,
+.notification-summary-card strong {
+    display: block;
+}
+
+.notification-summary-card small {
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: 10px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.notification-summary-card strong {
+    margin-top: 2px;
+    color: var(--color-text);
+    font-size: 19px;
+    line-height: 1;
+}
+
+.notification-filter-menu-toggle {
+    display: none;
+}
+
 .landing-page .notifications-page {
     width: calc(100% - 40px);
     margin: 18px auto;
@@ -56,15 +137,17 @@
     grid-template-columns: minmax(250px, 340px) minmax(0, 1fr);
     min-height: 360px;
     overflow: hidden;
-    border: 1px solid var(--color-border);
+    border: 1px solid #dbe4f0;
     border-radius: 8px;
-    background: var(--color-surface);
+    background: #f8fafc;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, .07), 0 2px 8px rgba(15, 23, 42, .05);
 }
 
 .notifications-list {
     min-width: 0;
     overflow: visible;
-    border-right: 1px solid var(--color-border);
+    border-right: 1px solid #dbe4f0;
+    background: #fff;
 }
 
 .notifications-page .notifications-list {
@@ -76,15 +159,20 @@
     grid-template-columns: 34px minmax(0, 1fr);
     align-items: start;
     gap: 10px;
-    padding: 14px 12px;
-    border-bottom: 1px solid var(--color-border);
+    padding: 16px 14px;
+    border-bottom: 1px solid #e8edf5;
     color: var(--color-text);
     text-decoration: none;
+    transition: background-color .16s ease, box-shadow .16s ease;
 }
 
 .notification-list-item:hover,
 .notification-list-item.active {
     background: var(--color-primary-soft);
+}
+
+.notification-list-item.active {
+    box-shadow: inset 4px 0 0 var(--color-primary);
 }
 
 .notification-list-item.unread .notification-list-copy strong {
@@ -113,12 +201,18 @@
 
 .notification-detail-panel {
     min-width: 0;
-    padding: 26px;
+    padding: 32px;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.96)),
+        radial-gradient(circle at top right, rgba(37, 99, 235, .08), transparent 32%);
 }
 
 .notification-detail-header {
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--color-border);
+    padding: 22px 24px;
+    border: 1px solid #dbe4f0;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, .045);
 }
 
 .notification-detail-back {
@@ -136,7 +230,7 @@
 .notification-detail-header h2 {
     margin: 6px 0;
     color: var(--color-text);
-    font-size: 22px;
+    font-size: 24px;
     line-height: 1.25;
 }
 
@@ -153,25 +247,37 @@
 
 .notification-appointment-details,
 .notification-proposal-detail {
-    padding-top: 18px;
+    margin-top: 18px;
 }
 
 .notification-appointment-details h3,
 .notification-proposal-detail h3 {
     margin: 0 0 12px;
     color: var(--color-text);
-    font-size: 15px;
+    font-size: 17px;
+}
+
+.notification-appointment-details {
+    padding: 20px 22px;
+    border: 1px solid #dbe4f0;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, .04);
 }
 
 .notification-appointment-details dl {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px 20px;
+    gap: 12px;
     margin: 0;
 }
 
 .notification-appointment-details dl > div {
     min-width: 0;
+    padding: 12px;
+    border: 1px solid #eef2f7;
+    border-radius: 7px;
+    background: #f8fafc;
 }
 
 .notification-appointment-details dt {
@@ -189,11 +295,12 @@
 }
 
 .notification-proposal-detail {
-    margin-top: 18px;
-    padding: 16px;
-    border-left: 3px solid var(--color-warning);
-    border-radius: 0 6px 6px 0;
+    padding: 18px 20px;
+    border: 1px solid #fde68a;
+    border-left: 4px solid var(--color-warning);
+    border-radius: 8px;
     background: #fffbeb;
+    box-shadow: 0 8px 22px rgba(180, 83, 9, .08);
 }
 
 .notification-proposal-detail h3 {
@@ -232,6 +339,10 @@
     min-height: 300px;
     align-content: center;
     justify-items: center;
+    padding: 36px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
     color: var(--color-text-muted);
     text-align: center;
 }
@@ -406,11 +517,12 @@
     max-width: 100%;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 4px;
+    gap: 6px;
     box-sizing: border-box;
-    padding: 10px 8px;
-    border-top: 1px solid var(--color-border);
-    overflow: hidden;
+    padding: 12px;
+    border-top: 1px solid #dbe4f0;
+    background: #fff;
+    overflow: visible;
 }
 
 .notifications-list.is-loading {
@@ -428,11 +540,13 @@
 .notifications-list > nav.notification-pagination {
     width: 100%;
     align-items: center;
-    overflow-x: hidden;
+    overflow-x: visible;
 }
 
 .notification-pagination-pages {
-    display: contents;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
 .notification-pagination-pages.is-mobile {
@@ -452,9 +566,17 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 11px;
     line-height: 1;
+}
+
+.notifications-list > nav.ljs-pagination .is-current {
+    border-color: #2563eb !important;
+    background: #2563eb !important;
+    color: #fff !important;
+    font-weight: 800;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, .16);
 }
 
 .notifications-list > nav.notification-pagination a[aria-label^="Go to page"] {
@@ -516,6 +638,56 @@
     .notifications-page {
         width: auto;
         max-width: none;
+    }
+
+    .notifications-page-header {
+        position: relative;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .notification-filter-menu-toggle {
+        display: inline-flex;
+        min-height: 38px;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 11px;
+        border: 1px solid #dbe4f0;
+        border-radius: 8px;
+        background: #fff;
+        color: #2563eb;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
+    }
+
+    .notification-filter-menu-toggle svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .notifications-overview {
+        position: absolute;
+        z-index: 20;
+        top: calc(100% + 8px);
+        right: 0;
+        display: none;
+        width: min(320px, calc(100vw - 48px));
+        grid-column: 1 / -1;
+        grid-template-columns: minmax(0, 1fr);
+        padding: 8px;
+        border: 1px solid #dbe4f0;
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 18px 44px rgba(15, 23, 42, .18);
+    }
+
+    .notifications-page.filters-open .notifications-overview {
+        display: grid;
     }
 
     .landing-page .notifications-page {

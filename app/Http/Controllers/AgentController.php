@@ -85,6 +85,12 @@ class AgentController extends Controller
     {
         $user = Auth::user();
         abort_unless($user instanceof User, 403);
+        abort_unless(
+            $professional->account_status === 'Active'
+                && in_array($professional->role_name, ['Broker', 'Agent', 'Lead Broker'], true),
+            404
+        );
+
         $appointment = $this->completedAppointmentFor($user, $professional);
         abort_unless($appointment, 403);
 
@@ -104,6 +110,19 @@ class AgentController extends Controller
         );
 
         return redirect()->route('agents.show', $professional)->with('success', 'Your review has been saved.');
+    }
+
+    public function destroyReview(User $professional)
+    {
+        $user = Auth::user();
+        abort_unless($user instanceof User && $user->normalizedRole() === 'client', 403);
+
+        Review::query()
+            ->where('reviewer_id', $user->user_id)
+            ->where('reviewed_user_id', $professional->user_id)
+            ->delete();
+
+        return redirect()->route('agents.show', $professional)->with('success', 'Your review has been deleted.');
     }
 
     /** A client may review only a professional they completed an appointment with. */

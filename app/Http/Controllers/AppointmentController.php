@@ -95,7 +95,7 @@ class AppointmentController extends Controller
 		$filter = $request->string('status')->toString();
 		$search = trim($request->string('q')->toString());
 
-		$appointments = Appointment::with(['assignment.property', 'assignment.user', 'client', 'proposals'])
+		$appointments = Appointment::with(['assignment.property', 'assignment.user', 'client', 'proposals.proposedBy'])
 			->whereHas('assignment', fn ($query) => $query->where('user_id', $user->user_id))
 			->when($filter === 'Reschedule', fn ($query) => $query->whereHas('proposals', fn ($proposal) => $proposal->where('status', 'Pending')))
 			->when(in_array($filter, ['Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'], true), fn ($query) => $query->where('appointment_status', $filter))
@@ -131,7 +131,7 @@ class AppointmentController extends Controller
 			->whereHas('user', fn ($professional) => $professional->whereIn('role_name', ['Agent', 'Broker', 'Lead Broker']))
 			->whereHas('property', fn ($property) => $property->where(fn ($mode) => $mode->whereNull('listing_mode')->orWhere('listing_mode', '!=', 'admin'))));
 
-		$appointments = Appointment::with(['assignment.property', 'assignment.user', 'client', 'proposals'])
+		$appointments = Appointment::with(['assignment.property', 'assignment.user', 'client', 'proposals.proposedBy'])
 			->where($tab === 'projects' ? $projectScope : $monitoringScope)
 			->when($filter === 'Reschedule', fn ($query) => $query->whereHas('proposals', fn ($proposal) => $proposal->where('status', 'Pending')))
 			->when($filter !== '' && in_array($filter, ['Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'], true), fn ($query) => $query->where('appointment_status', $filter))
@@ -427,12 +427,9 @@ class AppointmentController extends Controller
 
 		$validated = $request->validate(['decision' => ['required', 'in:Accepted,Rejected']]);
 		$decision = $validated['decision'];
-		$clientRejectedProfessionalProposal = $decision === 'Rejected'
-			&& ! $proposedByClient
-			&& $this->isClientForAppointment($appointment, $user);
 
 		if ($decision === 'Accepted') {
-			DB::transaction(function () use ($proposal, $scheduling, $proposedByClient): void {
+			DB::transaction(function () use ($proposal, $scheduling): void {
 				$lockedProposal = AppointmentTimeProposal::query()
 					->with('appointment.assignment')
 					->lockForUpdate()
@@ -454,7 +451,7 @@ class AppointmentController extends Controller
 					'starts_at_utc' => $clientLocalStart->utc()->format('Y-m-d H:i:s'),
 					'preferred_date' => $clientLocalStart->toDateString(),
 					'preferred_time' => $clientLocalStart->format('H:i:s'),
-					'appointment_status' => $proposedByClient ? 'Confirmed' : 'Pending',
+					'appointment_status' => 'Confirmed',
 					'completed_at' => null,
 				]);
 				$lockedProposal->update(['status' => 'Accepted', 'responded_at' => now()]);
@@ -464,16 +461,10 @@ class AppointmentController extends Controller
 					->update(['status' => 'Rejected', 'responded_at' => now()]);
 			});
 		} else {
-			DB::transaction(function () use ($proposal, $clientRejectedProfessionalProposal): void {
+			DB::transaction(function () use ($proposal): void {
 				$lockedProposal = AppointmentTimeProposal::query()->lockForUpdate()->findOrFail($proposal->proposal_id);
 				abort_if($lockedProposal->status !== 'Pending', 409, 'This proposal has already been answered.');
 				$lockedProposal->update(['status' => 'Rejected', 'responded_at' => now()]);
-
-				if ($clientRejectedProfessionalProposal) {
-					$lockedAppointment = Appointment::query()->lockForUpdate()->findOrFail($lockedProposal->appointment_id);
-					abort_unless(in_array($lockedAppointment->appointment_status, ['Pending', 'Confirmed'], true), 409, 'This appointment status is final.');
-					$lockedAppointment->update(['appointment_status' => 'Cancelled', 'completed_at' => null]);
-				}
 			});
 		}
 
@@ -486,9 +477,6 @@ class AppointmentController extends Controller
 			'Appointment time proposal ' . strtolower($decision),
 			$user->name . ' ' . strtolower($decision) . ' the proposed appointment time.'
 		);
-		if ($clientRejectedProfessionalProposal) {
-			$this->notifyAppointmentStatus($proposal->appointment, 'Cancelled', $user);
-		}
 		AppNotification::query()
 			->where('user_id', $user->user_id)
 			->where('appointment_proposal_id', $proposal->proposal_id)

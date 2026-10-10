@@ -4,8 +4,31 @@
 
 @section('content')
     <div class="notifications-page {{ auth()->user()?->normalizedRole() === 'client' ? 'notifications-client-page' : 'staff-page-surface' }}" data-mobile-selected="{{ request()->filled('selected') && $selectedNotification ? 'true' : 'false' }}">
+        @php
+            $activeFilter = $filter ?? 'all';
+            $filterOptions = [
+                'all' => ['label' => 'All', 'icon' => 'bell'],
+                'unread' => ['label' => 'Unread', 'icon' => 'circle-dot'],
+                'appointments' => ['label' => 'Appointments', 'icon' => 'calendar-check-2'],
+                'messages' => ['label' => 'Messages', 'icon' => 'messages-square'],
+                'team' => ['label' => 'Team', 'icon' => 'users-round'],
+            ];
+            $filterUrl = fn (string $key) => route('notifications.index', $key === 'all' ? [] : ['filter' => $key]);
+        @endphp
+
         <div class="notifications-page-header">
             <div><span>ACCOUNT UPDATES</span><h1>Notifications</h1><p>Select a notification to view its details and actions.</p></div>
+            <button class="notification-filter-menu-toggle" type="button" aria-expanded="false" aria-controls="notificationFilterCards">
+                <i data-lucide="menu" aria-hidden="true"></i><span>Filters</span>
+            </button>
+            <section class="notifications-overview" id="notificationFilterCards" aria-label="Notification filters">
+                @foreach ($filterOptions as $key => $option)
+                    <a class="notification-summary-card {{ $activeFilter === $key ? 'active' : '' }}" href="{{ $filterUrl($key) }}" @if ($activeFilter === $key) aria-current="page" @endif>
+                        <span class="notification-summary-icon"><i data-lucide="{{ $option['icon'] }}" aria-hidden="true"></i></span>
+                        <span><small>{{ $option['label'] }}</small><strong>{{ number_format($notificationSummary[$key] ?? 0) }}</strong></span>
+                    </a>
+                @endforeach
+            </section>
         </div>
 
         @php
@@ -28,6 +51,8 @@
                     || (! $proposalProposerIsClient && $viewerIsClient));
             $appointmentStart = $appointment?->startInTimezone($viewerTimezone);
             $proposedStart = $proposal?->starts_at_utc?->setTimezone($viewerTimezone);
+            $appointmentStatusLabel = $appointment?->displayStatus();
+            $appointmentStatusClass = $appointment?->displayStatusClass();
         @endphp
 
         <div class="notifications-workspace">
@@ -49,7 +74,7 @@
                             <dl>
                                 <div><dt>Property</dt><dd>{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }}</dd></div>
                                 <div><dt>Scheduled time</dt><dd>{{ $appointmentStart?->format('M j, Y · g:i A') }}</dd></div>
-                                <div><dt>Status</dt><dd><span class="appointment-status status-{{ strtolower($appointment->appointment_status) }}">{{ $appointment->appointment_status }}</span></dd></div>
+                                <div><dt>Status</dt><dd><span class="appointment-status status-{{ $appointmentStatusClass }}">{{ $appointmentStatusLabel }}</span></dd></div>
                                 <div><dt>Appointment type</dt><dd>{{ $appointment->appointment_type }}</dd></div>
                                 <div><dt>Client</dt><dd>{{ $appointment->contact_name }}</dd></div>
                                 <div><dt>Professional</dt><dd>{{ $appointment->assignment?->user?->name ?? 'Listing team' }}</dd></div>
@@ -98,6 +123,7 @@
         const page = document.querySelector('.notifications-page');
         const list = page?.querySelector('.notifications-list');
         if (!page || !list) return;
+        const filterToggle = page.querySelector('.notification-filter-menu-toggle');
 
         const isMobile = window.matchMedia('(max-width: 768px)');
         const setDetailMode = () => {
@@ -105,6 +131,11 @@
         };
         setDetailMode();
         isMobile.addEventListener?.('change', setDetailMode);
+        filterToggle?.addEventListener('click', () => {
+            const open = !page.classList.contains('filters-open');
+            page.classList.toggle('filters-open', open);
+            filterToggle.setAttribute('aria-expanded', String(open));
+        });
         document.querySelector('[data-close-notification-detail]')?.addEventListener('click', (event) => {
             window.location.href = event.currentTarget.dataset.listUrl;
         });

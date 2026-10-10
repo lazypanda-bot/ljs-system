@@ -503,10 +503,11 @@ body.client-messages-open .floating-actions { z-index: 1302; }
     width: 100%;
     min-height: 100vh;
     margin-top: 0;
-    background: url('../images/day.png') no-repeat center center / cover;
+    background: var(--hero-image, url('../images/day.png')) no-repeat center center / cover;
     display: flex;
     align-items: center;
     padding: 0 80px;
+    transition: background-image 0.35s ease;
 }
 .hero-content {
     position: relative;

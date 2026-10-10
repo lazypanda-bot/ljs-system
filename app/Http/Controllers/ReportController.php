@@ -179,8 +179,8 @@ class ReportController extends Controller
     private function reportProperties(User $user)
     {
         return $user->actingRole() === 'admin'
-            ? Property::query()
-            : Property::query()->where('user_id', $user->user_id);
+            ? Property::query()->reportable()
+            : Property::query()->reportable()->where('user_id', $user->user_id);
     }
 
     private function user(): User

@@ -79,7 +79,7 @@
                 </table>
             </div>
             @if ($reviews->hasPages())
-                <nav aria-label="Page navigation" class="au-pagination">{{ $reviews->links() }}</nav>
+                {{ $reviews->links('pagination.ljs') }}
             @endif
         </div>
     </div>
