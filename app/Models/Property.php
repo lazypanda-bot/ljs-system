@@ -91,6 +91,13 @@ class Property extends Model
         return $query->where('approval_status', 'Approved');
     }
 
+    public function scopePubliclyVisible($query)
+    {
+        return $query
+            ->where('approval_status', 'Approved')
+            ->whereNotIn('property_status', ['Sold', 'Unavailable']);
+    }
+
     /** Land types only use land fields; buildings and any custom type keep the full set (optional unless required). */
     public static function visibleDetailFields(?string $type): array
     {

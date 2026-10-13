@@ -304,7 +304,7 @@
 }
 
 .badge-sale {
-    background: #2563eb;
+    background: #2bbf62;
     color: #fff;
     font-size: 0.65rem;
     padding: 3px 6px;
@@ -312,10 +312,12 @@
     font-weight: 600;
 }
 
-.badge-status-for-rent { background: #16a34a; }
+.badge-status-for-sale { background: #2bbf62; }
+.badge-status-for-rent { background: #1f6cff; }
+.badge-status-rent-to-own { background: #14b8a6; }
 .badge-status-reserved { background: #f59e0b; }
-.badge-status-sold,
 .badge-status-unavailable { background: #64748b; }
+.badge-status-sold { background: #ef4444; }
 .property-status-card-sold .property-card-img-container img,
 .property-status-card-unavailable .property-card-img-container img { filter: grayscale(.25); }
 .property-status-card-sold .property-btn,

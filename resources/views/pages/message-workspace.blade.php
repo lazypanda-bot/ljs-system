@@ -136,7 +136,7 @@
     @php($composeUrl = ($panelMode ?? false) ? route('messages.compose', ['panel' => 1]) : route('messages.compose'))
     <form method="POST" action="{{ $composeUrl }}" enctype="multipart/form-data" class="compose-dialog">
         @csrf
-        <div class="compose-header"><div><h2>New message</h2><p>Start a private conversation.</p></div><button type="button" class="compose-close" aria-label="Close">&times;</button></div>
+        <div class="compose-header"><div><h2>New message</h2><p>Start a private conversation.</p></div></div>
         <label for="recipientId">To</label>
         <select id="recipientId" name="recipient_id" required><option value="">Choose a recipient</option>@foreach($contacts as $contact)<option value="{{ $contact->user_id }}">{{ $contact->name }} - {{ $contact->role_name }}</option>@endforeach</select>
         <label for="messageSubject">Subject</label><input id="messageSubject" name="subject" maxlength="255" placeholder="What is this about?">

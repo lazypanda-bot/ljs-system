@@ -49,6 +49,8 @@
 
 .appointment-reschedule-trigger{min-height:34px;margin:6px 0 0;padding:7px 12px;border:1px solid var(--color-border);border-radius:6px;background:var(--color-surface);color:var(--color-primary);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .appointment-reschedule-trigger:hover{border-color:var(--color-primary);background:var(--color-primary-soft)}
+.appointment-cancel-trigger{min-height:36px;padding:8px 12px;border:1px solid #fecdd3;border-radius:6px;background:#fff1f2;color:#b91c1c;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.appointment-cancel-trigger:hover{background:#b91c1c;color:#fff}
 .appointment-reschedule-modal{position:fixed;inset:0;z-index:2500;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.56);overflow-y:auto;overscroll-behavior:contain}
 .appointment-reschedule-modal[hidden]{display:none}
 .appointment-reschedule-dialog{position:relative;width:min(620px,100%);max-height:calc(100vh - 40px);overflow-y:auto;padding:28px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-surface);box-shadow:0 20px 60px rgba(15,23,42,.24)}
@@ -63,4 +65,16 @@
 .appointment-reschedule-form-wrap label:nth-of-type(3),.appointment-reschedule-form-wrap .appointment-slots-status{grid-column:1/-1}
 .appointment-reschedule-form-wrap .appointment-slots-status{margin:0}
 .appointment-reschedule-form-wrap button[type="submit"]{grid-column:1/-1;justify-self:start;min-height:40px;padding:9px 16px;border:1px solid var(--color-primary);border-radius:6px;background:var(--color-primary);color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
-@media(max-width:560px){.appointment-reschedule-modal{align-items:end;padding:10px}.appointment-reschedule-dialog{max-height:calc(100vh - 20px);padding:24px 18px 18px}.appointment-reschedule-form-wrap form{grid-template-columns:minmax(0,1fr)}.appointment-reschedule-form-wrap label:nth-of-type(3),.appointment-reschedule-form-wrap .appointment-slots-status,.appointment-reschedule-form-wrap button[type="submit"]{grid-column:auto}}
+@media(max-width:560px){.appointment-reschedule-modal{align-items:center;place-items:center;padding:14px}.appointment-reschedule-dialog{max-height:calc(100dvh - 28px);padding:24px 18px 18px}.appointment-reschedule-form-wrap form{grid-template-columns:minmax(0,1fr)}.appointment-reschedule-form-wrap label:nth-of-type(3),.appointment-reschedule-form-wrap .appointment-slots-status,.appointment-reschedule-form-wrap button[type="submit"]{grid-column:auto}}
+.appointment-cancel-modal{position:fixed;inset:0;z-index:2600;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.58);overflow-y:auto}
+.appointment-cancel-modal[hidden]{display:none}
+.appointment-cancel-dialog{width:min(520px,100%);padding:28px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-surface);box-shadow:0 20px 60px rgba(15,23,42,.24)}
+.appointment-cancel-dialog h2{margin:6px 0 4px;color:var(--color-text);font-size:21px}
+.appointment-cancel-dialog form,.appointment-cancel-dialog label{display:grid;gap:8px}
+.appointment-cancel-dialog label{margin-top:16px;color:var(--color-text-muted);font-size:12px;font-weight:800}
+.appointment-cancel-dialog textarea{width:100%;min-height:120px;padding:10px;border:1px solid var(--color-border);border-radius:6px;background:var(--color-surface);color:var(--color-text);font:inherit;resize:vertical}
+.appointment-cancel-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+.appointment-cancel-actions button{min-height:40px;padding:9px 14px;border-radius:6px;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.appointment-cancel-dismiss{border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text-muted)}
+.appointment-cancel-submit{border:1px solid #b91c1c;background:#b91c1c;color:#fff}
+@media(max-width:560px){.appointment-cancel-modal{align-items:center;place-items:center;padding:14px}.appointment-cancel-dialog{max-height:calc(100dvh - 28px);overflow-y:auto;padding:24px 18px 18px}.appointment-cancel-actions{flex-direction:column-reverse}.appointment-cancel-actions button{width:100%}}

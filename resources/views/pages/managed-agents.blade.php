@@ -92,7 +92,6 @@
                     <div><dt>Experience</dt><dd>{{ $profile?->years_experience ?? 0 }} years</dd></div>
                     @if ($profile?->professional_bio)<div class="au-agent-profile-wide"><dt>Bio</dt><dd>{{ $profile->professional_bio }}</dd></div>@endif
                 </dl>
-                <a class="au-row-btn" href="{{ route('agents.show', $agent) }}" target="_blank" rel="noopener">Open public profile</a>
             </div>
         </div>
 
@@ -133,7 +132,17 @@
                                 @php($start = $appointment->startInTimezone($viewerTimezone))
                                 <tr>
                                     <td class="fw-semibold">{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }}</td>
-                                    <td>{{ $appointment->contact_name }}<br><small class="text-muted">{{ $appointment->contact_email }}</small></td>
+                                    <td>
+                                        {{ $appointment->contact_name }}
+                                        <br><small class="text-muted">{{ $appointment->contact_email }}</small>
+                                        <br><small class="text-muted">Contact #: {{ $appointment->contact_number ?: 'Not provided' }}</small>
+                                        @if ($appointment->additional_note)
+                                            <br><small class="text-muted">Notes: {{ $appointment->additional_note }}</small>
+                                        @endif
+                                        @if ($appointment->cancellation_reason)
+                                            <br><small class="text-muted">Cancel reason: {{ $appointment->cancellation_reason }}</small>
+                                        @endif
+                                    </td>
                                     <td>{{ $start->format('M j, Y') }}<br><small class="text-muted">{{ $start->format('g:i A') }}</small></td>
                                     <td>{{ $appointment->appointment_type }}</td>
                                     <td><span class="staff-status-pill status-{{ strtolower($appointment->appointment_status) }}">{{ $appointment->appointment_status }}</span></td>
@@ -153,9 +162,40 @@
 <script>
 document.getElementById('searchAgents')?.addEventListener('input', function () {
     const term = this.value.trim().toLowerCase();
-    document.querySelectorAll('#agentsTable tbody tr').forEach(function (row) {
-        row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+    const table = document.getElementById('agentsTable');
+    if (!table) return;
+
+    const rows = Array.from(table.querySelectorAll('tbody tr'))
+        .filter((row) => !row.matches('[data-search-empty]') && !(row.cells.length === 1 && row.cells[0].hasAttribute('colspan')));
+    const emptyRows = Array.from(table.querySelectorAll('tbody tr'))
+        .filter((row) => !row.matches('[data-search-empty]') && row.cells.length === 1 && row.cells[0].hasAttribute('colspan'));
+    let searchEmptyRow = table.querySelector('[data-search-empty]');
+    if (!searchEmptyRow) {
+        searchEmptyRow = document.createElement('tr');
+        searchEmptyRow.setAttribute('data-search-empty', '');
+        searchEmptyRow.hidden = true;
+        const cell = document.createElement('td');
+        cell.colSpan = table.tHead?.rows[0]?.cells.length || 8;
+        cell.className = 'staff-table-empty';
+        cell.textContent = 'No agents match your search.';
+        searchEmptyRow.appendChild(cell);
+        table.tBodies[0]?.appendChild(searchEmptyRow);
+    }
+
+    if (rows.length === 0) {
+        emptyRows.forEach((row) => { row.style.display = term ? 'none' : ''; });
+        searchEmptyRow.hidden = true;
+        return;
+    }
+
+    emptyRows.forEach((row) => { row.style.display = 'none'; });
+    let visibleCount = 0;
+    rows.forEach(function (row) {
+        const isVisible = !term || row.textContent.toLowerCase().includes(term);
+        row.style.display = isVisible ? '' : 'none';
+        if (isVisible) visibleCount += 1;
     });
+    searchEmptyRow.hidden = !term || visibleCount > 0;
 });
 const closeAgentModals = () => document.querySelectorAll('.au-modal-overlay.open').forEach((overlay) => overlay.classList.remove('open'));
 document.querySelectorAll('[data-agent-modal]').forEach((button) => {

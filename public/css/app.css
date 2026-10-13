@@ -286,6 +286,9 @@ body {
 .legend-dot.for-rent { 
     background: #1f6cff;
 }
+.legend-dot.rent-to-own {
+    background: #14b8a6;
+}
 .legend-dot.sold { 
     background: #ef4444; 
 }

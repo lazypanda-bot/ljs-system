@@ -18,7 +18,7 @@
 		<input type="hidden" name="assign_id" value="{{ $selectedAssignmentId }}">
 		<p>Appointment will be sent to {{ $property->user->name }}.</p>
 		<label>Name<input name="contact_name" required minlength="2" maxlength="100" pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'\-]*" title="Letters, spaces, apostrophes, hyphens and periods only" value="{{ auth()->user()->name ?? '' }}"></label>
-		<label>Contact number<input name="contact_number" type="tel" inputmode="tel" required maxlength="20" pattern="\+?[0-9\s\-\(\)]{7,20}" title="7 to 15 digits, e.g. 09171234567" value="{{ auth()->user()->contact_number ?? '' }}"></label>
+		<label>Contact number<input name="contact_number" type="tel" inputmode="numeric" required maxlength="11" pattern="[0-9]{11}" title="11 digits, e.g. 09171234567" value="{{ auth()->user()->contact_number ?? '' }}"></label>
 		<label>Email<input type="email" name="contact_email" required value="{{ auth()->user()->email ?? '' }}"></label>
 		<label>Appointment type<select name="appointment_type" required><option>Property viewing</option><option>Consultation</option><option>Site visit</option></select></label>
 		<label>Date<input type="date" name="preferred_date" id="appointmentDate" min="{{ now()->toDateString() }}" required></label>

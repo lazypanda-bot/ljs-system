@@ -106,7 +106,7 @@
                         <h2>Appointments Calendar</h2>
                         <div class="calendar-controls">
                             @if (in_array(auth()->user()?->actingRole(), ['admin', 'broker', 'agent', 'lead_broker'], true))
-                                <button class="calendar-btn block-calendar-btn" type="button" id="openBlockDateModal"><i class="fas fa-calendar-minus" aria-hidden="true"></i> Block Date</button>
+                                <button class="calendar-btn block-calendar-btn" type="button" id="openBlockDateModal" aria-label="Block date" title="Block date"><i class="fas fa-calendar-minus" aria-hidden="true"></i> Block Date</button>
                             @endif
                             <a href="{{ url()->current() }}?month={{ $prevDate->month }}&year={{ $prevDate->year }}" class="calendar-btn nav-btn" aria-label="Previous month"><i class="fas fa-chevron-left"></i></a>
                             <a href="{{ url()->current() }}?month={{ $nextDate->month }}&year={{ $nextDate->year }}" class="calendar-btn nav-btn" aria-label="Next month"><i class="fas fa-chevron-right"></i></a>

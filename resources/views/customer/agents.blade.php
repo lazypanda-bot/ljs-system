@@ -15,6 +15,7 @@
                     @forelse ($topProfessionals as $professional)
                         @php
                             $agentImage = $professional->profile_photo ? asset('storage/' . $professional->profile_photo) : asset('images/ljs-logo.jpg');
+                            $ratingValue = $professional->received_reviews_avg_rating ? (int) round($professional->received_reviews_avg_rating) : 0;
                             $rating = $professional->received_reviews_avg_rating ? number_format($professional->received_reviews_avg_rating, 1) : 'New';
                         @endphp
                         <article class="agent-highlight-card">
@@ -25,7 +26,7 @@
                                 <h3>{{ $professional->name }}</h3>
                                 <p class="agent-role">{{ $professional->role_name }}</p>
                                 <div class="agent-rating">
-                                    <span class="stars" aria-label="5 stars">@for ($star = 0; $star < 5; $star++)<i data-lucide="star" aria-hidden="true"></i>@endfor</span>
+                                    <span class="stars" aria-label="{{ $ratingValue }} out of 5 stars">@for ($star = 1; $star <= 5; $star++)<i data-lucide="star" class="{{ $star <= $ratingValue ? 'is-rated' : '' }}" aria-hidden="true"></i>@endfor</span>
                                     <span class="rating-score">{{ $rating }}</span>
                                     <span class="review-count">({{ $professional->received_reviews_count }} reviews)</span>
                                 </div>
@@ -72,6 +73,7 @@
                         $directoryImage = $professional->profile_photo
                             ? (str_starts_with($professional->profile_photo, 'http') ? $professional->profile_photo : asset('storage/' . $professional->profile_photo))
                             : asset('images/ljs-logo.jpg');
+                        $ratingValue = $professional->received_reviews_avg_rating ? (int) round($professional->received_reviews_avg_rating) : 0;
                         $rating = $professional->received_reviews_avg_rating ? number_format($professional->received_reviews_avg_rating, 1) : 'New';
                     @endphp
                     <article class="agent-highlight-card">
@@ -84,7 +86,7 @@
                             <p class="agent-role">{{ $professional->role_name }}</p>
                             
                             <div class="agent-rating">
-                                <span class="stars" aria-label="5 stars">@for ($star = 0; $star < 5; $star++)<i data-lucide="star" aria-hidden="true"></i>@endfor</span>
+                                <span class="stars" aria-label="{{ $ratingValue }} out of 5 stars">@for ($star = 1; $star <= 5; $star++)<i data-lucide="star" class="{{ $star <= $ratingValue ? 'is-rated' : '' }}" aria-hidden="true"></i>@endfor</span>
                                 <span class="rating-score">{{ $rating }}</span>
                                 <span class="review-count">({{ $professional->received_reviews_count }} reviews)</span>
                             </div>

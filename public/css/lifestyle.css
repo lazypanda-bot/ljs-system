@@ -577,6 +577,7 @@
     }
 
     .lifestyle-progress,
+    .lifestyle-question-panel,
     .lifestyle-results-sidebar {
         flex-basis: auto;
         width: 100%;

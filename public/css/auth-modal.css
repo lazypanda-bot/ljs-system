@@ -247,7 +247,25 @@
 }
 
 @media (max-width: 480px) {
+    #loginModalOverlay.login-modal-overlay {
+        align-items: flex-start;
+        padding: 18px 20px;
+    }
+
     #loginModalOverlay .login-modal {
+        max-height: calc(var(--app-visible-height, 100vh) - 36px);
         padding: 24px;
+        scroll-padding: 24px;
+    }
+
+    .keyboard-visible #loginModalOverlay.login-modal-overlay.open {
+        padding-top: calc(var(--app-visible-top, 0px) + 10px);
+        padding-bottom: 10px;
+    }
+
+    .keyboard-visible #loginModalOverlay .login-modal {
+        max-height: calc(var(--app-visible-height, 100vh) - 20px);
+        margin-top: 0;
+        margin-bottom: 0;
     }
 }

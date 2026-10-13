@@ -63,8 +63,8 @@
                         @error('property_type')<small class="property-create-error">{{ $message }}</small>@enderror
                     </div>
                     <label class="property-create-field"><span>Price (PHP) *</span><input type="number" min="0" step="0.01" name="price" value="{{ old('price') }}" placeholder="e.g. 2500000" required></label>
-                    <label class="property-create-field"><span>Listing status *</span><select name="property_status" required>@foreach (['For Sale', 'For Rent', 'Sold', 'Reserved', 'Unavailable'] as $status)<option value="{{ $status }}" @selected(old('property_status', 'For Sale') === $status)>{{ $status }}</option>@endforeach</select></label>
-                    <label class="property-create-field property-create-field-wide"><span>Description *</span><textarea name="description" rows="4" maxlength="5000" required>{{ old('description') }}</textarea></label>
+                    <label class="property-create-field"><span>Listing status *</span><select name="property_status" required>@foreach (['For Sale', 'For Rent', 'Rent to Own', 'Sold', 'Reserved', 'Unavailable'] as $status)<option value="{{ $status }}" @selected(old('property_status', 'For Sale') === $status)>{{ $status }}</option>@endforeach</select></label>
+                    <label class="property-create-field property-create-field-wide property-create-description-field"><span>Description *</span><textarea name="description" rows="8" maxlength="5000" required>{{ old('description') }}</textarea></label>
                 </div>
             </section>
 

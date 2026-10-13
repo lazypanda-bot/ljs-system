@@ -27,6 +27,7 @@ class Appointment extends Model
         'client_timezone',
         'additional_note',
         'appointment_status',
+        'cancellation_reason',
         'completed_at',
     ];
 

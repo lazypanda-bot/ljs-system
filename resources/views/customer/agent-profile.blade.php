@@ -49,7 +49,7 @@
                                     <img src="{{ $image ? asset('storage/' . $image->image_path) : asset('images/ljs-logo.jpg') }}" alt="{{ $listing->property_name }}">
                                     <div class="rush-badges">
                                         @if ($listing->featured)<span class="badge-featured"><i data-lucide="star" aria-hidden="true"></i> Featured</span>@endif
-                                        <span class="badge-sale">{{ strtoupper($listing->property_status) }}</span>
+                                        <span class="badge-sale badge-status-{{ \Illuminate\Support\Str::slug($listing->property_status ?: 'available') }}">{{ strtoupper($listing->property_status ?: 'Available') }}</span>
                                     </div>
                                     <span class="rush-img-count">1/{{ max(1, $listing->images->count()) }}</span>
                                 </div>

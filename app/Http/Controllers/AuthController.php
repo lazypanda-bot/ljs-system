@@ -353,7 +353,7 @@ class AuthController extends Controller
 
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
         $user->update(['password' => Hash::make($validated['password'])]);

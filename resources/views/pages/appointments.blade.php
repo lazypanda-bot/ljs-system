@@ -72,6 +72,7 @@
                         <div><dt>Professional</dt><dd>{{ $selectedAppointment->assignment?->user?->name ?? 'Listing team' }}</dd></div>
                         <div><dt>Contact</dt><dd>{{ $selectedAppointment->contact_email }}{{ $selectedAppointment->contact_number ? ' · ' . $selectedAppointment->contact_number : '' }}</dd></div>
                         @if ($selectedAppointment->additional_note)<div><dt>Notes</dt><dd>{{ $selectedAppointment->additional_note }}</dd></div>@endif
+                        @if ($selectedAppointment->cancellation_reason)<div><dt>Cancellation reason</dt><dd>{{ $selectedAppointment->cancellation_reason }}</dd></div>@endif
                     </dl>
 
                     @if ($pendingProposal)
@@ -90,6 +91,7 @@
                         @if ($isAppointmentClient && $selectedAppointment->appointment_status === 'Completed' && $reviewable && in_array($reviewable->role_name, ['Broker', 'Agent', 'Lead Broker'], true))
                             <a class="settings-appointment-link" href="{{ route('agents.show', $reviewable) }}#reviews">Rate your experience with {{ $reviewable->name }}</a>
                         @endif
+                        @php($canCancelAppointment = ($isAppointmentClient && $selectedAppointment->appointment_status === 'Pending') || (($isAppointmentAdmin || $isAssignedProfessional) && in_array($selectedAppointment->appointment_status, ['Pending', 'Confirmed'], true)))
                         @if ($selectedAppointment->appointment_status === 'Pending' && ($isAppointmentAdmin || $isAssignedProfessional || $isAppointmentClient))
                             <form method="POST" action="{{ route('appointments.status', $selectedAppointment) }}">
                                 @csrf @method('PATCH')
@@ -101,9 +103,11 @@
                                         <option>Completed</option>
                                         <option>Rejected</option>
                                     @endif
-                                    <option>Cancelled</option>
                                 </select>
                             </form>
+                        @endif
+                        @if ($canCancelAppointment)
+                            <button type="button" class="appointment-cancel-trigger" data-cancel-appointment data-action="{{ route('appointments.status', $selectedAppointment) }}" data-context="{{ $selectedAppointment->assignment?->property?->property_name ?? 'Property appointment' }} · {{ $selectedAppointment->contact_name }}">Cancel appointment</button>
                         @endif
 
                         @if (($isAssignedProfessional || $isAppointmentClient) && in_array($selectedAppointment->appointment_status, ['Pending', 'Confirmed'], true) && ! $selectedAppointment->proposals->contains('status', 'Pending'))
@@ -129,9 +133,27 @@
             </section>
         </div>
     </div>
+
+    <div class="appointment-cancel-modal" id="appointmentCancelModal" hidden>
+        <section class="appointment-cancel-dialog" role="dialog" aria-modal="true" aria-labelledby="appointmentCancelTitle" tabindex="-1">
+            <span class="appointment-reschedule-kicker">CANCEL APPOINTMENT</span>
+            <h2 id="appointmentCancelTitle">Reason for cancellation</h2>
+            <p class="appointment-reschedule-context" data-cancel-context></p>
+            <form method="POST" data-cancel-form data-no-confirm>
+                @csrf @method('PATCH')
+                <input type="hidden" name="appointment_status" value="Cancelled">
+                <label>Cancellation reason<textarea name="cancellation_reason" rows="4" maxlength="1000" required placeholder="Explain why this appointment is being cancelled."></textarea></label>
+                <div class="appointment-cancel-actions">
+                    <button type="button" class="appointment-cancel-dismiss" data-cancel-dismiss>Cancel</button>
+                    <button type="submit" class="appointment-cancel-submit">Confirm cancellation</button>
+                </div>
+            </form>
+        </section>
+    </div>
 @endsection
 
 @push('scripts')
     <script src="{{ asset('js/availability-picker.js') }}?v={{ filemtime(public_path('js/availability-picker.js')) }}" defer></script>
     <script src="{{ asset('js/appointment-proposals.js') }}?v={{ filemtime(public_path('js/appointment-proposals.js')) }}" defer></script>
+    <script src="{{ asset('js/appointment-cancel.js') }}?v={{ filemtime(public_path('js/appointment-cancel.js')) }}" defer></script>
 @endpush

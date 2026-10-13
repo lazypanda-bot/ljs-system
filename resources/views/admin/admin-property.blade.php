@@ -8,9 +8,18 @@
             <div><h2>Property inventory</h2><p>Review submissions and manage listing status.</p></div>
         </div>
 
+        @php
+            $projectListings = ($properties ?? collect())
+                ->filter(fn ($property) => $property->listing_mode === 'admin' && (int) $property->user_id === (int) auth()->id())
+                ->sortBy('created_at');
+            $activeProjectListings = $projectListings->filter(fn ($property) => $property->listingGroup() !== 'history')->values();
+            $historyProjectListings = $projectListings->filter(fn ($property) => $property->listingGroup() === 'history')->values();
+        @endphp
+
         <div class="au-tabs-container staff-property-tabs" role="tablist" aria-label="Property views">
             <button type="button" class="au-tab-btn active" data-admin-property-tab="project-listings" aria-selected="true">Project Listings</button>
             <button type="button" class="au-tab-btn" data-admin-property-tab="listing-requests" aria-selected="false">Listing Requests <span class="staff-property-tab-count">{{ $pendingListings->count() }}</span></button>
+            <button type="button" class="au-tab-btn" data-admin-property-tab="history" aria-selected="false">History <span class="staff-property-tab-count">{{ $historyProjectListings->count() }}</span></button>
         </div>
 
         <section class="staff-property-tab-panel active" id="project-listings-panel" data-admin-property-panel="project-listings">
@@ -23,6 +32,7 @@
                     <option value="">All statuses</option>
                     <option value="For Sale">For Sale</option>
                     <option value="For Rent">For Rent</option>
+                    <option value="Rent to Own">Rent to Own</option>
                     <option value="Sold">Sold</option>
                     <option value="Reserved">Reserved</option>
                     <option value="Unavailable">Unavailable</option>
@@ -34,12 +44,12 @@
                 <table class="staff-property-table">
                     <thead><tr><th>Image</th><th>Property</th><th>Price</th><th>Type</th><th>Status</th><th>Referral link</th><th>Actions</th></tr></thead>
                     <tbody>
-                @forelse (($properties ?? collect())->filter(fn ($property) => $property->listing_mode === 'admin')->sortBy('created_at') as $property)
+                @forelse ($activeProjectListings as $property)
                     @php
                         $firstImage = $property->images->first();
                         $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
                         $status = $property->property_status ?? 'Available';
-                        $listingReferralCode = $property->approval_status === 'Approved'
+                        $listingReferralCode = $status !== 'Sold' && $property->approval_status === 'Approved'
                             ? $property->referralCodes->firstWhere('user_id', $property->user_id)
                             : null;
                     @endphp
@@ -54,7 +64,7 @@
                                 @method('PATCH')
                                 <label for="status-{{ $property->property_id }}">Status:</label>
                                 <select id="status-{{ $property->property_id }}" class="status-select" name="property_status" data-auto-submit aria-label="Property status">
-                                    @foreach (array_unique(array_merge(['For Sale', 'For Rent', 'Sold', 'Reserved', 'Unavailable'], [$status])) as $statusOption)
+                                    @foreach (array_unique(array_merge(['For Sale', 'For Rent', 'Rent to Own', 'Sold', 'Reserved', 'Unavailable'], [$status])) as $statusOption)
                                         <option value="{{ $statusOption }}" {{ $status === $statusOption ? 'selected' : '' }}>{{ $statusOption }}</option>
                                     @endforeach
                                 </select>
@@ -75,20 +85,29 @@
                         </td>
                         <td><div class="action-buttons staff-property-actions">
                             <a href="{{ route('staff.properties.show', $property) }}" title="View" aria-label="View {{ $property->property_name }}" class="btn-action view"><i class="fas fa-eye" aria-hidden="true"></i></a>
-                            <a href="{{ route('admin.properties.edit', $property) }}" title="Edit" aria-label="Edit {{ $property->property_name }}" class="btn-action edit"><i class="fas fa-pen" aria-hidden="true"></i></a>
-                            <form method="POST" action="{{ route('admin.properties.destroy', $property) }}" class="inline-action-form">@csrf @method('DELETE')<button title="Delete" aria-label="Delete {{ $property->property_name }}" class="btn-action delete" type="submit"><i class="fas fa-trash" aria-hidden="true"></i></button></form>
+                            @if ($status !== 'Sold')
+                                <a href="{{ route('admin.properties.edit', $property) }}" title="Edit" aria-label="Edit {{ $property->property_name }}" class="btn-action edit"><i class="fas fa-pen" aria-hidden="true"></i></a>
+                            @endif
                         </div></td>
                     </tr>
                 @empty
                     <tr><td colspan="7" class="staff-table-empty">No properties added yet.</td></tr>
                 @endforelse
+                    <tr data-property-empty hidden><td colspan="7" class="staff-table-empty">No project listings match your filters.</td></tr>
                     </tbody>
                 </table>
             </div>
         </section>
 
         <section class="staff-property-tab-panel" id="listing-requests-panel" data-admin-property-panel="listing-requests" hidden>
-            @php $requestListings = ($properties ?? collect())->filter(fn ($property) => $property->listing_mode !== 'admin')->sortBy('created_at'); @endphp
+            @php
+                $requestListings = ($properties ?? collect())
+                    ->filter(fn ($property) => $property->listing_mode !== 'admin')
+                    ->sortBy([
+                        fn ($a, $b) => ($a->approval_status === 'Pending' ? 0 : 1) <=> ($b->approval_status === 'Pending' ? 0 : 1),
+                        fn ($a, $b) => $a->created_at <=> $b->created_at,
+                    ]);
+            @endphp
             <div class="listings-toolbar">
                 <div class="search-box">
                     <span class="search-icon"><i class="fas fa-magnifying-glass" aria-hidden="true"></i></span>
@@ -145,11 +164,68 @@
                 </table>
             </div>
         </section>
+
+        <section class="staff-property-tab-panel" id="history-panel" data-admin-property-panel="history" hidden>
+            <div class="staff-property-table-wrap">
+                <table class="staff-property-table">
+                    <thead><tr><th>Image</th><th>Property</th><th>Price</th><th>Type</th><th>Status</th><th>Referral link</th><th>Actions</th></tr></thead>
+                    <tbody>
+                @forelse ($historyProjectListings as $property)
+                    @php
+                        $firstImage = $property->images->first();
+                        $imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
+                        $status = $property->property_status ?? 'Available';
+                        $listingReferralCode = $status !== 'Sold' && $property->approval_status === 'Approved'
+                            ? $property->referralCodes->firstWhere('user_id', $property->user_id)
+                            : null;
+                    @endphp
+                    <tr>
+                        <td class="staff-property-image-cell"><img src="{{ $imageUrl }}" alt="{{ $property->property_name }}"></td>
+                        <td class="staff-property-name-cell"><strong>{{ $property->property_name }}</strong><small>ID: P{{ str_pad($property->property_id, 3, '0', STR_PAD_LEFT) }}</small><span class="staff-approval-state state-{{ strtolower($property->approval_status) }}">{{ $property->approval_status }}</span></td>
+                        <td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }}</td>
+                        <td>{{ $property->property_type }}</td>
+                        <td>
+                            @if ($status === 'Sold')
+                                <span class="staff-approval-state state-approved">Sold</span>
+                            @else
+                                <form method="POST" action="{{ route('admin.properties.status', $property) }}" class="staff-property-status-form">
+                                    @csrf
+                                    @method('PATCH')
+                                    <label for="history-status-{{ $property->property_id }}">Status:</label>
+                                    <select id="history-status-{{ $property->property_id }}" class="status-select" name="property_status" data-auto-submit aria-label="Property status">
+                                        @foreach (array_unique(array_merge(['For Sale', 'For Rent', 'Rent to Own', 'Sold', 'Reserved', 'Unavailable'], [$status])) as $statusOption)
+                                            <option value="{{ $statusOption }}" {{ $status === $statusOption ? 'selected' : '' }}>{{ $statusOption }}</option>
+                                        @endforeach
+                                    </select>
+                                </form>
+                            @endif
+                        </td>
+                        <td class="staff-property-referral-cell">
+                            @if ($listingReferralCode)
+                                <code>{{ $listingReferralCode->code }}</code>
+                                <button type="button" class="staff-referral-copy" data-copy-referral="{{ route('referrals.open', $listingReferralCode->code) }}"><i class="fas fa-copy" aria-hidden="true"></i> Copy link</button>
+                            @else
+                                <span class="staff-unassigned">Not available</span>
+                            @endif
+                        </td>
+                        <td><div class="action-buttons staff-property-actions">
+                            <a href="{{ route('staff.properties.show', $property) }}" title="View" aria-label="View {{ $property->property_name }}" class="btn-action view"><i class="fas fa-eye" aria-hidden="true"></i></a>
+                            @if ($status !== 'Sold')
+                                <a href="{{ route('admin.properties.edit', $property) }}" title="Edit" aria-label="Edit {{ $property->property_name }}" class="btn-action edit"><i class="fas fa-pen" aria-hidden="true"></i></a>
+                            @endif
+                        </div></td>
+                    </tr>
+                @empty
+                    <tr><td colspan="7" class="staff-table-empty">No history listings yet.</td></tr>
+                @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
     <div class="staff-reject-modal" id="listingRejectModal" hidden>
         <div class="staff-reject-dialog" role="dialog" aria-modal="true" aria-labelledby="listingRejectTitle">
-            <button type="button" class="staff-reject-close" data-reject-close aria-label="Close">&times;</button>
             <h3 id="listingRejectTitle">Reject listing</h3>
             <p id="listingRejectProperty" class="staff-reject-property"></p>
             <form method="POST" id="listingRejectForm">

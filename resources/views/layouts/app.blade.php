@@ -203,6 +203,25 @@
                     <li class="footer-address"><i data-lucide="map-pin" aria-hidden="true"></i> <span>Unit 6 Labangon Town Center<br>Katipunan St, Cebu City</span></li>
                 </ul>
             </div> --}}
+            {{--
+                IF THIS IS USED, MAKE A TABLE FOR COMPANY_SETTINGS AND UNCOMMENT THIS TO USE.
+                Put the dynamic footer contact display in this file once AppServiceProvider shares $contactInfo.
+
+                <div class="footer-col">
+                    <h4>Contact Us</h4>
+                    <ul class="contact-list">
+                        @if(!empty($contactInfo['phone']))
+                            <li><a href="tel:{{ $contactInfo['phone'] }}"><i data-lucide="phone" aria-hidden="true"></i> {{ $contactInfo['phone'] }}</a></li>
+                        @endif
+                        @if(!empty($contactInfo['email']))
+                            <li><a href="mailto:{{ $contactInfo['email'] }}"><i data-lucide="mail" aria-hidden="true"></i> {{ $contactInfo['email'] }}</a></li>
+                        @endif
+                        @if(!empty($contactInfo['address']))
+                            <li class="footer-address"><i data-lucide="map-pin" aria-hidden="true"></i> <span>{{ $contactInfo['address'] }}</span></li>
+                        @endif
+                    </ul>
+                </div>
+            --}}
             <div class="footer-col">
                 <h4>Contact Us</h4>
                 <ul class="contact-list">
@@ -223,6 +242,19 @@
                     <a href="https://www.facebook.com/sweethomecebu" class="footer-social-link footer-social-facebook" aria-label="Facebook"><i data-lucide="facebook" aria-hidden="true"></i></a>
                     <a href="https://www.facebook.com/sweethomecebu" class="footer-social-link footer-social-messenger" aria-label="Messenger"><i data-lucide="message-circle" aria-hidden="true"></i></a>
                 </div>
+                {{--
+                    IF THIS IS USED, MAKE A TABLE FOR COMPANY_SETTINGS AND UNCOMMENT THIS TO USE.
+                    Put the dynamic social media links in this file once AppServiceProvider shares $socialLinks.
+
+                    <div class="footer-social">
+                        @if(!empty($socialLinks['facebook']))
+                            <a href="{{ $socialLinks['facebook'] }}" class="footer-social-link footer-social-facebook" aria-label="Facebook"><i data-lucide="facebook" aria-hidden="true"></i></a>
+                        @endif
+                        @if(!empty($socialLinks['messenger']))
+                            <a href="{{ $socialLinks['messenger'] }}" class="footer-social-link footer-social-messenger" aria-label="Messenger"><i data-lucide="message-circle" aria-hidden="true"></i></a>
+                        @endif
+                    </div>
+                --}}
             </div>
         </div>
     </footer>

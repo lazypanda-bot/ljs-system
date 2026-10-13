@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     search.placeholder = tabName === 'teams' ? 'Search teams...' : 'Search by name...';
                     search.value = '';
                 }
-                document.querySelectorAll('.au-tab-content tbody tr').forEach((row) => { row.style.display = ''; });
+                filterStaffRows();
             }
             const addUserButton = document.getElementById('openAddUserModal');
             const addTeamButton = document.getElementById('openAddTeamModal');
@@ -171,16 +171,55 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target === credentialOverlay) closeCredentialViewer();
     });
 
-    // Search Users
+    // Search the table in the active Staff Management tab.
     const searchUsers = document.getElementById('searchUsers');
     const usersTable = document.getElementById('usersTableContent');
-    const filterUserRows = () => {
-        const searchTerm = (searchUsers?.value || '').trim().toLowerCase();
-        usersTable?.querySelectorAll('tbody tr').forEach((row) => {
-            row.style.display = !searchTerm || (row.textContent || '').toLowerCase().includes(searchTerm) ? '' : 'none';
-        });
+    const getSearchableRows = (table) => Array.from(table?.querySelectorAll('tbody tr') || [])
+        .filter((row) => !row.matches('[data-search-empty]') && !(row.cells.length === 1 && row.cells[0].hasAttribute('colspan')));
+    const getEmptyRows = (table) => Array.from(table?.querySelectorAll('tbody tr') || [])
+        .filter((row) => !row.matches('[data-search-empty]') && row.cells.length === 1 && row.cells[0].hasAttribute('colspan'));
+    const ensureSearchEmptyRow = (table) => {
+        if (!table) return null;
+        let row = table.querySelector('[data-search-empty]');
+        if (row) return row;
+
+        const columnCount = table.tHead?.rows[0]?.cells.length || 1;
+        row = document.createElement('tr');
+        row.setAttribute('data-search-empty', '');
+        row.hidden = true;
+        const cell = document.createElement('td');
+        cell.colSpan = columnCount;
+        cell.className = 'staff-table-empty text-center text-muted py-5';
+        cell.textContent = 'No results match your search.';
+        row.appendChild(cell);
+        table.tBodies[0]?.appendChild(row);
+
+        return row;
     };
-    searchUsers?.addEventListener('input', filterUserRows);
+    const filterStaffRows = () => {
+        const searchTerm = (searchUsers?.value || '').trim().toLowerCase();
+        const activePanel = document.querySelector('.au-tab-content.active');
+        const activeTable = activePanel?.querySelector('.staff-property-table');
+        const rows = getSearchableRows(activeTable);
+        const emptyRows = getEmptyRows(activeTable);
+        const searchEmptyRow = ensureSearchEmptyRow(activeTable);
+        let visibleCount = 0;
+
+        if (rows.length === 0) {
+            emptyRows.forEach((row) => { row.style.display = searchTerm ? 'none' : ''; });
+            if (searchEmptyRow) searchEmptyRow.hidden = true;
+            return;
+        }
+
+        emptyRows.forEach((row) => { row.style.display = 'none'; });
+        rows.forEach((row) => {
+            const isVisible = !searchTerm || (row.textContent || '').toLowerCase().includes(searchTerm);
+            row.style.display = isVisible ? '' : 'none';
+            if (isVisible) visibleCount += 1;
+        });
+        if (searchEmptyRow) searchEmptyRow.hidden = !searchTerm || visibleCount > 0;
+    };
+    searchUsers?.addEventListener('input', filterStaffRows);
 
     let activeUsersRequest;
     const loadUsersPage = async (url, updateHistory = true) => {
@@ -216,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
             usersTable.querySelectorAll('select[data-auto-submit]').forEach((control) => {
                 control.addEventListener('change', () => control.form?.requestSubmit());
             });
-            filterUserRows();
+            filterStaffRows();
             if (updateHistory) window.history.pushState({}, '', relativeUrl);
         } catch (error) {
             if (error.name !== 'AbortError') console.error('Unable to load users page:', error);

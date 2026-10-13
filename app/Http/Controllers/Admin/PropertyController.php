@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PropertyController extends Controller
 {
@@ -167,6 +168,7 @@ class PropertyController extends Controller
         return match (trim($status)) {
             'Available', 'For Sale' => 'For Sale',
             'For Rent', 'Rent', 'for-rent' => 'For Rent',
+            'Rent to Own', 'Rent-to-Own', 'rent-to-own' => 'Rent to Own',
             'Sold' => 'Sold',
             'Pending' => 'Pending',
             'Reserved' => 'Reserved',
@@ -295,9 +297,14 @@ class PropertyController extends Controller
     {
         $this->authorizeAdmin();
         abort_unless($property->isManageableByAdmin(Auth::user()), 403);
-        $property->delete();
+        $this->ensureSoldStatusIsLocked($property, 'Unavailable');
 
-        return redirect()->back()->with('success', 'Property deleted.');
+        $property->update([
+            'property_status' => 'Unavailable',
+            'sold_at' => null,
+        ]);
+
+        return redirect()->back()->with('success', 'Property moved to history.');
     }
 
     public function edit(Property $property)
@@ -340,7 +347,7 @@ class PropertyController extends Controller
             'property_type' => ['required', 'string', 'max:100'],
             'property_description' => ['nullable', 'string'],
             'price' => ['required', 'numeric'],
-            'property_status' => ['required', 'in:For Sale,For Rent,Available,Reserved,Pending,Sold,Unavailable'],
+            'property_status' => ['required', 'in:For Sale,For Rent,Rent to Own,Available,Reserved,Pending,Sold,Unavailable'],
             'house_number' => ['nullable', 'string', 'max:255'],
             'lot_number' => ['nullable', 'string', 'max:255'],
             'street' => ['required', 'string', 'max:255'],
@@ -361,11 +368,12 @@ class PropertyController extends Controller
             'images' => ['nullable', 'array', 'max:12'],
             'images.*' => ['image', 'mimes:jpeg,png,webp', 'max:2048'],
         ]);
+        $this->ensureSoldStatusIsLocked($property, $validated['property_status']);
 
         $imagesToRemove = $property->images()->whereIn('image_id', $validated['remove_images'] ?? [])->get();
         $newImages = $request->file('images', []);
         if ($property->images()->count() - $imagesToRemove->count() + count($newImages) > 12) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'images' => 'A listing can have no more than 12 images.',
             ]);
         }
@@ -388,7 +396,7 @@ class PropertyController extends Controller
         ];
         $detailFields = Property::normalizeDetails($validated);
         $storedImagePaths = [];
-        $needsApprovalAfterEdit = $isProfessionalOwner && $property->approval_status !== 'Approved';
+        $needsApprovalAfterEdit = $isProfessionalOwner && $property->approval_status === 'Rejected';
 
         try {
             DB::transaction(function () use ($property, $propertyFields, $detailFields, $validated, $newImages, $imagesToRemove, $needsApprovalAfterEdit, $request, &$storedImagePaths): void {
@@ -450,12 +458,18 @@ class PropertyController extends Controller
 
     public function updateStatus(Request $request, Property $property)
     {
-        $this->authorizeAdmin();
-        abort_unless($property->isManageableByAdmin(Auth::user()), 403);
+        $user = Auth::user();
+        $isAdmin = $user instanceof User && $user->actingRole() === 'admin' && $property->isManageableByAdmin($user);
+        $isProfessionalOwner = $user instanceof User
+            && (int) $property->user_id === (int) $user->user_id
+            && in_array($user->actingRole(), ['broker', 'agent'], true);
+        abort_unless($isAdmin || $isProfessionalOwner, 403);
+        abort_if($isProfessionalOwner && $property->blocksResubmission(), 403);
 
         $validated = $request->validate([
-            'property_status' => ['required', 'in:Available,For Sale,For Rent,Reserved,Pending,Sold,Unavailable'],
+            'property_status' => ['required', 'in:Available,For Sale,For Rent,Rent to Own,Reserved,Pending,Sold,Unavailable'],
         ]);
+        $this->ensureSoldStatusIsLocked($property, $validated['property_status']);
 
         $property->update([
             'property_status' => $validated['property_status'],
@@ -474,6 +488,15 @@ class PropertyController extends Controller
         $user = Auth::user();
 
         abort_unless($user instanceof User && $user->actingRole() === 'admin', 403);
+    }
+
+    private function ensureSoldStatusIsLocked(Property $property, string $nextStatus): void
+    {
+        if ($property->property_status === 'Sold' && $nextStatus !== 'Sold') {
+            throw ValidationException::withMessages([
+                'property_status' => 'Sold listings cannot be changed back to another status.',
+            ]);
+        }
     }
 
     private function authorizeLister(): void
@@ -498,6 +521,13 @@ class PropertyController extends Controller
     $viewer = Auth::user();
     $hasActiveAppointment = $viewer instanceof User
         && \App\Models\Appointment::clientHasActiveForProperty($viewer, $property->property_id);
+    if ($property->approval_status !== 'Approved' || in_array($property->property_status, ['Sold', 'Unavailable'], true)) {
+        abort_unless(
+            $viewer instanceof User
+                && ($viewer->actingRole() === 'admin' || $property->user_id === $viewer->user_id),
+            404
+        );
+    }
     if (Auth::check() && $property->approval_status === 'Approved' && $property->user_id) {
         $ownerAssignment = PropertyAssign::firstOrCreate(
             ['property_id' => $property->property_id, 'user_id' => $property->user_id],
@@ -507,15 +537,6 @@ class PropertyController extends Controller
             $ownerAssignment->update(['status' => 'Approved']);
         }
         $selectedAssignmentId = $ownerAssignment->assign_id;
-    }
-
-    if ($property->approval_status !== 'Approved') {
-        $viewer = Auth::user();
-        abort_unless(
-            $viewer instanceof User
-                && ($viewer->actingRole() === 'admin' || $property->user_id === $viewer->user_id),
-            404
-        );
     }
 
     return view('customer.property-details', compact(

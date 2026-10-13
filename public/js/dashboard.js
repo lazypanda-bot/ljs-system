@@ -93,8 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const appointmentTitle = app.property_name
                     ? `${app.contact_name || 'Appointment'} · ${app.property_name}`
                     : (app.contact_name || 'Appointment');
-                const handler = app.professional_name ? ` · handled by ${app.professional_name}` : '';
-                appointmentLine.textContent = `${app.preferred_time ? app.preferred_time + ' - ' : ''}${appointmentTitle}${handler}`;
+                appointmentLine.textContent = `${app.preferred_time ? app.preferred_time + ' - ' : ''}${appointmentTitle}`;
                 customTooltip.appendChild(appointmentLine);
             });
 

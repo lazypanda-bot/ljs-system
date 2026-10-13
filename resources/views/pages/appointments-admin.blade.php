@@ -11,6 +11,7 @@
     <script src="{{ asset('js/auto-filter.js') }}?v={{ filemtime(public_path('js/auto-filter.js')) }}" defer></script>
     <script src="{{ asset('js/availability-picker.js') }}?v={{ filemtime(public_path('js/availability-picker.js')) }}" defer></script>
     <script src="{{ asset('js/appointment-proposals.js') }}?v={{ filemtime(public_path('js/appointment-proposals.js')) }}" defer></script>
+    <script src="{{ asset('js/appointment-cancel.js') }}?v={{ filemtime(public_path('js/appointment-cancel.js')) }}" defer></script>
 @endpush
 
 @section('content')
@@ -73,7 +74,17 @@
                             @php($statusClass = $appointment->displayStatusClass())
                             <tr>
                                 <td class="fw-semibold">{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }}</td>
-                                <td>{{ $appointment->contact_name }}<br><small class="text-muted">{{ $appointment->contact_email }}</small></td>
+                                <td>
+                                    {{ $appointment->contact_name }}
+                                    <br><small class="text-muted">{{ $appointment->contact_email }}</small>
+                                    <br><small class="text-muted">Contact #: {{ $appointment->contact_number ?: 'Not provided' }}</small>
+                                    @if ($appointment->additional_note)
+                                        <br><small class="text-muted">Notes: {{ $appointment->additional_note }}</small>
+                                    @endif
+                                    @if ($appointment->cancellation_reason)
+                                        <br><small class="text-muted">Cancel reason: {{ $appointment->cancellation_reason }}</small>
+                                    @endif
+                                </td>
                                 <td>{{ $appointment->assignment?->user?->name ?? 'Listing team' }}<br><small class="text-muted">{{ $appointment->assignment?->user?->role_name }}</small></td>
                                 <td>{{ $start->format('M j, Y') }}<br><small class="text-muted">{{ $start->format('g:i A') }}</small></td>
                                 <td>{{ $appointment->appointment_type }}</td>
@@ -89,9 +100,9 @@
                                                 @endif
                                                 <option value="Confirmed" @selected($appointment->appointment_status === 'Confirmed')>Confirm</option>
                                                 <option value="Completed">Completed</option>
-                                                <option value="Cancelled">Cancelled</option>
                                             </select>
                                         </form>
+                                        <button type="button" class="appointment-cancel-trigger" data-cancel-appointment data-action="{{ route('appointments.status', $appointment) }}" data-context="{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }} · {{ $appointment->contact_name }}">Cancel appointment</button>
                                     @endif
                                 </td>
                                 <td class="text-end">
@@ -145,4 +156,21 @@
             </div>
         @endif
     @endforeach
+
+    <div class="appointment-cancel-modal" id="appointmentCancelModal" hidden>
+        <section class="appointment-cancel-dialog" role="dialog" aria-modal="true" aria-labelledby="appointmentCancelTitle" tabindex="-1">
+            <span class="appointment-reschedule-kicker">CANCEL APPOINTMENT</span>
+            <h2 id="appointmentCancelTitle">Reason for cancellation</h2>
+            <p class="appointment-reschedule-context" data-cancel-context></p>
+            <form method="POST" data-cancel-form data-no-confirm>
+                @csrf @method('PATCH')
+                <input type="hidden" name="appointment_status" value="Cancelled">
+                <label>Cancellation reason<textarea name="cancellation_reason" rows="4" maxlength="1000" required placeholder="Explain why this appointment is being cancelled."></textarea></label>
+                <div class="appointment-cancel-actions">
+                    <button type="button" class="appointment-cancel-dismiss" data-cancel-dismiss>Cancel</button>
+                    <button type="submit" class="appointment-cancel-submit">Confirm cancellation</button>
+                </div>
+            </form>
+        </section>
+    </div>
 @endsection

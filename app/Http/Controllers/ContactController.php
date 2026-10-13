@@ -18,6 +18,14 @@ class ContactController extends Controller
             'phone' => \App\Support\InputRules::phone(),
             'message' => ['required', 'string', 'min:5', 'max:3000'],
         ], \App\Support\InputRules::messages());
+        /*
+         * IF THIS IS USED, MAKE A TABLE FOR COMPANY_SETTINGS AND UNCOMMENT THIS TO USE.
+         * Put the dynamic contact form recipient query here after creating the CompanySetting model/table.
+         *
+         * Example future setup:
+         * $recipient = \App\Models\CompanySetting::query()->value('contact_email')
+         *     ?: config('services.contact_email');
+         */
         $recipient = config('services.contact_email');
         abort_unless(is_string($recipient) && filter_var($recipient, FILTER_VALIDATE_EMAIL), 503, 'The contact inbox is not configured.');
 

@@ -93,6 +93,10 @@
 .property-create-field textarea{
     resize:vertical
 }
+.property-create-description-field textarea{
+    min-height:180px;
+    line-height:1.5
+}
 .property-create-field input:focus,
 .property-create-field select:focus,
 .property-create-field textarea:focus,

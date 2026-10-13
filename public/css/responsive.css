@@ -159,8 +159,32 @@
     .property-details-page .amenities { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .professional-summary, .profile-content-section { padding: 18px; }
     .dashboard-content { gap: 12px; }
-    .stats-section, .report-stat-grid, .metrics-grid { grid-template-columns: minmax(0, 1fr); }
-    .stat-card { min-height: 118px; }
+    .stats-section { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .report-stat-grid, .metrics-grid { grid-template-columns: minmax(0, 1fr); }
+    .stat-card { min-height: 92px; padding: 8px; border-radius: 10px; }
+    .stat-header { align-items: flex-start; gap: 4px; }
+    .stat-label { font-size: 11px; line-height: 1.2; }
+    .stat-link { width: 28px; height: 28px; flex: 0 0 28px; font-size: 11px; }
+    .stat-body { margin: 6px 0 2px; }
+    .stat-value { font-size: 30px; }
+    .stat-graphic { bottom: -2px; font-size: 4.8rem; }
+    .block-calendar-btn {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+        justify-content: center;
+        gap: 0;
+        padding: 0;
+        border-radius: 999px;
+        overflow: hidden;
+        font-size: 0;
+    }
+    .block-calendar-btn i,
+    .block-calendar-btn svg {
+        width: 16px;
+        height: 16px;
+        font-size: 16px;
+    }
     .au-page-card { padding: 12px; }
     .au-tabs-container { overflow-x: auto; }
     .au-tab-btn { white-space: nowrap; }
@@ -308,6 +332,7 @@
     .header-left { min-width: 0; gap: 10px; }
     .header-right { min-width: 0; gap: 8px; }
     .top-header { gap: 8px; padding: 0 10px; }
+    .page-label { display: none; }
 
     body.sidebar-open { overflow: hidden; }
 }
@@ -382,7 +407,9 @@
     :root.keyboard-visible .settings-modal.open,
     :root.keyboard-visible .au-modal-overlay.open,
     :root.keyboard-visible .modal-overlay.active,
-    :root.keyboard-visible .block-date-modal.open {
+    :root.keyboard-visible .block-date-modal.open,
+    :root.keyboard-visible .appointment-reschedule-modal:not([hidden]),
+    :root.keyboard-visible .appointment-cancel-modal:not([hidden]) {
         align-items: flex-start;
         justify-content: center;
         padding-top: calc(var(--app-visible-top, 0px) + 10px);
@@ -401,6 +428,8 @@
     :root.keyboard-visible .au-modal-overlay .au-form-card,
     :root.keyboard-visible .modal-content.appointment-create-page,
     :root.keyboard-visible .block-date-dialog,
+    :root.keyboard-visible .appointment-reschedule-dialog,
+    :root.keyboard-visible .appointment-cancel-dialog,
     :root.keyboard-visible dialog[open] {
         max-height: calc(var(--app-visible-height, 100dvh) - 20px);
         overflow-x: hidden;
@@ -428,4 +457,64 @@
     .role-toggle-btn[data-active-role="admin"] .role-toggle-admin,
     .role-toggle-btn[data-active-role="broker"] .role-toggle-broker { display: inline; font-size: 14px; }
     .role-toggle-btn { gap: 6px; }
+}
+
+@media (max-width: 900px) {
+    .notification-menu {
+        position: fixed;
+        top: calc(env(safe-area-inset-top) + 72px);
+        right: 10px;
+        left: 10px;
+        width: auto;
+        max-width: none;
+        max-height: calc(100dvh - env(safe-area-inset-top) - 88px);
+        overflow-x: hidden;
+        overflow-y: auto;
+        transform: none;
+    }
+}
+
+.pagination-mobile-only {
+    display: none !important;
+}
+
+@media (max-width: 640px) {
+    .ljs-pagination {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: center !important;
+        align-items: center;
+        gap: 4px !important;
+        max-width: 100%;
+        overflow-x: auto !important;
+        overflow-y: hidden;
+        scrollbar-width: none;
+    }
+
+    .ljs-pagination::-webkit-scrollbar {
+        display: none;
+    }
+
+    .ljs-pagination .pagination-desktop-only {
+        display: none !important;
+    }
+
+    .ljs-pagination .pagination-mobile-only {
+        display: inline-flex !important;
+    }
+
+    .ljs-pagination a,
+    .ljs-pagination span,
+    .content-area .ljs-pagination a,
+    .content-area .ljs-pagination span,
+    .notifications-list > nav.ljs-pagination a,
+    .notifications-list > nav.ljs-pagination span {
+        width: 32px;
+        min-width: 32px;
+        height: 32px;
+        min-height: 32px;
+        flex: 0 0 32px;
+        padding: 0;
+        font-size: 12px;
+    }
 }

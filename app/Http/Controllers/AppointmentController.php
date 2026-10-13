@@ -161,11 +161,13 @@ class AppointmentController extends Controller
 
 	public function create(Request $request, Property $property)
 	{
+		$user = $request->user();
+		abort_unless($user instanceof User && $user->normalizedRole() === 'client', 403);
 		abort_unless($property->approval_status === 'Approved', 404);
 		if (! $property->acceptsAppointments()) {
 			return redirect()->route('properties.show', $property)->with('error', "This property is {$property->property_status}; appointments are closed.");
 		}
-		if ($request->user() instanceof User && Appointment::clientHasActiveForProperty($request->user(), $property->property_id)) {
+		if (Appointment::clientHasActiveForProperty($user, $property->property_id)) {
 			return redirect()->route('properties.show', $property)->with('popup', [
 				'title' => 'Already booked',
 				'message' => 'You already have an active appointment for this property.',
@@ -180,13 +182,15 @@ class AppointmentController extends Controller
 		$assignments = collect([$assignment->load('user')]);
 		$selectedAssignmentId = $assignment->assign_id;
 
-		$clientTimezone = $request->user()?->timezone ?: '';
+		$clientTimezone = $user->timezone ?: '';
 
 		return view('customer.appointment-create', compact('property', 'assignments', 'referralCode', 'isAdminListing', 'selectedAssignmentId', 'clientTimezone'));
 	}
 
 	public function availability(Request $request, Property $property, AppointmentSchedulingService $scheduling)
 	{
+		$user = $request->user();
+		abort_unless($user instanceof User && $user->normalizedRole() === 'client', 403);
 		abort_unless($property->approval_status === 'Approved' && $property->acceptsAppointments(), 404);
 
 		$validated = $request->validate([
@@ -230,11 +234,13 @@ class AppointmentController extends Controller
 
 	public function store(Request $request, Property $property, AppointmentSchedulingService $scheduling)
 	{
+		$client = $request->user();
+		abort_unless($client instanceof User && $client->normalizedRole() === 'client', 403);
 		abort_unless($property->approval_status === 'Approved', 404);
 		if (! $property->acceptsAppointments()) {
 			throw ValidationException::withMessages(['appointment_type' => "This property is {$property->property_status}; appointments are closed."]);
 		}
-		if ($request->user() instanceof User && Appointment::clientHasActiveForProperty($request->user(), $property->property_id)) {
+		if (Appointment::clientHasActiveForProperty($client, $property->property_id)) {
 			throw ValidationException::withMessages(['appointment_type' => 'You already have an active appointment for this property. Wait for it to finish or cancel it before booking again.']);
 		}
 
@@ -258,7 +264,7 @@ class AppointmentController extends Controller
 		abort_unless($assignment->user?->account_status === 'Active', 404);
 
 		$clientTimezone = $validated['client_timezone']
-			?? ($request->user()?->timezone ?: config('appointments.default_timezone'));
+			?? ($client->timezone ?: config('appointments.default_timezone'));
 		$slotUtc = ! empty($validated['slot_start_utc'])
 			? CarbonImmutable::parse($validated['slot_start_utc'])->utc()
 			: CarbonImmutable::createFromFormat(
@@ -272,14 +278,13 @@ class AppointmentController extends Controller
 			throw ValidationException::withMessages(['preferred_time' => 'The selected time slot is no longer valid. Choose an available slot.']);
 		}
 
-		$client = $request->user();
 		$appointment = DB::transaction(function () use ($assignment, $scheduling, $slotUtc, $clientTimezone, $validated, $client): Appointment {
 			User::query()->where('user_id', $assignment->user_id)->lockForUpdate()->firstOrFail();
 			$scheduling->assertAvailable($assignment, $slotUtc);
 
 			return Appointment::create([
 				'assign_id' => $assignment->assign_id,
-				'client_id' => $client instanceof User && $client->normalizedRole() === 'client' ? $client->user_id : null,
+				'client_id' => $client->user_id,
 				'contact_name' => $validated['contact_name'],
 				'contact_number' => $validated['contact_number'],
 				'contact_email' => $validated['contact_email'],
@@ -319,10 +324,14 @@ class AppointmentController extends Controller
 				? ['Confirmed', 'Completed', 'Cancelled']
 				: ['Confirmed', 'Completed', 'Cancelled', 'Rejected'];
 		}
-		$validated = $request->validate(['appointment_status' => ['required', 'in:' . implode(',', $allowedStatuses)]]);
+		$validated = $request->validate([
+			'appointment_status' => ['required', 'in:' . implode(',', $allowedStatuses)],
+			'cancellation_reason' => ['required_if:appointment_status,Cancelled', 'nullable', 'string', 'max:1000'],
+		]);
 		$appointment->update([
 			'appointment_status' => $validated['appointment_status'],
 			'completed_at' => $validated['appointment_status'] === 'Completed' ? ($appointment->completed_at ?? now()) : null,
+			'cancellation_reason' => $validated['appointment_status'] === 'Cancelled' ? $validated['cancellation_reason'] : null,
 		]);
 		$this->notifyAppointmentStatus($appointment, $validated['appointment_status'], $user);
 
@@ -678,6 +687,9 @@ class AppointmentController extends Controller
 	{
 		$propertyName = $appointment->assignment?->property?->property_name ?? 'your property appointment';
 		$body = "{$actor->name} changed your appointment for {$propertyName} to {$status}.";
+		if ($status === 'Cancelled' && filled($appointment->cancellation_reason)) {
+			$body .= ' Reason: ' . $appointment->cancellation_reason;
+		}
 		$recipients = collect([$this->appointmentClient($appointment), $appointment->assignment?->user])
 			->filter(fn ($recipient) => $recipient instanceof User && (int) $recipient->user_id !== (int) $actor->user_id)
 			->unique('user_id');
@@ -707,7 +719,7 @@ class AppointmentController extends Controller
 			try {
 				Mail::to($recipient->email, $recipient->name)->queue(new ActivityMail(
 					'Appointment update: ' . $status,
-					$body . "\n\nLog in to LJS Realty for the latest details."
+					$this->appointmentStatusEmailBody($appointment, $status, $actor, $recipient)
 				));
 			} catch (\Throwable $exception) {
 				Log::warning('Appointment status email could not be sent.', [
@@ -717,5 +729,36 @@ class AppointmentController extends Controller
 				]);
 			}
 		}
+	}
+
+ 	private function appointmentStatusEmailBody(Appointment $appointment, string $status, User $actor, User $recipient): string
+	{
+		$propertyName = $appointment->assignment?->property?->property_name ?? 'your property appointment';
+		$timezone = $recipient->timezone ?: ($appointment->client_timezone ?: config('appointments.default_timezone'));
+		$when = $appointment->startInTimezone($timezone)->format('M j, Y g:i A');
+		$professional = $appointment->assignment?->user?->name;
+
+		$lines = [
+			"Your appointment for {$propertyName} was updated to {$status}.",
+			"",
+			"Property: {$propertyName}",
+			"Status: {$status}",
+			"When: {$when}",
+			"Appointment type: {$appointment->appointment_type}",
+		];
+
+		if ($professional) {
+			$lines[] = "Handled by: {$professional}";
+		}
+
+		if ($status === 'Cancelled' && filled($appointment->cancellation_reason)) {
+			$lines[] = "Cancellation reason: {$appointment->cancellation_reason}";
+		}
+
+		$lines[] = "";
+		$lines[] = "Updated by: {$actor->name}";
+		$lines[] = "You do not need to log in just to see this update, but you can open LJS Realty if you want to manage the appointment.";
+
+		return implode("\n", $lines);
 	}
 }

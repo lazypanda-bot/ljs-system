@@ -17,6 +17,21 @@
                 <a href="tel:+639213456789"><i data-lucide="phone" aria-hidden="true"></i><span><small>PHONE</small>+63 921 345 6789</span></a>
                 <a href="mailto:ljsrealty@gmail.com"><i data-lucide="mail" aria-hidden="true"></i><span><small>EMAIL</small>ljsrealty@gmail.com</span></a>
                 <address><i data-lucide="map-pin" aria-hidden="true"></i><span><small>OFFICE</small>Unit 6 Labangon Town Center<br>Katipunan St, Cebu City</span></address>
+                {{--
+                    IF THIS IS USED, MAKE A TABLE FOR COMPANY_SETTINGS AND UNCOMMENT THIS TO USE.
+                    Put the dynamic Contact page details in this file once AppServiceProvider shares $contactInfo.
+
+                    <p class="business-contact-location">{{ $contactInfo['city'] ?? 'Cebu City, Philippines' }}</p>
+                    @if(!empty($contactInfo['phone']))
+                        <a href="tel:{{ $contactInfo['phone'] }}"><i data-lucide="phone" aria-hidden="true"></i><span><small>PHONE</small>{{ $contactInfo['phone'] }}</span></a>
+                    @endif
+                    @if(!empty($contactInfo['email']))
+                        <a href="mailto:{{ $contactInfo['email'] }}"><i data-lucide="mail" aria-hidden="true"></i><span><small>EMAIL</small>{{ $contactInfo['email'] }}</span></a>
+                    @endif
+                    @if(!empty($contactInfo['address']))
+                        <address><i data-lucide="map-pin" aria-hidden="true"></i><span><small>OFFICE</small>{{ $contactInfo['address'] }}</span></address>
+                    @endif
+                --}}
             </section>
 
             <form class="business-contact-form" method="POST" action="{{ route('contact.submit') }}">
@@ -28,7 +43,7 @@
                 @error('name')<span class="business-contact-error">{{ $message }}</span>@enderror
                 <label for="contactEmail">Email address</label><input id="contactEmail" type="email" name="email" value="{{ old('email') }}" autocomplete="email" maxlength="255" required>
                 @error('email')<span class="business-contact-error">{{ $message }}</span>@enderror
-                <label for="contactPhone">Phone <span>(optional)</span></label><input id="contactPhone" name="phone" value="{{ old('phone') }}" autocomplete="tel" inputmode="tel" maxlength="20" pattern="\+?[0-9\s\-\(\)]{7,20}" title="7 to 15 digits, e.g. 09171234567">
+                <label for="contactPhone">Phone <span>(optional)</span></label><input id="contactPhone" name="phone" value="{{ old('phone') }}" autocomplete="tel" inputmode="numeric" maxlength="11" pattern="[0-9]{11}" title="11 digits, e.g. 09171234567">
                 @error('phone')<span class="business-contact-error">{{ $message }}</span>@enderror
                 <label for="contactMessage">How can we help?</label><textarea id="contactMessage" name="message" rows="5" maxlength="3000" required>{{ old('message') }}</textarea>
                 @error('message')<span class="business-contact-error">{{ $message }}</span>@enderror

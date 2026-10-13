@@ -3,12 +3,15 @@
 @section('title', 'LJS Realty and Brokerage')
 
 @section('content')
+    {{-- FOR HERO BANNER CHANGING IMAGE DEPENDING ON TIME
     <section class="hero-section"
         data-hero-time-image
         data-sunrise-image="{{ asset('images/sunrise.png') }}"
         data-day-image="{{ asset('images/day.png') }}"
         data-sunset-image="{{ asset('images/sunset.png') }}"
         data-night-image="{{ asset('images/night.png') }}">
+    --}}
+    <section class="hero-section">
         <div class="hero-content">
             <h1 class="hero-title">Find Your <span class="highlight">Dream</span> Property</h1>
             <p class="hero-subtitle">
@@ -41,9 +44,8 @@
             <div class="map-legend">
                 <span class="legend-item"><i class="legend-dot for-sale"></i> For Sale</span>
                 <span class="legend-item"><i class="legend-dot for-rent"></i> For Rent</span>
-                <span class="legend-item"><i class="legend-dot sold"></i> Sold</span>
+                <span class="legend-item"><i class="legend-dot rent-to-own"></i> Rent to Own</span>
                 <span class="legend-item"><i class="legend-dot reserved"></i> Reserved</span>
-                <span class="legend-item"><i class="legend-dot unavailable"></i> Unavailable</span>
             </div>
         </div>
     </section>
@@ -176,6 +178,7 @@
                 @forelse ($topProfessionals as $professional)
                     @php
                         $agentImage = $professional->profile_photo ? asset('storage/' . $professional->profile_photo) : asset('images/ljs-logo.jpg');
+                        $ratingValue = $professional->received_reviews_avg_rating ? (int) round($professional->received_reviews_avg_rating) : 0;
                         $rating = $professional->received_reviews_avg_rating ? number_format($professional->received_reviews_avg_rating, 1) : 'New';
                     @endphp
                     <article class="agent-highlight-card">
@@ -186,7 +189,7 @@
                             <h3>{{ $professional->name }}</h3>
                             <p class="agent-role">{{ $professional->role_name }}</p>
                             <div class="agent-rating">
-                                <span class="stars" aria-label="5 stars">@for ($star = 0; $star < 5; $star++)<i data-lucide="star" aria-hidden="true"></i>@endfor</span>
+                                <span class="stars" aria-label="{{ $ratingValue }} out of 5 stars">@for ($star = 1; $star <= 5; $star++)<i data-lucide="star" class="{{ $star <= $ratingValue ? 'is-rated' : '' }}" aria-hidden="true"></i>@endfor</span>
                                 <span class="rating-score">{{ $rating }}</span>
                                 <span class="review-count">({{ $professional->received_reviews_count }} reviews)</span>
                             </div>
@@ -212,7 +215,7 @@
             <div class="home-about-content">
                 <h2>We <span class="highlight-green">find places</span> that people love</h2>
                 <p>
-                    Praesent venenatis justo in ultrices tempor. Donec maximus, dolor a condimentum congue, tellus nisi dictum magna, uttere lorem ipsum viverra massa ex sit amet nulla. Duis lobortis nisl sed aliquam sollicitudin.
+                    p
                 </p>
                 <a href="{{ route('about') }}" class="home-about-btn">Learn More</a>
             </div>
@@ -220,6 +223,7 @@
     </section>
 @endsection
 
+{{-- FOR HERO BANNER CHANGING IMAGE DEPENDING ON TIME
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -241,4 +245,5 @@
         });
     </script>
 @endpush
+--}}
 

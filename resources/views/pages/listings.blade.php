@@ -10,7 +10,7 @@
 	@php
 		$listingGroups = [
 			'active' => ['label' => 'Active', 'description' => 'For sale, for rent, and reserved listings.'],
-			'needs_action' => ['label' => 'Needs Action', 'description' => 'Pending or rejected listings that can still be handled.'],
+			'needs_action' => ['label' => 'Pending / Rejected', 'description' => 'Listings waiting for Admin review or returned for edits.'],
 			'history' => ['label' => 'History', 'description' => 'Sold, unavailable, or duplicate-rejected listings.'],
 		];
 		$groupCounts = collect(array_keys($listingGroups))->mapWithKeys(fn ($group) => [$group => $myProperties->filter(fn ($property) => $property->listingGroup() === $group)->count()]);
@@ -19,7 +19,7 @@
 		<div class="listings-header staff-page-heading">
 			<div>
 				<h1>My Listings</h1>
-				<p>Properties you have listed. Edits are resubmitted for Admin approval.</p>
+				<p>Properties you have listed. Rejected listings can be edited and resubmitted for Admin approval.</p>
 			</div>
 		</div>
 
@@ -68,6 +68,7 @@
 								$imageUrl = $firstImage ? asset('storage/' . $firstImage->image_path) : asset('images/ljs-logo.jpg');
 								$referralCode = $property->referralCodes->firstWhere('user_id', auth()->id());
 								$blocksResubmission = $property->blocksResubmission();
+								$isSoldListing = $property->property_status === 'Sold';
 								$listingGroup = $property->listingGroup();
 								$listingSearchText = strtolower(implode(' ', [
 									$property->property_name,
@@ -85,15 +86,29 @@
 								<td class="staff-property-name-cell"><strong>{{ $property->property_name }}</strong><small>ID: P{{ str_pad($property->property_id, 3, '0', STR_PAD_LEFT) }}</small></td>
 								<td>{{ $property->property_type }}</td>
 								<td class="staff-property-price-cell">PHP {{ number_format($property->price, 0, '.', ',') }}</td>
-								<td>{{ $property->property_status ?? 'Available' }}</td>
+								<td>
+									@if ($isSoldListing || $blocksResubmission)
+										{{ $property->property_status ?? 'Available' }}
+									@else
+										<form method="POST" action="{{ route('admin.properties.status', $property) }}" class="staff-property-status-form">
+											@csrf
+											@method('PATCH')
+											<select class="status-select" name="property_status" data-auto-submit aria-label="Property status for {{ $property->property_name }}">
+												@foreach (array_unique(array_merge(['For Sale', 'For Rent', 'Rent to Own', 'Sold', 'Reserved', 'Unavailable'], [(string) ($property->property_status ?? 'Available')])) as $statusOption)
+													<option value="{{ $statusOption }}" @selected(($property->property_status ?? 'Available') === $statusOption)>{{ $statusOption }}</option>
+												@endforeach
+											</select>
+										</form>
+									@endif
+								</td>
 								<td>
 									<span class="staff-status-pill status-{{ strtolower($property->approval_status) }}">{{ $property->approval_status }}</span>
 								</td>
 								<td class="staff-property-referral-cell">
-									@if ($property->approval_status === 'Approved' && $referralCode)
+									@if (! $isSoldListing && $property->approval_status === 'Approved' && $referralCode)
 										<code>{{ $referralCode->code }}</code>
 										<button type="button" class="staff-referral-copy" data-copy-referral="{{ route('referrals.open', $referralCode->code) }}"><i class="fas fa-copy" aria-hidden="true"></i> Copy link</button>
-									@elseif ($property->approval_status === 'Approved')
+									@elseif (! $isSoldListing && $property->approval_status === 'Approved')
 										<form method="POST" action="{{ route('agent.properties.generate-code', $property->property_id) }}">
 											@csrf
 											<button type="submit" class="staff-referral-copy"><i class="fas fa-link" aria-hidden="true"></i> Generate link</button>
@@ -105,7 +120,8 @@
 								<td class="text-end">
 									<div class="au-action-group">
 										<a href="{{ route('staff.properties.show', $property) }}" class="btn-action view" title="View" aria-label="View {{ $property->property_name }}"><i class="fas fa-eye"></i></a>
-										@if ($blocksResubmission)
+										@if ($isSoldListing)
+										@elseif ($blocksResubmission)
 											<span class="btn-action edit is-disabled" title="Duplicate listing cannot be resubmitted" aria-label="Duplicate listing cannot be resubmitted"><i class="fas fa-ban"></i></span>
 										@else
 											<a href="{{ route('admin.properties.edit', $property) }}" class="btn-action edit" title="{{ $property->approval_status === 'Rejected' ? 'Edit and resubmit' : 'Edit' }}" aria-label="Edit {{ $property->property_name }}"><i class="fas fa-pen"></i></a>

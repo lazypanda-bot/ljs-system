@@ -799,7 +799,7 @@
 }
 .content-area .listings-toolbar,
 .content-area .staff-filter-bar {
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 12px;
 }
 .content-area .listings-toolbar .search-box,
@@ -808,8 +808,17 @@
 }
 .content-area .listings-toolbar .btn-add-property,
 .content-area .staff-filter-bar .btn-add-property {
-    margin-left: 0;
+    margin-left: auto;
     white-space: nowrap;
+}
+.content-area .listings-filter-bar {
+    justify-content: flex-start;
+}
+.content-area .listings-filter-bar .search-box {
+    flex: 0 1 460px;
+}
+.content-area .listings-filter-bar .btn-add-property {
+    margin-left: auto;
 }
 .listing-rejection-row td { padding-top: 0 !important; background: #fff7f7; }
 .listing-rejection-summary { display: grid; gap: 5px; padding: 10px 12px; border: 1px solid #fecaca; border-left: 4px solid #dc2626; border-radius: 8px; background: #fef2f2; color: #7f1d1d; }
@@ -820,14 +829,109 @@
     .content-area .listing-group-tabs,
     .content-area .listings-toolbar,
     .content-area .staff-filter-bar { align-items: stretch; flex-direction: column; }
+    .content-area .listing-group-tabs {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+    .content-area .listing-group-tab {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 10px 8px;
+        white-space: nowrap;
+    }
+    .content-area .listings-toolbar .search-box,
+    .content-area .staff-filter-bar .search-box {
+        flex: none;
+        min-height: 42px;
+        height: auto;
+    }
     .content-area .staff-property-tabs .au-tab-btn,
-    .content-area .listing-group-tab,
     .content-area .listings-toolbar .search-box,
     .content-area .staff-filter-bar .search-box,
     .content-area .listings-toolbar select,
     .content-area .staff-filter-bar select,
     .content-area .listings-toolbar .btn-add-property,
     .content-area .staff-filter-bar .btn-add-property { width: 100%; }
+}
+@media (max-width: 720px) {
+    .content-area .staff-property-table .staff-view-button,
+    .content-area .staff-property-table .staff-approve-button,
+    .content-area .staff-property-table .staff-reject-button,
+    .content-area .compose-message-btn {
+        display: inline-flex;
+        width: 42px;
+        min-width: 42px;
+        height: 42px;
+        min-height: 42px;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        padding: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        font-size: 0;
+    }
+    .content-area .listings-toolbar .btn-add-property,
+    .content-area .staff-filter-bar .btn-add-property {
+        display: inline-flex;
+        width: auto;
+        min-width: max-content;
+        min-height: 42px;
+        height: 42px;
+        align-self: flex-end;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        margin-left: 0;
+        padding: 0 16px;
+        border-radius: 999px;
+        overflow: visible;
+        white-space: nowrap;
+        font-size: 13px;
+    }
+    .content-area .staff-property-referral-cell .staff-referral-copy {
+        display: inline-flex;
+        width: auto;
+        min-width: max-content;
+        min-height: 34px;
+        height: 34px;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 12px;
+        border-radius: 999px;
+        overflow: visible;
+        white-space: nowrap;
+        font-size: 12px;
+    }
+    .content-area .staff-property-table .staff-view-button,
+    .content-area .staff-property-table .staff-approve-button,
+    .content-area .staff-property-table .staff-reject-button {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+        min-height: 36px;
+    }
+    .content-area .listings-toolbar .btn-add-property i,
+    .content-area .staff-filter-bar .btn-add-property i,
+    .content-area .staff-property-referral-cell .staff-referral-copy i,
+    .content-area .staff-property-table .staff-view-button i,
+    .content-area .staff-property-table .staff-approve-button i,
+    .content-area .staff-property-table .staff-reject-button i,
+    .content-area .compose-message-btn i,
+    .content-area .listings-toolbar .btn-add-property svg,
+    .content-area .staff-filter-bar .btn-add-property svg,
+    .content-area .staff-property-referral-cell .staff-referral-copy svg,
+    .content-area .staff-property-table .staff-view-button svg,
+    .content-area .staff-property-table .staff-approve-button svg,
+    .content-area .staff-property-table .staff-reject-button svg,
+    .content-area .compose-message-btn svg {
+        flex: 0 0 auto;
+        width: 16px;
+        height: 16px;
+        font-size: 16px;
+    }
 }
 .au-members-trigger { padding: 3px 12px; border: 0; border-radius: 999px; background: #e0f2fe; color: #0369a1; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .au-members-trigger:hover { background: #bae6fd; }

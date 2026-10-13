@@ -74,7 +74,7 @@
     inset: 0;
     background: rgba(15, 23, 42, 0.55);
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
     padding: 60px 16px;
     overflow-y: auto;
@@ -412,4 +412,61 @@
 .au-agent-profile dt { color: #64748b; font-size: 12px; font-weight: 700; }
 .au-agent-profile dd { margin: 2px 0 0; color: #0f172a; font-size: 14px; word-break: break-word; }
 .au-agent-profile-wide { grid-column: 1 / -1; }
-.au-modal-overlay .au-agent-wide { width: min(900px, 100%); }
+.au-modal-overlay .au-agent-wide { width: min(1120px, calc(100vw - 32px)); }
+.au-agent-wide .staff-property-table-wrap { overflow-x: auto; }
+.au-agent-wide .staff-property-table { min-width: 760px; table-layout: auto; }
+.au-agent-wide .staff-property-table th,
+.au-agent-wide .staff-property-table td { white-space: normal; overflow-wrap: break-word; }
+.au-agent-wide .staff-property-table th { white-space: nowrap; }
+.au-agent-wide .staff-property-table th:nth-child(1),
+.au-agent-wide .staff-property-table td:nth-child(1) { width: 36%; }
+.au-agent-wide .staff-property-table th:nth-child(2),
+.au-agent-wide .staff-property-table td:nth-child(2) { width: 22%; }
+.au-agent-wide .staff-property-table th:nth-child(3),
+.au-agent-wide .staff-property-table td:nth-child(3) { width: 18%; }
+.au-agent-wide .staff-property-table th:nth-child(4),
+.au-agent-wide .staff-property-table td:nth-child(4),
+.au-agent-wide .staff-property-table th:nth-child(5),
+.au-agent-wide .staff-property-table td:nth-child(5) { width: 12%; }
+
+@media (max-width: 640px) {
+    .au-modal-overlay .au-agent-wide {
+        width: min(100% - 24px, 430px);
+        padding: 22px 14px 18px;
+    }
+
+    .au-agent-wide h3 {
+        margin-right: 46px;
+        font-size: 18px;
+        line-height: 1.25;
+    }
+
+    .au-agent-wide .staff-property-table-wrap {
+        margin-top: 16px;
+        border-radius: 8px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .au-agent-wide .staff-property-table {
+        min-width: 680px;
+    }
+
+    .au-agent-wide .staff-property-table th,
+    .au-agent-wide .staff-property-table td {
+        padding: 11px 12px;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .au-agent-wide .staff-property-table th {
+        font-size: 10px;
+    }
+
+    .au-agent-wide .staff-status-pill {
+        white-space: nowrap;
+    }
+}
+
+@media (max-height: 720px) {
+    .au-modal-overlay { align-items: flex-start; }
+}

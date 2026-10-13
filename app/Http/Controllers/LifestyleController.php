@@ -64,8 +64,7 @@ class LifestyleController extends Controller
     {
         $properties = Property::query()
             ->with('details.amenities')
-            ->where('approval_status', 'Approved')
-            ->whereNotIn('property_status', ['Pending', 'Sold', 'Unavailable'])
+            ->publiclyVisible()
             ->get(['property_id', 'lifestyle_tag', 'location_tag']);
 
         $toOptions = static function ($values, string $icon, string $description, bool $slugValues = false): array {
@@ -110,8 +109,7 @@ class LifestyleController extends Controller
         ]);
 
         $properties = Property::with(['images', 'details.amenities'])
-            ->where('approval_status', 'Approved')
-            ->whereNotIn('property_status', ['Pending', 'Sold', 'Unavailable'])
+            ->publiclyVisible()
             ->get();
 
         $scored = $properties

@@ -9,8 +9,8 @@ class InputRules
     /** Letters (including accents), spaces, apostrophes, hyphens and periods only. */
     public const NAME_PATTERN = "/^\\p{L}[\\p{L}\\p{M} .'\\-]*$/u";
 
-    /** Optional leading +, then 7 to 15 digits (e.g. 09171234567 or +639171234567). */
-    public const PHONE_PATTERN = '/^\\+?[0-9]{7,15}$/';
+    /** Philippine contact numbers must be exactly 11 digits, e.g. 09171234567. */
+    public const PHONE_PATTERN = '/^[0-9]{11}$/';
 
     public static function name(bool $required = true): array
     {
@@ -56,8 +56,8 @@ class InputRules
             'regex' => 'The :attribute format is invalid.',
             'name.regex' => 'The name may only contain letters, spaces, apostrophes, hyphens and periods.',
             'contact_name.regex' => 'The name may only contain letters, spaces, apostrophes, hyphens and periods.',
-            'contact_number.regex' => 'Enter a valid contact number with 7 to 15 digits (e.g. 09171234567).',
-            'phone.regex' => 'Enter a valid phone number with 7 to 15 digits (e.g. 09171234567).',
+            'contact_number.regex' => 'Enter a valid 11-digit contact number (e.g. 09171234567).',
+            'phone.regex' => 'Enter a valid 11-digit phone number (e.g. 09171234567).',
         ];
     }
 }

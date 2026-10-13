@@ -57,40 +57,10 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 
 .about-company-section {
     display: grid;
-    grid-template-columns: minmax(150px, .55fr) 1.45fr;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, .78fr);
     align-items: center;
     gap: 48px;
     padding-block: 76px;
-}
-
-.about-company-identity {
-    display: grid;
-    justify-items: center;
-    gap: 20px;
-}
-
-.about-company-logo {
-    display: block;
-    width: min(100%, 148px);
-    aspect-ratio: 1;
-    border-radius: 6px;
-    background: #fff;
-    box-shadow: 0 12px 28px rgba(26, 50, 39, .1);
-    object-fit: cover;
-}
-
-.about-company-index {
-    color: var(--about-green);
-    font-size: 14px;
-    font-weight: 800;
-}
-
-.about-company-index span {
-    display: inline-block;
-    margin-left: 10px;
-    color: #66736f;
-    font-size: 11px;
-    letter-spacing: 1px;
 }
 
 .about-page-eyebrow {
@@ -144,6 +114,28 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     height: 18px;
     color: var(--about-green);
     flex: 0 0 18px;
+}
+
+.about-company-visual {
+    margin: 0;
+}
+
+.about-company-visual img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--about-line);
+    border-radius: 8px;
+    object-fit: cover;
+    object-position: center bottom;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, .08);
+}
+
+.about-company-visual figcaption {
+    margin-top: 10px;
+    color: var(--about-muted);
+    font-size: 12px;
+    line-height: 1.5;
 }
 
 .about-owner-note {
@@ -387,6 +379,94 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     line-height: 1.6;
 }
 
+.about-trust-section {
+    padding-block: 76px;
+    background: #fff;
+}
+
+.about-trust-layout {
+    display: grid;
+    grid-template-columns: minmax(260px, .75fr) minmax(0, 1.25fr);
+    gap: 42px;
+    align-items: start;
+}
+
+.about-trust-layout .about-section-heading {
+    position: sticky;
+    top: 96px;
+    margin-bottom: 0;
+}
+
+.about-trust-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.about-trust-grid article {
+    min-width: 0;
+    padding: 22px;
+    border: 1px solid var(--about-line);
+    border-radius: 8px;
+    background: #f8fbff;
+}
+
+.about-trust-grid svg {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 16px;
+    color: var(--about-green);
+}
+
+.about-trust-grid h3 {
+    margin: 0 0 8px;
+    color: var(--about-ink);
+    font-size: 17px;
+}
+
+.about-trust-grid p,
+.about-professionals-card p {
+    margin: 0;
+    color: var(--about-muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.about-professionals-section {
+    padding-block: 0 78px;
+    background: #fff;
+}
+
+.about-professionals-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    padding: 28px;
+    border: 1px solid #bfd2f5;
+    border-radius: 10px;
+    background: #edf4ff;
+}
+
+.about-professionals-card h2 {
+    max-width: 720px;
+    margin: 10px 0;
+    color: var(--about-ink);
+    font-size: 28px;
+    line-height: 1.2;
+}
+
+.about-professionals-card p {
+    max-width: 760px;
+}
+
+.about-professionals-card .business-secondary-link {
+    flex: 0 0 auto;
+    border-color: #bfd2f5;
+    background: #fff;
+    color: var(--color-primary, #1f6cff);
+}
+
 @media (max-width: 760px) {
     .about-content-width,
     .about-company-section,
@@ -398,17 +478,6 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
         grid-template-columns: 1fr;
         gap: 20px;
         padding-block: 52px;
-    }
-
-    .about-company-identity {
-        grid-template-columns: 64px 1fr;
-        justify-items: start;
-        align-items: center;
-        gap: 16px;
-    }
-
-    .about-company-logo {
-        width: 64px;
     }
 
     .about-company-copy h2,
@@ -455,9 +524,11 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 
     .about-journey-step {
         min-height: 0;
-        padding: 22px 12px;
+        padding: 18px;
         border-right: 0;
         border-bottom: 1px solid var(--about-line);
+        border-radius: 8px;
+        background: rgba(255,255,255,.48);
     }
 
     .about-journey-step:last-child {
@@ -471,6 +542,41 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 
     .business-about-page .business-about-hero h1 {
         font-size: 38px;
+    }
+
+    .about-trust-section {
+        padding-block: 52px;
+    }
+
+    .about-trust-layout {
+        grid-template-columns: 1fr;
+        gap: 22px;
+    }
+
+    .about-trust-layout .about-section-heading {
+        position: static;
+    }
+
+    .about-trust-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .about-professionals-section {
+        padding-block: 0 56px;
+    }
+
+    .about-professionals-card {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 22px;
+    }
+
+    .about-professionals-card h2 {
+        font-size: 24px;
+    }
+
+    .about-professionals-card .business-secondary-link {
+        width: 100%;
     }
 }
 
@@ -664,13 +770,11 @@ a.about-contact-option:hover {
 }
 
 .business-about-page .business-about-cta {
-    /* background: #ffffff; */
-    background: transparent;
+    background: #fff;
     border-top: 1px solid #d9e3f3;
 }
 
 .business-about-page .business-about-cta .business-eyebrow,
-.business-about-page .about-company-index,
 .business-about-page .about-page-eyebrow,
 .business-about-page .about-offer-number,
 .business-about-page .about-step-number {

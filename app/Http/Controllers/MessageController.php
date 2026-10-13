@@ -361,7 +361,7 @@ class MessageController extends Controller
             ->when($filter === 'team', fn ($query) => $query->where('type', 'team'))
             ->latest()
             ->orderByDesc('notification_id')
-            ->paginate(5)
+            ->paginate(9)
             ->appends($request->except(['list_only', 'page']));
 
         if ($request->boolean('list_only')) {

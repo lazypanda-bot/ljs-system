@@ -48,7 +48,10 @@
     <div class="property-content-layout">
         <div class="property-information-column">
             <header class="property-details-heading">
-                <p class="property-details-price">PHP {{ number_format($property->price, 2) }}</p>
+                <div class="property-details-title-row">
+                    <p class="property-details-price">PHP {{ number_format($property->price, 2) }}</p>
+                    <span class="property-details-status property-details-status-{{ \Illuminate\Support\Str::slug($property->property_status ?: 'available') }}">{{ $property->property_status ?: 'Available' }}</span>
+                </div>
                 <h1>{{ $property->property_name }}</h1>
                 <p class="property-details-location"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {{ collect([$property->city, $property->province])->filter()->implode(', ') }}</p>
                 @if (! $property->acceptsAppointments())
@@ -214,7 +217,7 @@
                 <input type="hidden" name="assign_id" value="{{ $selectedAssignmentId }}">
                 <p>Appointment will be sent to {{ $contactUser?->name }}.</p>
                 <label>Name<input name="contact_name" required minlength="2" maxlength="100" pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'\-]*" title="Letters, spaces, apostrophes, hyphens and periods only" value="{{ old('contact_name', auth()->user()->name) }}"></label>
-                <label>Contact number<input name="contact_number" type="tel" inputmode="tel" required maxlength="20" pattern="\+?[0-9\s\-\(\)]{7,20}" title="7 to 15 digits, e.g. 09171234567" value="{{ old('contact_number', auth()->user()->contact_number) }}"></label>
+                <label>Contact number<input name="contact_number" type="tel" inputmode="numeric" required maxlength="11" pattern="[0-9]{11}" title="11 digits, e.g. 09171234567" value="{{ old('contact_number', auth()->user()->contact_number) }}"></label>
                 <label>Email<input type="email" name="contact_email" required value="{{ old('contact_email', auth()->user()->email) }}"></label>
                 <label>Appointment type<select name="appointment_type" required><option>Property viewing</option><option>Consultation</option><option>Site visit</option></select></label>
                 <label>Date<input type="date" name="preferred_date" id="appointmentDate" min="{{ now()->toDateString() }}" required></label>

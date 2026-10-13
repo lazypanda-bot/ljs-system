@@ -80,6 +80,7 @@
                                 <div><dt>Professional</dt><dd>{{ $appointment->assignment?->user?->name ?? 'Listing team' }}</dd></div>
                                 <div><dt>Contact</dt><dd>{{ $appointment->contact_email }}{{ $appointment->contact_number ? ' · ' . $appointment->contact_number : '' }}</dd></div>
                                 @if ($appointment->additional_note)<div><dt>Notes</dt><dd>{{ $appointment->additional_note }}</dd></div>@endif
+                                @if ($appointment->cancellation_reason)<div><dt>Cancellation reason</dt><dd>{{ $appointment->cancellation_reason }}</dd></div>@endif
                             </dl>
                         </section>
                     @endif

@@ -55,7 +55,7 @@
 								<div class="form-group"><label for="name">Full Name</label><input type="text" id="name" name="name" value="{{ old('name', $authUser?->name) }}" required minlength="2" maxlength="100" pattern="[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'\-]*" title="Letters, spaces, apostrophes, hyphens and periods only"></div>
 								<div class="form-group"><label for="email">Email Address</label><input type="email" id="email" name="email" value="{{ old('email', $authUser?->email) }}" required></div>
 							</div>
-							<div class="form-group"><label for="contact_number">Contact Number</label><input type="tel" id="contact_number" name="contact_number" value="{{ old('contact_number', $authUser?->contact_number) }}" maxlength="20" inputmode="tel" pattern="\+?[0-9\s\-\(\)]{7,20}" title="7 to 15 digits, e.g. 09171234567" placeholder="e.g. 09171234567"></div>
+							<div class="form-group"><label for="contact_number">Contact Number</label><input type="tel" id="contact_number" name="contact_number" value="{{ old('contact_number', $authUser?->contact_number) }}" maxlength="11" inputmode="numeric" pattern="[0-9]{11}" title="11 digits, e.g. 09171234567" placeholder="e.g. 09171234567"></div>
 							<div class="form-group">
 								<label for="timezone">Time zone</label>
 								@php

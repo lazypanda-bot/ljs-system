@@ -21,8 +21,25 @@ svg.lucide {
 .about-step-icon > .lucide-icon { width: 24px; height: 24px; }
 .search-icon.lucide-icon { width: 18px; height: 18px; }
 .locate-me-icon.lucide-icon { width: 16px; height: 16px; }
-.stars .lucide-icon, .stars-row .lucide-icon, .review-rating-icons .lucide-icon { width: 16px; height: 16px; color: var(--color-warning); }
-.review-rating-icons .lucide-icon.is-rated, .stars-row .lucide-icon.is-rated { fill: currentColor; }
+.stars .lucide-icon, .stars svg.lucide, .stars-row .lucide-icon, .stars-row svg.lucide, .review-rating-icons .lucide-icon, .review-rating-icons svg.lucide { width: 16px; height: 16px; color: var(--color-warning); }
+.stars-row .lucide-icon,
+.stars-row svg.lucide,
+.agent-rating .stars .lucide-icon,
+.agent-rating .stars svg.lucide,
+.rating-meta .stars .lucide-icon,
+.rating-meta .stars svg.lucide,
+.review-rating-icons .lucide-icon,
+.review-rating-icons svg.lucide { color: #cbd5e1; }
+.stars .lucide-icon.is-rated,
+.stars svg.lucide.is-rated,
+.stars-row .lucide-icon.is-rated,
+.stars-row svg.lucide.is-rated,
+.agent-rating .stars .lucide-icon.is-rated,
+.agent-rating .stars svg.lucide.is-rated,
+.rating-meta .stars .lucide-icon.is-rated,
+.rating-meta .stars svg.lucide.is-rated,
+.review-rating-icons .lucide-icon.is-rated,
+.review-rating-icons svg.lucide.is-rated { color: var(--color-warning); fill: currentColor; }
 .badge-featured .lucide-icon { width: 14px; height: 14px; vertical-align: -2px; }
 
 .content-area,

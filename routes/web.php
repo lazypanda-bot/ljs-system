@@ -26,8 +26,7 @@ use App\Http\Controllers\ContactController;
 // HOME / LANDING PAGE
 Route::get('/', function () {
     $properties = Property::with(['images', 'details'])
-        ->where('approval_status', 'Approved')
-        ->orderByRaw(Property::publicStatusOrderSql())
+        ->publiclyVisible()
         ->latest()
         ->get();
 
@@ -35,9 +34,8 @@ Route::get('/', function () {
 
     $featuredProperties = Property::with(['images', 'details', 'user.professionalProfile'])
         ->where('featured', true)
-        ->where('approval_status', 'Approved')
-        ->whereNotIn('property_status', ['Sold', 'Unavailable'])
-        ->latest()
+        ->publiclyVisible()
+        ->inRandomOrder()
         ->take(5)
         ->get();
 
@@ -57,11 +55,12 @@ Route::get('/', function () {
 
 // PROPERTIES CATALOG
 Route::get('/properties', function (Request $request) {
-    $approvedProperties = Property::query()->where('approval_status', 'Approved');
+    $approvedProperties = Property::query()->publiclyVisible();
     $propertyTable = (new Property)->getTable();
     $lifestyleBannerImages = DB::table('property_images')
         ->join($propertyTable, 'property_images.property_id', '=', "{$propertyTable}.property_id")
         ->where("{$propertyTable}.approval_status", 'Approved')
+        ->whereNotIn("{$propertyTable}.property_status", ['Sold', 'Unavailable'])
         ->whereNull("{$propertyTable}.deleted_at")
         ->inRandomOrder()
         ->limit(8)
@@ -186,7 +185,6 @@ Route::get('/properties', function (Request $request) {
                 ? $query->where('price', '>=', $priceRangeBounds[0])
                 : $query->whereBetween('price', $priceRangeBounds);
         })
-        ->orderByRaw(Property::publicStatusOrderSql())
         ->when($request->sort === 'price_low', fn ($query) => $query->orderBy('price'))
         ->when($request->sort === 'price_high', fn ($query) => $query->orderByDesc('price'))
         ->when($request->sort === 'latest', fn ($query) => $query->latest())
@@ -496,7 +494,7 @@ Route::middleware('auth')->get('/app/{page}', function ($page) {
 
     $properties = Property::visibleTo($user)->with(['images', 'details', 'user', 'assignments.user', 'referralCodes'])->latest()->get();
     $pendingListings = $page === 'property'
-        ? $properties->where('approval_status', 'Pending')->values()
+        ? $properties->where('approval_status', 'Pending')->sortBy('created_at')->values()
         : collect();
     $myProperties = $page === 'listings'
         ? $properties->filter(fn ($property) => (int) $property->user_id === (int) $user->user_id)->values()

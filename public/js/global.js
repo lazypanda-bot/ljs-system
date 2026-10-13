@@ -16,8 +16,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const isFormControl = (element) => element instanceof HTMLElement && element.matches(
         'input:not([type="hidden"]), textarea, select, [contenteditable="true"]'
     );
+    const findScrollableParent = (element) => {
+        let parent = element.parentElement;
+
+        while (parent && parent !== document.body) {
+            const styles = window.getComputedStyle(parent);
+            const canScrollY = /(auto|scroll|overlay)/.test(`${styles.overflowY} ${styles.overflow}`);
+
+            if (canScrollY && parent.scrollHeight > parent.clientHeight + 1) {
+                return parent;
+            }
+
+            parent = parent.parentElement;
+        }
+
+        return null;
+    };
     const keepFocusedControlVisible = (element, behavior = 'smooth') => {
         if (!isFormControl(element)) return;
+        const modalScroller = element.closest('#loginModalOverlay .login-modal');
+        const scrollParent = modalScroller instanceof HTMLElement ? modalScroller : findScrollableParent(element);
+
+        if (scrollParent instanceof HTMLElement) {
+            const elementRect = element.getBoundingClientRect();
+            const scrollerRect = scrollParent.getBoundingClientRect();
+            const margin = 24;
+            const hiddenAbove = elementRect.top < scrollerRect.top + margin;
+            const hiddenBelow = elementRect.bottom > scrollerRect.bottom - margin;
+
+            if (hiddenAbove || hiddenBelow) {
+                const targetTop = scrollParent.scrollTop + elementRect.top - scrollerRect.top - margin;
+                scrollParent.scrollTo({ top: Math.max(0, targetTop), behavior });
+            }
+
+            return;
+        }
+
         const visibleTop = viewport?.offsetTop || 0;
         const visibleBottom = visibleTop + (viewport?.height || window.innerHeight);
         const rect = element.getBoundingClientRect();
@@ -41,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('focusin', (event) => {
         if (!isFormControl(event.target)) return;
         syncVisibleViewport();
-        [80, 280].forEach((delay) => window.setTimeout(() => keepFocusedControlVisible(event.target), delay));
+        [80, 280, 520].forEach((delay) => window.setTimeout(() => keepFocusedControlVisible(event.target), delay));
     });
     document.addEventListener('focusout', () => window.setTimeout(syncVisibleViewport, 180));
 

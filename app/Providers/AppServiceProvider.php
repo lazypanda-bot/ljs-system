@@ -148,6 +148,25 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
 
+            /*
+             * IF THIS IS USED, MAKE A TABLE FOR COMPANY_SETTINGS AND UNCOMMENT THIS TO USE.
+             * Put the shared company/footer query here so layouts and public pages can use
+             * the same contact details and social links.
+             *
+             * Example future setup:
+             * $companySettings = \App\Models\CompanySetting::query()->first();
+             * $contactInfo = [
+             *     'phone' => $companySettings?->contact_phone,
+             *     'email' => $companySettings?->contact_email,
+             *     'address' => $companySettings?->office_address,
+             * ];
+             * $socialLinks = [
+             *     'facebook' => $companySettings?->facebook_url,
+             *     'messenger' => $companySettings?->messenger_url,
+             *     'instagram' => $companySettings?->instagram_url,
+             * ];
+             */
+
             $view->with([
                 'roleToggle' => $isLeadBroker,
                 'actingAs' => $acting,
@@ -161,6 +180,13 @@ class AppServiceProvider extends ServiceProvider
                 'recentOtherNotifications' => $recentOtherNotifications,
                 'activeAppointmentCount' => $activeAppointmentCount,
                 'activeAppointments' => $activeAppointments,
+                /*
+                 * IF THIS IS USED, MAKE A TABLE FOR COMPANY_SETTINGS AND UNCOMMENT THIS TO USE.
+                 * Add these once $companySettings, $contactInfo, and $socialLinks exist above:
+                 * 'companySettings' => $companySettings,
+                 * 'contactInfo' => $contactInfo,
+                 * 'socialLinks' => $socialLinks,
+                 */
             ]);
         });
     }

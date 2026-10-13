@@ -131,7 +131,6 @@
                 @php($currentTeamUserIds = $team->members->pluck('user_id')->push($team->user_id)->unique()->all())
                 <div class="au-modal-overlay au-team-edit-modal open" role="presentation">
                     <section class="au-form-card" role="dialog" aria-modal="true" aria-labelledby="editTeamHeading">
-                        <a href="{{ route('admin.teams.index') }}" class="au-modal-close" aria-label="Close">&times;</a>
                         <h3 id="editTeamHeading">Edit Team</h3>
                         <p class="au-team-edit-description">Update the team name, leader, and members.</p>
                         <form method="POST" action="{{ route('admin.teams.update', $team->team_id) }}">
@@ -169,7 +168,6 @@
             <!-- Add Team Modal -->
             <div class="au-modal-overlay {{ $teamFailed ? 'open' : '' }}" id="addTeamModalOverlay">
                 <div class="au-form-card">
-                    <button type="button" class="au-modal-close" id="closeAddTeamModal" aria-label="Close">&times;</button>
                     <h3>Add New Team</h3>
                     @if ($teamFailed)
                         <div class="alert alert-danger" role="alert">{{ $errors->first() }}</div>

@@ -4,6 +4,8 @@
 
 @section('content')
     @php($isAdmin = auth()->user()?->actingRole() === 'admin')
+    @php($isRejectedListing = $property->approval_status === 'Rejected')
+    @php($isSoldListing = $property->property_status === 'Sold')
     <div class="property-edit-page staff-page-surface">
         <a class="property-edit-back" href="{{ route('app.page', ['page' => $isAdmin ? 'property' : 'listings']) }}">&larr; Back to {{ $isAdmin ? 'properties' : 'listings' }}</a>
         <header class="property-edit-heading"><span>LISTING MANAGEMENT</span><h1>Edit Property</h1><p>Update the listing, property details, and photo gallery.</p></header>
@@ -37,7 +39,14 @@
                         @error('property_type')<small>{{ $message }}</small>@enderror
                     </div>
                     <label class="property-edit-field"><span>Price (PHP)</span><input type="number" min="0" step="0.01" name="price" value="{{ old('price', $property->price) }}" required>@error('price')<small>{{ $message }}</small>@enderror</label>
-                    <label class="property-edit-field"><span>Status</span><select name="property_status" required>@foreach (array_unique(array_merge(['For Sale', 'For Rent', 'Sold', 'Reserved', 'Unavailable'], [(string) $property->property_status])) as $status)<option value="{{ $status }}" @selected(old('property_status', $property->property_status) === $status)>{{ $status }}</option>@endforeach</select></label>
+                    <label class="property-edit-field"><span>Status</span>
+                        @if ($isSoldListing)
+                            <input type="hidden" name="property_status" value="Sold">
+                            <input value="Sold" disabled>
+                        @else
+                            <select name="property_status" required>@foreach (array_unique(array_merge(['For Sale', 'For Rent', 'Rent to Own', 'Sold', 'Reserved', 'Unavailable'], [(string) $property->property_status])) as $status)<option value="{{ $status }}" @selected(old('property_status', $property->property_status) === $status)>{{ $status }}</option>@endforeach</select>
+                        @endif
+                    </label>
                     <label class="property-edit-field property-edit-field-wide"><span>Description</span><textarea name="property_description" rows="4">{{ old('property_description', $property->property_description) }}</textarea></label>
                 </div>
             </section>
@@ -107,7 +116,7 @@
                 </div>
             </section>
 
-            <footer class="property-edit-actions"><a href="{{ route('app.page', ['page' => $isAdmin ? 'property' : 'listings']) }}">Cancel</a><button class="btn-save" type="submit">{{ $isAdmin ? 'Save all changes' : 'Resubmit for approval' }}</button></footer>
+            <footer class="property-edit-actions"><a href="{{ route('app.page', ['page' => $isAdmin ? 'property' : 'listings']) }}">Cancel</a><button class="btn-save" type="submit">{{ $isAdmin ? 'Save all changes' : ($isRejectedListing ? 'Resubmit for approval' : 'Save changes') }}</button></footer>
         </form>
     </div>
 @endsection

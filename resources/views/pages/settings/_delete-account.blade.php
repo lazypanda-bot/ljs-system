@@ -6,7 +6,6 @@
 
 <div class="settings-modal {{ ($errors->has('current_password') || $errors->has('confirmation')) && old('confirmation') !== null ? 'open' : '' }}" id="deleteAccountModal" aria-hidden="true">
 	<div class="settings-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteAccountTitle">
-		<button type="button" class="settings-modal-close" data-close-delete-account aria-label="Close">&times;</button>
 		<h3 id="deleteAccountTitle">Delete your account?</h3>
 		<p class="section-subtitle">Enter your password and type DELETE to confirm.</p>
 		<form method="POST" action="{{ route('settings.account.destroy') }}" class="settings-form" data-confirm-message="Deactivate your account? You will be signed out immediately.">

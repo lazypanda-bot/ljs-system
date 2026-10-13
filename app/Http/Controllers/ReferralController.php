@@ -16,6 +16,7 @@ class ReferralController extends Controller
 
         abort_unless(
             $referralCode->property?->approval_status === 'Approved'
+                && ! in_array($referralCode->property?->property_status, ['Sold', 'Unavailable'], true)
                 && $referralCode->user?->account_status === 'Active',
             404
         );

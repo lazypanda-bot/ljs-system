@@ -14,37 +14,21 @@
         </section>
 
         <section class="about-company-section" aria-labelledby="aboutCompanyTitle">
-            <div class="about-company-identity">
-                <img class="about-company-logo" src="{{ asset('images/ljs-logo.jpg') }}" alt="LJS Realty and Brokerage logo">
-                <div class="about-company-index">01 <span>OUR COMPANY</span></div>
-            </div>
             <div class="about-company-copy">
-                <span class="about-page-eyebrow">Rooted in Cebu City</span>
+                <span class="about-page-eyebrow">WHO WE ARE</span>
                 <h2 id="aboutCompanyTitle">Local guidance for real property decisions.</h2>
-                <p>LJS Realty and Brokerage helps people explore property opportunities in Cebu City, Philippines. We bring listings and real estate professionals together so clients can compare options and decide what works for them.</p>
-                <p>From the first search to a conversation or viewing, our focus is clear information, thoughtful guidance, and a personal next step.</p>
+                <p>LJS Realty and Brokerage helps clients explore property opportunities in Cebu City, Philippines. We bring listings, licensed professionals, and appointment coordination into one clear experience.</p>
+                <p>Whether you are searching, selling, leasing, or preparing for a viewing, our work is to make the next step easier to understand.</p>
                 <div class="about-company-values">
-                    <span><i data-lucide="map-pin" aria-hidden="true"></i> Local perspective</span>
-                    <span><i data-lucide="messages-square" aria-hidden="true"></i> Personal guidance</span>
-                    <span><i data-lucide="compass" aria-hidden="true"></i> Clear next steps</span>
+                    <span><i data-lucide="map-pin" aria-hidden="true"></i> Cebu-focused guidance</span>
+                    <span><i data-lucide="badge-check" aria-hidden="true"></i> Professional support</span>
+                    <span><i data-lucide="calendar-check" aria-hidden="true"></i> Clear appointment flow</span>
                 </div>
             </div>
-        </section>
-
-        <section class="about-owner-note" aria-labelledby="aboutOwnerTitle">
-            <div class="about-owner-inner">
-                <div class="about-owner-symbol"><i data-lucide="quote" aria-hidden="true"></i></div>
-                <div class="about-owner-copy">
-                    <span class="about-owner-eyebrow">A NOTE FROM THE OWNERS</span>
-                    <h2 id="aboutOwnerTitle">Good guidance begins with listening.</h2>
-                    <blockquote>We believe every property decision deserves care, clear information, and a personal approach. Our role is to listen to what matters to you, help you explore your options, and support your next step.</blockquote>
-                    <p class="about-owner-attribution"><span></span>Owners <small>LJS Realty and Brokerage</small></p>
-                </div>
-                <figure class="about-owner-image">
-                    <img src="{{ asset('images/ljs-family.jpg') }}" alt="LJS Realty and Brokerage team gathered at a company event">
-                    <figcaption>Growing together in Cebu City</figcaption>
-                </figure>
-            </div>
+            <figure class="about-company-visual">
+                <img src="{{ asset('images/ljs-family.jpg') }}" alt="LJS Realty and Brokerage team gathered at a company event">
+                <figcaption>Rooted in service, built around real property decisions.</figcaption>
+            </figure>
         </section>
 
         <section class="about-offer-section" aria-labelledby="aboutOfferTitle">
@@ -82,6 +66,7 @@
                 <div class="about-section-heading">
                     <span class="about-page-eyebrow">HOW WE CAN HELP</span>
                     <h2 id="aboutJourneyTitle">From first search to next step.</h2>
+                    <p>A simple path for clients who want to compare properties, ask questions, and plan a visit.</p>
                 </div>
                 <div class="about-journey-grid">
                     <article class="about-journey-step"><span class="about-step-number">01</span><i data-lucide="search" aria-hidden="true"></i><h3>Find a property</h3><p>Explore listings and narrow your search by location, property type, and budget.</p></article>
@@ -91,9 +76,35 @@
             </div>
         </section>
 
+        <section class="about-trust-section" aria-labelledby="aboutTrustTitle">
+            <div class="about-content-width about-trust-layout">
+                <div class="about-section-heading">
+                    <span class="about-page-eyebrow">WHY CLIENTS CHOOSE US</span>
+                    <h2 id="aboutTrustTitle">Practical help, transparent details, and people you can reach.</h2>
+                </div>
+                <div class="about-trust-grid">
+                    <article><i data-lucide="file-search" aria-hidden="true"></i><h3>Clear listing details</h3><p>Property information is organized so clients can compare options without digging through scattered messages.</p></article>
+                    <article><i data-lucide="users-round" aria-hidden="true"></i><h3>Professional connection</h3><p>Clients can reach the people responsible for each listing and continue the conversation directly.</p></article>
+                    <article><i data-lucide="clock" aria-hidden="true"></i><h3>Appointment updates</h3><p>Viewing requests and schedule changes are easier to follow, including important updates sent to clients.</p></article>
+                    <article><i data-lucide="home" aria-hidden="true"></i><h3>Local property focus</h3><p>The experience is shaped around Cebu property search, listing, leasing, and viewing workflows.</p></article>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-professionals-section" aria-labelledby="aboutProfessionalsTitle">
+            <div class="about-content-width about-professionals-card">
+                <div>
+                    <span class="about-page-eyebrow">OUR PROFESSIONALS</span>
+                    <h2 id="aboutProfessionalsTitle">Work with brokers and agents who can guide the next step.</h2>
+                    <p>Browse professional profiles, check available listings, and connect with the right contact for the property you are interested in.</p>
+                </div>
+                <a href="{{ route('agents') }}" class="business-secondary-link">View professionals</a>
+            </div>
+        </section>
+
         <section class="business-about-cta">
             <div><span class="business-eyebrow">START EXPLORING</span><h2>Your next move starts with the right listing.</h2></div>
-            <div class="business-about-actions"><a href="{{ route('properties') }}" class="business-primary-link">Browse properties</a></div>
+            <div class="business-about-actions"><a href="{{ route('properties') }}" class="business-primary-link">Browse properties</a><a href="{{ route('agents') }}" class="business-secondary-link">Find an agent</a></div>
         </section>
     </div>
 @endsection
