@@ -179,8 +179,8 @@
 .property-details-status { display: inline-flex; min-height: 28px; align-items: center; justify-content: center; padding: 5px 11px; border-radius: 999px; background: #2bbf62; color: #fff; font-size: 12px; font-weight: 800; line-height: 1; white-space: nowrap; }
 .property-details-status-for-sale { background: #2bbf62; color: #fff; }
 .property-details-status-for-rent { background: #1f6cff; color: #fff; }
-.property-details-status-rent-to-own { background: #14b8a6; color: #fff; }
-.property-details-status-reserved { background: #f59e0b; color: #fff; }
+.property-details-status-rent-to-own { background: #facc15; color: #422006; }
+.property-details-status-reserved { background: #ea580c; color: #fff; }
 .property-details-status-sold { background: #ef4444; color: #fff; }
 .property-details-status-unavailable { background: #64748b; color: #fff; }
 .property-details-heading h1 { margin: 0 0 8px; color: var(--color-text); font-size: 26px; line-height: 1.2; overflow-wrap: anywhere; }

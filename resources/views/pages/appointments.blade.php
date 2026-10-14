@@ -92,22 +92,24 @@
                             <a class="settings-appointment-link" href="{{ route('agents.show', $reviewable) }}#reviews">Rate your experience with {{ $reviewable->name }}</a>
                         @endif
                         @php($canCancelAppointment = ($isAppointmentClient && $selectedAppointment->appointment_status === 'Pending') || (($isAppointmentAdmin || $isAssignedProfessional) && in_array($selectedAppointment->appointment_status, ['Pending', 'Confirmed'], true)))
-                        @if ($selectedAppointment->appointment_status === 'Pending' && ($isAppointmentAdmin || $isAssignedProfessional || $isAppointmentClient))
+                        @php($canUseStatusDropdown = (($isAppointmentAdmin || $isAssignedProfessional) && in_array($selectedAppointment->appointment_status, ['Pending', 'Confirmed'], true)) || $canCancelAppointment)
+                        @if ($canUseStatusDropdown)
                             <form method="POST" action="{{ route('appointments.status', $selectedAppointment) }}">
                                 @csrf @method('PATCH')
                                 <label for="appointmentStatusUpdate">Update status</label>
-                                <select id="appointmentStatusUpdate" name="appointment_status" data-auto-submit>
-                                    <option selected disabled>Choose status</option>
-                                    @if ($isAppointmentAdmin || $isAssignedProfessional)
+                                <select id="appointmentStatusUpdate" name="appointment_status" data-auto-submit data-cancel-select data-cancel-action="{{ route('appointments.status', $selectedAppointment) }}" data-cancel-context="{{ $selectedAppointment->assignment?->property?->property_name ?? 'Property appointment' }} · {{ $selectedAppointment->contact_name }}">
+                                    <option value="" selected disabled>Choose status</option>
+                                    @if (($isAppointmentAdmin || $isAssignedProfessional) && $selectedAppointment->appointment_status === 'Pending')
                                         <option value="Confirmed">Confirm</option>
-                                        <option>Completed</option>
-                                        <option>Rejected</option>
+                                        <option value="Completed">Completed</option>
+                                    @elseif (($isAppointmentAdmin || $isAssignedProfessional) && $selectedAppointment->appointment_status === 'Confirmed')
+                                        <option value="Completed">Completed</option>
+                                    @endif
+                                    @if ($canCancelAppointment)
+                                        <option value="Cancelled">Cancel</option>
                                     @endif
                                 </select>
                             </form>
-                        @endif
-                        @if ($canCancelAppointment)
-                            <button type="button" class="appointment-cancel-trigger" data-cancel-appointment data-action="{{ route('appointments.status', $selectedAppointment) }}" data-context="{{ $selectedAppointment->assignment?->property?->property_name ?? 'Property appointment' }} · {{ $selectedAppointment->contact_name }}">Cancel appointment</button>
                         @endif
 
                         @if (($isAssignedProfessional || $isAppointmentClient) && in_array($selectedAppointment->appointment_status, ['Pending', 'Confirmed'], true) && ! $selectedAppointment->proposals->contains('status', 'Pending'))

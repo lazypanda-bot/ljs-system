@@ -518,3 +518,13 @@
         font-size: 12px;
     }
 }
+
+/* FOR TESTING ONLY. DELETE AFTER. */
+@media (max-width: 1100px) {
+    .test-login-select { min-width: 154px; max-width: 38vw; height: 42px; padding: 0 34px 0 14px; font-size: 13px; }
+}
+
+/* FOR TESTING ONLY. DELETE AFTER. */
+@media (max-width: 520px) {
+    .test-login-select { min-width: 132px; max-width: 35vw; height: 38px; padding-inline: 12px 30px; font-size: 12px; }
+}

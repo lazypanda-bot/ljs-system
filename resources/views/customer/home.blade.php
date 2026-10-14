@@ -193,7 +193,6 @@
                                 <span class="rating-score">{{ $rating }}</span>
                                 <span class="review-count">({{ $professional->received_reviews_count }} reviews)</span>
                             </div>
-                            <div class="agent-sold-stat">{{ $professional->professionalProfile?->years_experience ?? 0 }} Years Experience</div>
                             <a href="{{ route('agents.show', $professional) }}" class="agent-view-btn">View details</a>
                         </div>
                     </article>

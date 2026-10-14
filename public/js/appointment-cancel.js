@@ -15,13 +15,27 @@ document.addEventListener('DOMContentLoaded', () => {
         opener = null;
     };
 
+    const openModal = (trigger, action, label) => {
+        opener = trigger;
+        if (form) form.action = action || '';
+        if (context) context.textContent = label || 'Selected appointment';
+        modal.hidden = false;
+        reason?.focus();
+    };
+
+    document.addEventListener('change', (event) => {
+        const select = event.target instanceof Element ? event.target.closest('select[data-cancel-select]') : null;
+        if (!select || select.value !== 'Cancelled') return;
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        openModal(select, select.dataset.cancelAction || select.form?.action || '', select.dataset.cancelContext || '');
+        select.value = '';
+    }, true);
+
     document.querySelectorAll('[data-cancel-appointment]').forEach((button) => {
         button.addEventListener('click', () => {
-            opener = button;
-            if (form) form.action = button.dataset.action || '';
-            if (context) context.textContent = button.dataset.context || 'Selected appointment';
-            modal.hidden = false;
-            reason?.focus();
+            openModal(button, button.dataset.action || '', button.dataset.context || '');
         });
     });
 

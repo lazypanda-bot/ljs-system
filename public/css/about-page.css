@@ -57,7 +57,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 
 .about-company-section {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(320px, .78fr);
+    grid-template-columns: minmax(0, .92fr) minmax(360px, 1.08fr);
     align-items: center;
     gap: 48px;
     padding-block: 76px;
@@ -117,12 +117,15 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 }
 
 .about-company-visual {
+    align-self: stretch;
     margin: 0;
 }
 
 .about-company-visual img {
     display: block;
     width: 100%;
+    height: 100%;
+    min-height: 360px;
     aspect-ratio: 4 / 3;
     border: 1px solid var(--about-line);
     border-radius: 8px;
@@ -239,7 +242,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 }
 
 .about-offer-section {
-    padding-block: 72px 80px;
+    padding-block: 72px;
     padding-inline: 0;
     background: #ffffff;
 }
@@ -265,8 +268,9 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     overflow: hidden;
     padding: 26px 24px 28px;
     border: 1px solid #d9e3f3;
-    border-radius: 6px;
+    border-radius: 8px;
     background: #fff;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .04);
     transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
 }
 
@@ -326,31 +330,37 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 }
 
 .about-journey-section {
-    padding-block: 72px 78px;
-    background: #edf4ff;
+    padding-block: 72px;
+    background: linear-gradient(180deg, #edf4ff 0%, #f8fbff 100%);
+    border-block: 1px solid #d9e3f3;
 }
 
 .about-journey-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    border-top: 1px solid var(--about-line);
-    border-bottom: 1px solid var(--about-line);
+    gap: 18px;
 }
 
 .about-journey-step {
+    position: relative;
     min-width: 0;
-    min-height: 214px;
-    padding: 24px;
-    border-right: 1px solid var(--about-line);
-}
-
-.about-journey-step:last-child {
-    border-right: 0;
+    min-height: 230px;
+    padding: 26px 24px 28px;
+    border: 1px solid #c9daf7;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .86);
+    box-shadow: 0 12px 28px rgba(31, 108, 255, .06);
 }
 
 .about-step-number {
-    display: block;
-    margin-bottom: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 28px;
+    margin-bottom: 22px;
+    border-radius: 999px;
+    background: #dfeaff;
     color: var(--about-green);
     font-size: 12px;
     font-weight: 800;
@@ -362,7 +372,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     width: 24px;
     height: 24px;
     margin-bottom: 14px;
-    color: #263c35;
+    color: var(--about-green);
 }
 
 .about-journey-step h3 {
@@ -380,7 +390,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 }
 
 .about-trust-section {
-    padding-block: 76px;
+    padding-block: 72px;
     background: #fff;
 }
 
@@ -408,7 +418,8 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     padding: 22px;
     border: 1px solid var(--about-line);
     border-radius: 8px;
-    background: #f8fbff;
+    background: #fff;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .04);
 }
 
 .about-trust-grid svg {
@@ -433,8 +444,9 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 }
 
 .about-professionals-section {
-    padding-block: 0 78px;
-    background: #fff;
+    padding-block: 72px;
+    background: #f8fbff;
+    border-top: 1px solid #d9e3f3;
 }
 
 .about-professionals-card {
@@ -442,10 +454,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     align-items: center;
     justify-content: space-between;
     gap: 28px;
-    padding: 28px;
-    border: 1px solid #bfd2f5;
-    border-radius: 10px;
-    background: #edf4ff;
+    padding-block: 0;
 }
 
 .about-professionals-card h2 {
@@ -478,6 +487,10 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
         grid-template-columns: 1fr;
         gap: 20px;
         padding-block: 52px;
+    }
+
+    .about-company-visual img {
+        min-height: 280px;
     }
 
     .about-company-copy h2,
@@ -525,14 +538,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     .about-journey-step {
         min-height: 0;
         padding: 18px;
-        border-right: 0;
-        border-bottom: 1px solid var(--about-line);
-        border-radius: 8px;
-        background: rgba(255,255,255,.48);
-    }
-
-    .about-journey-step:last-child {
-        border-bottom: 0;
+        box-shadow: 0 10px 24px rgba(31, 108, 255, .06);
     }
 
     .business-about-page .business-about-hero {
@@ -562,13 +568,13 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     }
 
     .about-professionals-section {
-        padding-block: 0 56px;
+        padding-block: 52px;
     }
 
     .about-professionals-card {
         align-items: flex-start;
         flex-direction: column;
-        padding: 22px;
+        padding: 0;
     }
 
     .about-professionals-card h2 {
@@ -770,6 +776,10 @@ a.about-contact-option:hover {
 }
 
 .business-about-page .business-about-cta {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 64px max(32px, calc((100% - 1120px) / 2));
     background: #fff;
     border-top: 1px solid #d9e3f3;
 }
@@ -788,4 +798,10 @@ a.about-contact-option:hover {
 
 .business-about-page .business-primary-link:hover {
     background: #1556d9;
+}
+
+@media (max-width: 760px) {
+    .business-about-page .business-about-cta {
+        padding: 52px 24px;
+    }
 }

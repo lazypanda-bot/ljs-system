@@ -8,6 +8,6 @@ return [
         'admin' => ['dashboard', 'users', 'messages', 'property', 'appointments', 'review', 'report', 'settings'],
         'broker' => ['dashboard', 'agents', 'messages', 'listings', 'appointments', 'review', 'report', 'settings'],
         'agent' => ['dashboard', 'messages', 'listings', 'appointments', 'review', 'report', 'settings'],
-        'client' => ['dashboard', 'settings'],
+        'client' => ['settings'],
     ],
 ];

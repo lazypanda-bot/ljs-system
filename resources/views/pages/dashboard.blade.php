@@ -30,6 +30,7 @@
             $prevDate = (clone $startOfMonth)->subMonth();
             $nextDate = (clone $startOfMonth)->addMonth();
             $now = now();
+            $propertyIndexPage = auth()->user()?->actingRole() === 'admin' ? 'property' : 'listings';
         @endphp
 
         <div class="dashboard-grid">
@@ -38,7 +39,7 @@
                     <div class="stat-card stat-properties">
                         <div class="stat-header">
                             <span class="stat-label">Total Properties</span>
-                            <a href="{{ route('app.page', ['page' => 'property']) }}" class="stat-link" aria-label="View all properties"><i class="fas fa-arrow-right"></i></a>
+                            <a href="{{ route('app.page', ['page' => $propertyIndexPage]) }}" class="stat-link" aria-label="View all properties"><i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="stat-body">
                             <h3 class="stat-value">{{ $propertyCount }}</h3>

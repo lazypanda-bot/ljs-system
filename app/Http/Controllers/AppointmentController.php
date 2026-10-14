@@ -310,7 +310,7 @@ class AppointmentController extends Controller
 		$user = Auth::user();
 		if (! ($user instanceof User)) abort(403);
 
-		$isAdmin = false;
+		$isAdmin = $user->actingRole() === 'admin' && $this->canAdminUpdateAppointment($appointment, $user);
 		$isProfessional = (int) $appointment->assignment?->user_id === (int) $user->user_id;
 		$isClient = $this->isClientForAppointment($appointment, $user);
 		abort_unless($isAdmin || $isProfessional || $isClient, 403);
@@ -577,6 +577,16 @@ class AppointmentController extends Controller
 		return ($user->actingRole() === 'admin' && ($appointment->assignment?->property?->isManageableByAdmin($user) ?? true))
 			|| (int) $appointment->assignment?->user_id === (int) $user->user_id
 			|| $this->isClientForAppointment($appointment, $user);
+	}
+
+	private function canAdminUpdateAppointment(Appointment $appointment, User $user): bool
+	{
+		$property = $appointment->assignment?->property;
+
+		return $property instanceof Property
+			&& $property->listing_mode === 'admin'
+			&& (int) $property->user_id === (int) $user->user_id
+			&& (int) $appointment->assignment?->user_id === (int) $user->user_id;
 	}
 
 	private function appointmentClient(Appointment $appointment): ?User

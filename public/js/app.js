@@ -19,10 +19,10 @@ document.addEventListener('DOMContentLoaded', function () {
         'Available': '#2bbf62',
         'For Sale': '#2bbf62',
         'For Rent': '#1f6cff',
-        'Rent to Own': '#14b8a6',
+        'Rent to Own': '#facc15',
         'Rented': '#1f6cff',
         'Sold': '#ef4444',
-        'Reserved': '#f59e0b',
+        'Reserved': '#ea580c',
         'Unavailable': '#64748b',
         'Pending': '#f59e0b',
     };

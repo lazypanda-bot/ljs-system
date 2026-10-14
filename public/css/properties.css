@@ -314,8 +314,8 @@
 
 .badge-status-for-sale { background: #2bbf62; }
 .badge-status-for-rent { background: #1f6cff; }
-.badge-status-rent-to-own { background: #14b8a6; }
-.badge-status-reserved { background: #f59e0b; }
+.badge-status-rent-to-own { background: #facc15; color: #422006; }
+.badge-status-reserved { background: #ea580c; color: #fff; }
 .badge-status-unavailable { background: #64748b; }
 .badge-status-sold { background: #ef4444; }
 .property-status-card-sold .property-card-img-container img,

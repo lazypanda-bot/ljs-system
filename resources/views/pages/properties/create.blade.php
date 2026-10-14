@@ -23,10 +23,12 @@
         $oldAmenities = is_array(old('amenities')) ? old('amenities') : array_filter(explode(',', old('amenities', '')));
         $oldLifestyleTags = is_array(old('lifestyle_tags')) ? old('lifestyle_tags') : array_filter(explode(',', old('lifestyle_tag', '')));
         $oldLocationTags = is_array(old('location_tags')) ? old('location_tags') : array_filter(explode(',', old('location_tag', '')));
+        $propertyIndexPage = auth()->user()->actingRole() === 'admin' ? 'property' : 'listings';
+        $propertyIndexLabel = $propertyIndexPage === 'property' ? 'properties' : 'listings';
     @endphp
 
     <div class="property-create-page staff-page-surface">
-        <a class="property-create-back" href="{{ route('app.page', ['page' => auth()->user()->actingRole() === 'admin' ? 'property' : 'listings']) }}">&larr; Back to {{ auth()->user()->actingRole() === 'admin' ? 'properties' : 'listings' }}</a>
+        <a class="property-create-back" href="{{ route('app.page', ['page' => $propertyIndexPage]) }}">&larr; Back to {{ $propertyIndexLabel }}</a>
         <header class="property-create-heading"><span>LISTING MANAGEMENT</span><h1>Add New Property</h1><p>Enter listing information and publish it to the property catalogue.</p></header>
         @if ($errors->any())
             <div class="property-create-errors" role="alert"><strong>Please review the form errors before continuing.</strong></div>
@@ -144,7 +146,7 @@
                 <label class="property-choice property-feature-choice"><input type="checkbox" name="featured" value="1" @checked(old('featured'))><span>Feature this listing on the home page</span></label>
             </section>
 
-            <footer class="property-create-actions"><a href="{{ route('app.page', ['page' => 'property']) }}">Cancel</a><button type="submit" class="btn-save"><i class="fas fa-check" aria-hidden="true"></i> Save Property</button></footer>
+            <footer class="property-create-actions"><a href="{{ route('app.page', ['page' => $propertyIndexPage]) }}">Cancel</a><button type="submit" class="btn-save"><i class="fas fa-check" aria-hidden="true"></i> Save Property</button></footer>
         </form>
     </div>
 @endsection

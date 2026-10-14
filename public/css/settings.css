@@ -116,6 +116,11 @@
 .settings-avatar-preview.role-client { background: #0891b2; color: #fff; }
 .settings-avatar-editor p { margin: 0; color: var(--color-text-muted); font-size: 0.75rem; line-height: 1.4; text-align: center; }
 .settings-errors { margin-bottom: 16px; padding: 12px 14px; border: 1px solid #fecaca; border-radius: 7px; background: #fef2f2; color: #991b1b; font-size: 13px; }
+.settings-reminder { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 16px; padding: 12px 14px; border: 1px solid #fed7aa; border-radius: 8px; background: #fff7ed; color: #9a3412; font-size: 13px; line-height: 1.45; }
+.settings-reminder i { margin-top: 2px; color: #ea580c; }
+.settings-reminder strong { display: block; margin-bottom: 2px; color: #7c2d12; }
+.settings-reminder p { margin: 0; }
+.settings-field-error { margin: -0.5rem 0 1rem; color: #b91c1c; font-size: 0.85rem; font-weight: 700; }
 
 .form-group {
     margin-bottom: 1.25rem;

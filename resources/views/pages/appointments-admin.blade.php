@@ -94,15 +94,18 @@
                                     @if ($canUpdateStatus)
                                         <form method="POST" action="{{ route('appointments.status', $appointment) }}" class="appointment-status-control">
                                             @csrf @method('PATCH')
-                                            <select name="appointment_status" aria-label="Update status" data-auto-submit>
+                                            <select name="appointment_status" aria-label="Update status" data-auto-submit data-cancel-select data-cancel-action="{{ route('appointments.status', $appointment) }}" data-cancel-context="{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }} · {{ $appointment->contact_name }}">
+                                                <option value="" selected disabled>Update status</option>
                                                 @if ($appointment->appointment_status === 'Pending')
-                                                    <option value="" selected disabled>Update status</option>
+                                                    <option value="Confirmed">Confirm</option>
+                                                    <option value="Completed">Completed</option>
+                                                    <option value="Cancelled">Cancel</option>
+                                                @else
+                                                    <option value="Completed">Completed</option>
+                                                    <option value="Cancelled">Cancel</option>
                                                 @endif
-                                                <option value="Confirmed" @selected($appointment->appointment_status === 'Confirmed')>Confirm</option>
-                                                <option value="Completed">Completed</option>
                                             </select>
                                         </form>
-                                        <button type="button" class="appointment-cancel-trigger" data-cancel-appointment data-action="{{ route('appointments.status', $appointment) }}" data-context="{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }} · {{ $appointment->contact_name }}">Cancel appointment</button>
                                     @endif
                                 </td>
                                 <td class="text-end">

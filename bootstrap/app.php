@@ -44,6 +44,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (TokenMismatchException $exception, Request $request) {
             return redirect()->route('home')
-                ->with('error', 'Your session expired. Please sign in again.');
+                ->with('error', 'Please refresh the page and try again.');
         });
     })->create();

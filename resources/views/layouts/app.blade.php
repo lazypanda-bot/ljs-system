@@ -70,7 +70,26 @@
                             </div>
                         </div>
                     @else
-                        <button type="button" id="openLoginModal" class="login-btn">Login</button>
+                        {{-- <button type="button" id="openLoginModal" class="login-btn">Login</button> --}}
+
+                        {{-- FOR TESTING ONLY. DELETE AFTER.
+
+                        Replace the guest Login button with this block only after enabling the
+                        commented test-login route and config flag. --}}
+
+                        @if (app()->environment('local') && config('app.enable_test_login'))
+                            <form method="POST" action="{{ route('test.login') }}" class="test-login-form">
+                                @csrf
+                                <select name="user_id" class="test-login-select" onchange="this.form.submit()" aria-label="Login as test user">
+                                    <option value="">Login as...</option>
+                                    @foreach (\App\Models\User::where('account_status', 'Active')->orderBy('role_name')->orderBy('name')->get() as $testUser)
+                                        <option value="{{ $testUser->user_id }}">{{ $testUser->role_name }} - {{ $testUser->name }}</option>
+                                    @endforeach
+                                </select>
+                                    </form>
+                        @else
+                            <button id="openLoginModal" class="login-btn" type="button">Login</button>
+                        @endif
                     @endauth
                 </div>
             </div>
@@ -225,7 +244,7 @@
             <div class="footer-col">
                 <h4>Contact Us</h4>
                 <ul class="contact-list">
-                    @if(!empty($contactInfo['phone']))
+                    {{-- @if(!empty($contactInfo['phone']))
                         <li><a href="tel:{{ $contactInfo['phone'] }}"><i data-lucide="phone" aria-hidden="true"></i> {{ $contactInfo['phone'] }}</a></li>
                     @endif
                     @if(!empty($contactInfo['email']))
@@ -233,14 +252,16 @@
                     @endif
                     @if(!empty($contactInfo['address']))
                         <li class="footer-address"><i data-lucide="map-pin" aria-hidden="false"></i> <span>{{ $contactInfo['address'] }}</span></li>
-                    @endif
+                    @endif --}}
+                    <li class="footer-address"><i data-lucide="map-pin" aria-hidden="false"></i> <span>Unit 6 Labangon Town Center Katipunan St,<br>Cebu City, Philippines, 6000</span></li>
+                    <li><i data-lucide="phone" aria-hidden="true"></i> 0922 581 1593</li>
+                    <li><i data-lucide="mail" aria-hidden="true"></i> rimmon.sendiong@gmail.com</li>
                 </ul>
             </div>  
             <div class="footer-col">
                 <h4>Social Media</h4>
                 <div class="footer-social">
-                    <a href="https://www.facebook.com/sweethomecebu" class="footer-social-link footer-social-facebook" aria-label="Facebook"><i data-lucide="facebook" aria-hidden="true"></i></a>
-                    <a href="https://www.facebook.com/sweethomecebu" class="footer-social-link footer-social-messenger" aria-label="Messenger"><i data-lucide="message-circle" aria-hidden="true"></i></a>
+                    <a href="https://www.facebook.com/LJSRealtyAndBrokerage" class="footer-social-link footer-social-facebook" aria-label="Facebook"><i data-lucide="facebook" aria-hidden="true"></i></a>
                 </div>
                 {{--
                     IF THIS IS USED, MAKE A TABLE FOR COMPANY_SETTINGS AND UNCOMMENT THIS TO USE.
@@ -249,9 +270,6 @@
                     <div class="footer-social">
                         @if(!empty($socialLinks['facebook']))
                             <a href="{{ $socialLinks['facebook'] }}" class="footer-social-link footer-social-facebook" aria-label="Facebook"><i data-lucide="facebook" aria-hidden="true"></i></a>
-                        @endif
-                        @if(!empty($socialLinks['messenger']))
-                            <a href="{{ $socialLinks['messenger'] }}" class="footer-social-link footer-social-messenger" aria-label="Messenger"><i data-lucide="message-circle" aria-hidden="true"></i></a>
                         @endif
                     </div>
                 --}}

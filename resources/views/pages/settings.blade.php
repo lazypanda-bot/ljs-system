@@ -11,6 +11,9 @@
 	$isProfessional = $authUser?->isProfessional();
 	$isClient = $authUser?->normalizedRole() === 'client';
 	$profile = $authUser?->professionalProfile;
+	$credentialLabel = $authUser?->role_name === 'Agent' ? 'Accreditation number' : 'PRC license number';
+	$credentialPlaceholder = $authUser?->role_name === 'Agent' ? 'Accreditation number' : 'PRC license number';
+	$missingCredential = $isProfessional && blank($profile?->license_number);
 @endphp
 
 @section('content')
@@ -88,15 +91,20 @@
 									<h3>Professional credentials</h3>
 									<p class="section-subtitle">License, experience, and documents shown on your public profile and used for verification.</p>
 								</div>
-								<div class="settings-form-grid">
-									<div class="form-group">
-										<label for="license_number">License / PRC number</label>
-										<input type="text" id="license_number" name="license_number" value="{{ old('license_number', $profile?->license_number) }}" maxlength="100" pattern="[A-Za-z0-9\-\/ ]+" title="Letters, numbers, spaces, hyphens and slashes only" placeholder="PRC or license number">
+								@if ($missingCredential)
+									<div class="settings-reminder" role="alert">
+										<i class="fas fa-circle-exclamation" aria-hidden="true"></i>
+										<div>
+											<strong>Profile reminder</strong>
+											<p>
+												Please input your {{ strtolower($credentialLabel) }}.
+											</p>
+										</div>
 									</div>
-									<div class="form-group">
-										<label for="years_experience">Years of experience</label>
-										<input type="number" id="years_experience" name="years_experience" min="0" max="80" value="{{ old('years_experience', $profile?->years_experience) }}" placeholder="0">
-									</div>
+								@endif
+								<div class="form-group">
+									<label for="license_number">{{ $credentialLabel }}</label>
+									<input type="text" id="license_number" name="license_number" value="{{ old('license_number', $profile?->license_number) }}" maxlength="100" pattern="[A-Za-z0-9\-\/ ]+" title="Letters, numbers, spaces, hyphens and slashes only" placeholder="{{ $credentialPlaceholder }}" required>
 								</div>
 								<div class="form-group">
 									<label for="professional_bio">Professional bio</label>

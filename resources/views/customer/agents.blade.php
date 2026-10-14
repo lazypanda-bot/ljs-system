@@ -30,9 +30,6 @@
                                     <span class="rating-score">{{ $rating }}</span>
                                     <span class="review-count">({{ $professional->received_reviews_count }} reviews)</span>
                                 </div>
-                                <div class="agent-sold-stat">
-                                    {{ $professional->professionalProfile?->years_experience ?? 0 }} Years Experience
-                                </div>
                                 <a href="{{ route('agents.show', $professional) }}" class="agent-view-btn">View details</a>
                             </div>
                         </article>
@@ -89,10 +86,6 @@
                                 <span class="stars" aria-label="{{ $ratingValue }} out of 5 stars">@for ($star = 1; $star <= 5; $star++)<i data-lucide="star" class="{{ $star <= $ratingValue ? 'is-rated' : '' }}" aria-hidden="true"></i>@endfor</span>
                                 <span class="rating-score">{{ $rating }}</span>
                                 <span class="review-count">({{ $professional->received_reviews_count }} reviews)</span>
-                            </div>
-
-                            <div class="agent-sold-stat">
-                                {{ $professional->professionalProfile?->years_experience ?? 0 }} Years Experience
                             </div>
 
                             <div class="agent-sold-stat">{{ $professional->role_name === 'Agent' ? 'Accreditation' : 'PRC License' }}: {{ $professional->professionalProfile?->license_number ?: 'Not listed' }}</div>

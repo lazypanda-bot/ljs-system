@@ -204,7 +204,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('submit', async (event) => {
         const form = event.target;
-        if (!(form instanceof HTMLFormElement) || !shouldConfirmForm(form)) return;
+        if (!(form instanceof HTMLFormElement)) return;
+
+        if (form.id === 'password-form') {
+            const password = form.querySelector('input[name="password"]');
+            const confirmation = form.querySelector('input[name="password_confirmation"]');
+            const error = form.querySelector('#passwordMismatchError');
+
+            if (password && confirmation && password.value !== confirmation.value) {
+                event.preventDefault();
+                error?.removeAttribute('hidden');
+                confirmation.focus();
+                return;
+            }
+
+            error?.setAttribute('hidden', '');
+        }
+
+        if (!shouldConfirmForm(form)) return;
         event.preventDefault();
         if (await openConfirmation(form)) {
             form.dataset.confirmed = 'true';

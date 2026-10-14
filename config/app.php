@@ -123,4 +123,15 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+
+    /*
+|--------------------------------------------------------------------------
+| FOR TESTING ONLY. DELETE AFTER.
+|--------------------------------------------------------------------------
+| To enable a temporary Login As dropdown, move this line inside the returned
+| config array above, then add ENABLE_TEST_LOGIN=true to .env:
+|*/
+
+    'enable_test_login' => env('ENABLE_TEST_LOGIN', false),
+
 ];

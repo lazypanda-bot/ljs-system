@@ -287,13 +287,13 @@ body {
     background: #1f6cff;
 }
 .legend-dot.rent-to-own {
-    background: #14b8a6;
+    background: #facc15;
 }
 .legend-dot.sold { 
     background: #ef4444; 
 }
 .legend-dot.reserved { 
-    background: #f59e0b; 
+    background: #ea580c; 
 }
 .legend-dot.unavailable {
     background: #525252;
@@ -790,3 +790,29 @@ body.client-messages-open .floating-actions { z-index: 1302; }
 .footer-social-link svg { width: 18px; height: 18px; }
 @media (max-width: 800px) { .site-footer-full .footer-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 520px) { .site-footer-full .footer-grid { grid-template-columns: 1fr; } .site-footer-full .brand-col { align-items: flex-start; text-align: left; } }
+
+/* FOR TESTING ONLY. DELETE AFTER. */
+.test-login-form {
+    display: inline-flex;
+    align-items: center;
+}
+.test-login-select {
+    min-width: 190px;
+    height: 46px;
+    padding: 0 44px 0 18px;
+    border: 1px solid rgba(37, 99, 235, .34);
+    border-radius: 999px;
+    background: #ffffff;
+    color: #0f172a;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, .12);
+}
+.test-login-select:hover,
+.test-login-select:focus {
+    border-color: #2563eb;
+    outline: none;
+    box-shadow: 0 10px 22px rgba(37, 99, 235, .2);
+}

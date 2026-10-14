@@ -89,7 +89,6 @@
                     <div><dt>Email</dt><dd>{{ $agent->email }}</dd></div>
                     <div><dt>Contact</dt><dd>{{ $agent->contact_number ?: 'Not listed' }}</dd></div>
                     <div><dt>PRC license</dt><dd>{{ $profile?->license_number ?: 'Not listed' }}</dd></div>
-                    <div><dt>Experience</dt><dd>{{ $profile?->years_experience ?? 0 }} years</dd></div>
                     @if ($profile?->professional_bio)<div class="au-agent-profile-wide"><dt>Bio</dt><dd>{{ $profile->professional_bio }}</dd></div>@endif
                 </dl>
             </div>

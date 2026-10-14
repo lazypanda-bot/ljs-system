@@ -161,7 +161,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'code' => ['required', 'digits:6'],
             'password' => ['required', 'confirmed', 'min:8'],
-        ]);
+        ], ['password.confirmed' => 'Passwords do not match.']);
         $keys = ['password_reset_user_id', 'password_reset_hash', 'password_reset_expires_at', 'password_reset_attempts'];
 
         $expiresAt = $request->session()->get('password_reset_expires_at');
@@ -218,7 +218,7 @@ class AuthController extends Controller
                 'name' => \App\Support\InputRules::name(),
                 'email' => \App\Support\InputRules::email(['unique:users,email']),
                 'password' => ['required', 'confirmed', 'min:8'],
-            ], \App\Support\InputRules::messages());
+            ], \App\Support\InputRules::messages() + ['password.confirmed' => 'Passwords do not match.']);
         } catch (ValidationException $exception) {
             $request->session()->flash('auth_modal_error', true);
             throw $exception;
@@ -275,22 +275,24 @@ class AuthController extends Controller
         ];
 
         if ($user->isProfessional()) {
-            $rules['license_number'] = ['nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9\-\/ ]+$/'];
-            $rules['years_experience'] = ['nullable', 'integer', 'min:0', 'max:80'];
+            $rules['license_number'] = ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9\-\/ ]+$/'];
             $rules['professional_bio'] = ['nullable', 'string', 'max:2000'];
             $rules['credential_document'] = ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'];
         }
 
-        $validated = $request->validate($rules, \App\Support\InputRules::messages() + ['license_number.regex' => 'The license number may only contain letters, numbers, spaces, hyphens and slashes.']);
+        $credentialLabel = $user->role_name === 'Agent' ? 'accreditation number' : 'PRC license number';
+        $validated = $request->validate($rules, \App\Support\InputRules::messages() + [
+            'license_number.required' => 'Please input your ' . $credentialLabel . '.',
+            'license_number.regex' => 'The ' . $credentialLabel . ' may only contain letters, numbers, spaces, hyphens and slashes.',
+        ]);
 
         $profileFields = [];
         if ($user->isProfessional()) {
             $profileFields = [
                 'license_number' => $validated['license_number'] ?? null,
-                'years_experience' => $validated['years_experience'] ?? null,
                 'professional_bio' => $validated['professional_bio'] ?? null,
             ];
-            unset($validated['license_number'], $validated['years_experience'], $validated['professional_bio'], $validated['credential_document']);
+            unset($validated['license_number'], $validated['professional_bio'], $validated['credential_document']);
         }
 
         unset($validated['profile_photo']);
@@ -354,7 +356,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        ], ['password.confirmed' => 'Passwords do not match.']);
 
         $user->update(['password' => Hash::make($validated['password'])]);
 
