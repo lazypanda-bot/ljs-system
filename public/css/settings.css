@@ -115,6 +115,10 @@
 .settings-avatar-preview.role-agent { background: #059669; color: #fff; }
 .settings-avatar-preview.role-client { background: #0891b2; color: #fff; }
 .settings-avatar-editor p { margin: 0; color: var(--color-text-muted); font-size: 0.75rem; line-height: 1.4; text-align: center; }
+.settings-avatar-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
+.settings-avatar-remove { min-height: 32px; padding: 0.35rem 0.9rem; border: 1px solid #fecaca; border-radius: 6px; background: #fff; color: #b91c1c; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: background-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease; }
+.settings-avatar-remove:hover { background: #fee2e2; color: #991b1b; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(185, 28, 28, 0.18); }
+.settings-avatar-remove:focus-visible { outline: 3px solid rgba(185, 28, 28, 0.25); outline-offset: 2px; }
 .settings-errors { margin-bottom: 16px; padding: 12px 14px; border: 1px solid #fecaca; border-radius: 7px; background: #fef2f2; color: #991b1b; font-size: 13px; }
 .settings-reminder { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 16px; padding: 12px 14px; border: 1px solid #fed7aa; border-radius: 8px; background: #fff7ed; color: #9a3412; font-size: 13px; line-height: 1.45; }
 .settings-reminder i { margin-top: 2px; color: #ea580c; }
@@ -144,6 +148,30 @@
     outline: none;
     transition: border-color 0.2s;
     font-family: inherit;
+}
+.form-group input[type="file"] {
+    padding: 0.35rem 0.45rem;
+    color: #64748b;
+    cursor: pointer;
+}
+.form-group input[type="file"]::file-selector-button {
+    min-height: 34px;
+    margin-right: 0.75rem;
+    padding: 0.4rem 0.9rem;
+    border: 0;
+    border-radius: 999px;
+    background: #2563eb;
+    color: #fff;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+.form-group input[type="file"]:hover::file-selector-button {
+    background: #059669;
+    box-shadow: 0 5px 14px rgba(37, 99, 235, 0.2);
+    transform: translateY(-1px);
 }
 
 .form-group textarea {

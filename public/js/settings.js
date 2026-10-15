@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const photoInput = document.getElementById('profile_photo');
     const preview = document.querySelector('.settings-avatar-preview');
     const photoEdit = document.getElementById('profilePhotoEdit');
+    const photoRemove = document.getElementById('profilePhotoRemove');
+    const removePhotoInput = document.getElementById('remove_profile_photo');
     photoEdit?.addEventListener('click', () => photoInput?.click());
     if (photoInput && preview) {
         photoInput.addEventListener('change', () => {
@@ -9,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!file || !file.type.startsWith('image/')) {
                 return;
             }
+            if (removePhotoInput) removePhotoInput.value = '0';
+            if (photoRemove) photoRemove.hidden = false;
 
             const reader = new FileReader();
             reader.onload = () => {
@@ -24,6 +28,19 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsDataURL(file);
         });
     }
+    photoRemove?.addEventListener('click', () => {
+        if (photoInput) photoInput.value = '';
+        if (removePhotoInput) removePhotoInput.value = '1';
+        if (preview) {
+            const initial = preview.dataset.avatarInitial || 'U';
+            preview.replaceChildren();
+            const letter = document.createElement('span');
+            letter.textContent = initial;
+            preview.appendChild(letter);
+        }
+        photoRemove.hidden = true;
+        photoRemove.closest('form')?.requestSubmit();
+    });
 
     const tabButtons = document.querySelectorAll('.settings-tab-btn');
     const panels = document.querySelectorAll('.settings-panel');

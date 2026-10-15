@@ -543,22 +543,22 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 // Uncomment this route only when config('app.enable_test_login') is available
 // and ENABLE_TEST_LOGIN=true is set in .env.
 
-Route::post('/test-login', function (\Illuminate\Http\Request $request) {
-     abort_unless(app()->environment('local') && config('app.enable_test_login'), 404);
+// Route::post('/test-login', function (\Illuminate\Http\Request $request) {
+//      abort_unless(app()->environment('local') && config('app.enable_test_login'), 404);
 
-   $validated = $request->validate([
-       'user_id' => ['required', 'exists:users,user_id'],
-     ]);
+//    $validated = $request->validate([
+//        'user_id' => ['required', 'exists:users,user_id'],
+//      ]);
 
-     $user = \App\Models\User::findOrFail($validated['user_id']);
-     \Illuminate\Support\Facades\Auth::login($user);
-     $request->session()->regenerate();
-     if ($user->normalizedRole() === 'lead_broker') {
-         session(['acting_as' => 'broker']);
-     }
+//      $user = \App\Models\User::findOrFail($validated['user_id']);
+//      \Illuminate\Support\Facades\Auth::login($user);
+//      $request->session()->regenerate();
+//      if ($user->normalizedRole() === 'lead_broker') {
+//          session(['acting_as' => 'broker']);
+//      }
 
-    return $user->normalizedRole() === 'client'
-        ? redirect()->route('home')
-        : redirect()->route('app.page', ['page' => 'dashboard']);
-})->name('test.login');
+//     return $user->normalizedRole() === 'client'
+//         ? redirect()->route('home')
+//         : redirect()->route('app.page', ['page' => 'dashboard']);
+// })->name('test.login');
 

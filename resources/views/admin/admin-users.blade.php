@@ -90,8 +90,10 @@
                                     <select class="form-select" id="role" name="role_name" required>
                                         <option value="">Select a role</option>
                                         @if (auth()->user()?->normalizedRole() === 'lead_broker')
-                                            <option value="Lead Broker" {{ old('role_name') === 'Lead Broker' ? 'selected' : '' }}>Lead Broker</option>
                                             <option value="Admin" {{ old('role_name') === 'Admin' ? 'selected' : '' }}>Admin</option>
+                                            <option value="Lead Broker" {{ old('role_name') === 'Lead Broker' ? 'selected' : '' }}>Lead Broker</option>
+                                            <option value="Broker" {{ old('role_name') === 'Broker' ? 'selected' : '' }}>Broker</option>
+                                            <option value="Agent" {{ old('role_name') === 'Agent' ? 'selected' : '' }}>Agent</option>
                                         @else
                                             <option value="Broker" {{ old('role_name') === 'Broker' ? 'selected' : '' }}>Broker</option>
                                             <option value="Agent" {{ old('role_name') === 'Agent' ? 'selected' : '' }}>Agent</option>

@@ -59,7 +59,7 @@ class UserController extends Controller
             abort(403);
         }
         $allowedRoles = $creator->normalizedRole() === 'lead_broker'
-            ? ['Admin', 'Lead Broker']
+            ? ['Admin', 'Lead Broker', 'Broker', 'Agent']
             : ['Agent', 'Broker'];
 
         \App\Support\InputRules::normalize($request);

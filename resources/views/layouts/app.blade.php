@@ -70,14 +70,14 @@
                             </div>
                         </div>
                     @else
-                        {{-- <button type="button" id="openLoginModal" class="login-btn">Login</button> --}}
+                        <button type="button" id="openLoginModal" class="login-btn">Login</button>
 
                         {{-- FOR TESTING ONLY. DELETE AFTER.
 
                         Replace the guest Login button with this block only after enabling the
                         commented test-login route and config flag. --}}
 
-                        @if (app()->environment('local') && config('app.enable_test_login'))
+                        {{-- @if (app()->environment('local') && config('app.enable_test_login'))
                             <form method="POST" action="{{ route('test.login') }}" class="test-login-form">
                                 @csrf
                                 <select name="user_id" class="test-login-select" onchange="this.form.submit()" aria-label="Login as test user">
@@ -89,7 +89,7 @@
                                     </form>
                         @else
                             <button id="openLoginModal" class="login-btn" type="button">Login</button>
-                        @endif
+                        @endif --}}
                     @endauth
                 </div>
             </div>

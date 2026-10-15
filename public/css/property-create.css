@@ -119,8 +119,10 @@
     display:grid;
     width:100%;
     min-height:138px;
-    place-content:center;
-    gap:7px;
+    align-content:center;
+    justify-items:center;
+    gap:10px;
+    padding:28px 20px;
     border:1px dashed #91a4bd;
     border-radius:7px;
     background:#f8fafc;
@@ -134,17 +136,21 @@
     background:var(--color-primary-soft)
 }
 .property-upload-zone svg{
-    width:22px;
-    height:22px;
+    width:26px;
+    height:26px;
     margin:0 auto;
     color:var(--color-primary)
 }
 .property-upload-zone strong{
-    font-size:13px
+    font-size:14px;
+    line-height:1.35
 }
 .property-upload-zone span{
+    display:block;
+    max-width:360px;
     color:var(--color-text-muted);
-    font-size:11px
+    font-size:12px;
+    line-height:1.45
 }
 .property-image-previews{
     display:grid;
@@ -312,6 +318,10 @@
     }
     .property-choice-list{
         grid-template-columns:repeat(auto-fill,minmax(135px,1fr))
+    }
+    .property-upload-zone{
+        min-height:128px;
+        padding:24px 16px
     }
 }
 @media(max-width:520px){

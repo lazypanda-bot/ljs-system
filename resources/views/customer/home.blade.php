@@ -214,7 +214,7 @@
             <div class="home-about-content">
                 <h2>We <span class="highlight-green">find places</span> that people love</h2>
                 <p>
-                    p
+                    From family homes to lots and commercial spaces, we help you find the property you’ll love and the people who’ll help you get there.
                 </p>
                 <a href="{{ route('about') }}" class="home-about-btn">Learn More</a>
             </div>

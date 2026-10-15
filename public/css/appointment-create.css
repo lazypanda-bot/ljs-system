@@ -140,7 +140,8 @@
 .appointment-create-page .appointment-errors {
     margin: 8px 0;
     padding: 10px 12px;
-    border-left: 3px solid #b42318;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
     background: #fff1f0;
     color: #8f1d16;
     font-size: 13px;

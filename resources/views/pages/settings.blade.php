@@ -42,15 +42,19 @@
 					@csrf
 					<div class="settings-profile-layout">
 						<div class="settings-avatar-editor">
-							<div class="settings-avatar-preview role-{{ $authUser?->normalizedRole() }}">
+							<div class="settings-avatar-preview role-{{ $authUser?->normalizedRole() }}" data-avatar-initial="{{ strtoupper(substr($authUser?->name ?? 'U', 0, 1)) }}">
 								@if ($authUser?->profile_photo)
 									<img src="{{ str_starts_with($authUser->profile_photo, 'http') ? $authUser->profile_photo : asset('storage/' . $authUser->profile_photo) }}" alt="Current profile photo">
 								@else
 									<span>{{ strtoupper(substr($authUser?->name ?? 'U', 0, 1)) }}</span>
 								@endif
 							</div>
-							<button type="button" class="settings-avatar-edit" id="profilePhotoEdit">Edit</button>
+							<div class="settings-avatar-actions">
+								<button type="button" class="settings-avatar-edit" id="profilePhotoEdit">Edit</button>
+								<button type="button" class="settings-avatar-remove" id="profilePhotoRemove" @if (! $authUser?->profile_photo) hidden @endif>Remove</button>
+							</div>
 							<input class="settings-photo-input" type="file" id="profile_photo" name="profile_photo" accept="image/jpeg,image/png,image/webp">
+							<input type="hidden" id="remove_profile_photo" name="remove_profile_photo" value="0">
 							<p>JPG, PNG, or WebP, up to 5 MB.</p>
 						</div>
 						<div class="settings-profile-details">

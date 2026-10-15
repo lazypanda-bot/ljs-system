@@ -272,6 +272,7 @@ class AuthController extends Controller
             'contact_number' => \App\Support\InputRules::phone(),
             'timezone' => ['nullable', 'timezone'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'remove_profile_photo' => ['nullable', 'boolean'],
         ];
 
         if ($user->isProfessional()) {
@@ -295,15 +296,18 @@ class AuthController extends Controller
             unset($validated['license_number'], $validated['professional_bio'], $validated['credential_document']);
         }
 
-        unset($validated['profile_photo']);
+        $removePhoto = $request->boolean('remove_profile_photo');
+        unset($validated['profile_photo'], $validated['remove_profile_photo']);
         $oldPhoto = $user->profile_photo;
         if ($request->hasFile('profile_photo')) {
             $validated['profile_photo'] = $request->file('profile_photo')->store('profile-photos', 'public');
+        } elseif ($removePhoto) {
+            $validated['profile_photo'] = null;
         }
 
         $user->update($validated);
 
-        if ($request->hasFile('profile_photo') && $oldPhoto && ! filter_var($oldPhoto, FILTER_VALIDATE_URL)) {
+        if (($request->hasFile('profile_photo') || $removePhoto) && $oldPhoto && ! filter_var($oldPhoto, FILTER_VALIDATE_URL)) {
             Storage::disk('public')->delete($oldPhoto);
         }
 
