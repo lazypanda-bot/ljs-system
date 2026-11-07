@@ -14,7 +14,7 @@
         <header class="staff-property-admin-header">
             <div>
                 <h2>Reviews</h2>
-                <p>All client reviews of agents and brokers.</p>
+                <p>All client reviews of professionals.</p>
             </div>
         </header>
 
@@ -30,14 +30,17 @@
                 @endfor
             </select>
             <select name="professional" aria-label="Filter by professional" data-auto-submit>
-                <option value="">All agents &amp; brokers</option>
-                <option value="all-agents" @selected($professionalFilter === 'all-agents')>Agents only</option>
-                <option value="all-brokers" @selected($professionalFilter === 'all-brokers')>Brokers only</option>
+                <option value="">All professionals</option>
+                <option value="all-agents" @selected($professionalFilter === 'all-agents')>Agents</option>
+                <option value="all-brokers" @selected($professionalFilter === 'all-brokers')>Brokers</option>
+                <option value="all-lead-brokers" @selected($professionalFilter === 'all-lead-brokers')>Lead Brokers</option>
+                {{--
                 <optgroup label="Individual">
                     @foreach ($professionals as $professional)
                         <option value="{{ $professional->user_id }}" @selected($professionalId === (int) $professional->user_id)>{{ $professional->name }} ({{ $professional->role_name }})</option>
                     @endforeach
                 </optgroup>
+                --}}
             </select>
         </form>
 

@@ -2,11 +2,53 @@ document.addEventListener('DOMContentLoaded', function() {
     const composeModal = document.getElementById('composeMessageModal');
     const attachmentInput = document.getElementById('messageAttachment');
     const attachmentStatus = document.getElementById('messageAttachmentStatus');
+    const maxAttachmentBytes = 5 * 1024 * 1024;
+    const showAttachmentCard = (input, status, file) => {
+        const icon = document.createElement('i');
+        icon.dataset.lucide = 'file';
+        icon.setAttribute('aria-hidden', 'true');
+        const details = document.createElement('span');
+        details.className = 'attachment-card-details';
+        const name = document.createElement('strong');
+        name.textContent = file.name;
+        name.title = file.name;
+        const size = document.createElement('small');
+        size.textContent = file.size >= 1024 * 1024
+            ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+            : `${Math.max(1, Math.round(file.size / 1024))} KB`;
+        details.append(name, size);
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'attachment-card-remove';
+        remove.setAttribute('aria-label', `Remove ${file.name}`);
+        remove.title = 'Remove attachment';
+        const closeIcon = document.createElement('i');
+        closeIcon.dataset.lucide = 'x';
+        closeIcon.setAttribute('aria-hidden', 'true');
+        remove.append(closeIcon);
+        remove.addEventListener('click', () => {
+            input.value = '';
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        status.replaceChildren(icon, details, remove);
+        status.classList.add('has-file');
+        status.hidden = false;
+        window.lucide?.createIcons();
+    };
+    const rejectOversizedAttachment = (input, status, file) => {
+        if (!file || file.size <= maxAttachmentBytes) return false;
+        input.value = '';
+        status.textContent = 'File is too large. Maximum attachment size is 5 MB.';
+        status.hidden = false;
+        status.classList.remove('has-file');
+        status.classList.add('is-error');
+        return true;
+    };
     const resetComposeAttachment = () => {
         if (attachmentInput) attachmentInput.value = '';
         if (attachmentStatus) {
             attachmentStatus.textContent = 'No file attached';
-            attachmentStatus.classList.remove('has-file');
+            attachmentStatus.classList.remove('has-file', 'is-error');
         }
     };
     const closeCompose = () => {
@@ -20,6 +62,8 @@ document.addEventListener('DOMContentLoaded', function() {
     attachmentInput?.addEventListener('change', () => {
         const file = attachmentInput.files?.[0];
         if (!attachmentStatus) return;
+        attachmentStatus.classList.remove('is-error');
+        if (rejectOversizedAttachment(attachmentInput, attachmentStatus, file)) return;
 
         if (!file) {
             attachmentStatus.textContent = 'No file attached';
@@ -27,11 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const sizeLabel = file.size >= 1024 * 1024
-            ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-            : `${Math.max(1, Math.round(file.size / 1024))} KB`;
-        attachmentStatus.textContent = `${file.name} (${sizeLabel})`;
-        attachmentStatus.classList.add('has-file');
+        showAttachmentCard(attachmentInput, attachmentStatus, file);
     });
 
     const closeMessageMenus = (except = null) => {
@@ -56,51 +96,54 @@ document.addEventListener('DOMContentLoaded', function() {
         menu.style.top = `${top}px`;
     };
 
-    document.querySelectorAll('[data-message-menu-toggle]').forEach((button) => {
-        button.addEventListener('click', (event) => {
-            event.stopPropagation();
-            const menu = button.parentElement?.querySelector('.message-action-menu');
-            const shouldOpen = menu?.hidden ?? false;
-            closeMessageMenus(button);
-            if (menu) {
-                menu.hidden = !shouldOpen;
-                if (shouldOpen) placeMessageMenu(button, menu);
-            }
-            button.setAttribute('aria-expanded', String(shouldOpen));
+    const initializeMessageActions = (scope = document) => {
+        scope.querySelectorAll('[data-message-menu-toggle]').forEach((button) => {
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const menu = button.parentElement?.querySelector('.message-action-menu');
+                const shouldOpen = menu?.hidden ?? false;
+                closeMessageMenus(button);
+                if (menu) {
+                    menu.hidden = !shouldOpen;
+                    if (shouldOpen) placeMessageMenu(button, menu);
+                }
+                button.setAttribute('aria-expanded', String(shouldOpen));
+            });
         });
-    });
-    document.querySelector('.chat-messages')?.addEventListener('scroll', () => closeMessageMenus());
+        scope.querySelector('.chat-messages')?.addEventListener('scroll', () => closeMessageMenus());
+
+        scope.querySelectorAll('[data-edit-message]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const row = button.closest('.message-row');
+                const menu = button.closest('.message-action-menu');
+                const toggle = button.closest('.message-actions')?.querySelector('[data-message-menu-toggle]');
+                const display = row?.querySelector('[data-message-display]');
+                const form = row?.querySelector('[data-message-edit-form]');
+                const bubble = row?.querySelector('.message-bubble');
+                if (!form || !display) return;
+                if (menu) menu.hidden = true;
+                toggle?.setAttribute('aria-expanded', 'false');
+                display.hidden = true;
+                form.hidden = false;
+                bubble?.classList.add('is-editing');
+                form.querySelector('textarea')?.focus();
+            });
+        });
+
+        scope.querySelectorAll('[data-cancel-message-edit]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const row = button.closest('.message-row');
+                const display = row?.querySelector('[data-message-display]');
+                const form = row?.querySelector('[data-message-edit-form]');
+                const bubble = row?.querySelector('.message-bubble');
+                if (form) form.hidden = true;
+                if (display) display.hidden = false;
+                bubble?.classList.remove('is-editing');
+            });
+        });
+
+    };
     window.addEventListener('resize', () => closeMessageMenus());
-
-    document.querySelectorAll('[data-edit-message]').forEach((button) => {
-        button.addEventListener('click', () => {
-            const row = button.closest('.message-row');
-            const menu = button.closest('.message-action-menu');
-            const toggle = button.closest('.message-actions')?.querySelector('[data-message-menu-toggle]');
-            const display = row?.querySelector('[data-message-display]');
-            const form = row?.querySelector('[data-message-edit-form]');
-            const bubble = row?.querySelector('.message-bubble');
-            if (!form || !display) return;
-            if (menu) menu.hidden = true;
-            toggle?.setAttribute('aria-expanded', 'false');
-            display.hidden = true;
-            form.hidden = false;
-            bubble?.classList.add('is-editing');
-            form.querySelector('textarea')?.focus();
-        });
-    });
-
-    document.querySelectorAll('[data-cancel-message-edit]').forEach((button) => {
-        button.addEventListener('click', () => {
-            const row = button.closest('.message-row');
-            const display = row?.querySelector('[data-message-display]');
-            const form = row?.querySelector('[data-message-edit-form]');
-            const bubble = row?.querySelector('.message-bubble');
-            if (form) form.hidden = true;
-            if (display) display.hidden = false;
-            bubble?.classList.remove('is-editing');
-        });
-    });
 
     document.addEventListener('click', (event) => {
         if (!event.target.closest('.message-actions')) closeMessageMenus();
@@ -187,73 +230,112 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.key === 'Escape' && activeMembersModal) closeMembersModal(activeMembersModal);
     });
 
-    const chatMessages = document.querySelector('.chat-messages');
-    const replyInput = document.querySelector('.reply-input');
-    const replyAttachment = document.getElementById('replyAttachment');
-    const replyAttachmentStatus = document.getElementById('replyAttachmentStatus');
+    let stopChat = () => {};
+    const initializeChat = (scope = document) => {
+        const requests = new AbortController();
+        let timer;
+        let polling = false;
+        stopChat = () => {
+            window.clearInterval(timer);
+            requests.abort();
+        };
+        const chatMessages = scope.querySelector('.chat-messages');
+        const replyInput = scope.querySelector('.reply-input');
+        const replyAttachment = scope.querySelector('#replyAttachment');
+        const replyAttachmentStatus = scope.querySelector('#replyAttachmentStatus');
 
-    if (replyInput) {
-        replyInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
+        if (replyInput) {
+            replyInput.addEventListener('keydown', (event) => {
+                const desktopKeyboard = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+                if (!desktopKeyboard || event.key !== 'Enter' || event.shiftKey
+                    || event.ctrlKey || event.altKey || event.metaKey
+                    || event.isComposing || event.keyCode === 229) return;
+
+                event.preventDefault();
+                if (event.repeat || !replyInput.value.trim()) return;
+
+                const form = replyInput.form;
+                const sendButton = form?.querySelector('button[type="submit"]');
+                if (sendButton && !sendButton.disabled) form.requestSubmit(sendButton);
+            });
+            replyInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        }
+
+        replyAttachment?.addEventListener('change', () => {
+            const file = replyAttachment.files?.[0];
+            if (!replyAttachmentStatus) return;
+            replyAttachmentStatus.classList.remove('is-error');
+            if (rejectOversizedAttachment(replyAttachment, replyAttachmentStatus, file)) return;
+
+            if (!file) {
+                replyAttachmentStatus.hidden = true;
+                replyAttachmentStatus.textContent = '';
+                replyAttachmentStatus.classList.remove('has-file');
+                return;
+            }
+
+            showAttachmentCard(replyAttachment, replyAttachmentStatus, file);
         });
-    }
 
-    replyAttachment?.addEventListener('change', () => {
-        const file = replyAttachment.files?.[0];
-        if (!replyAttachmentStatus) return;
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        if (!file) {
-            replyAttachmentStatus.hidden = true;
-            replyAttachmentStatus.textContent = '';
-            return;
+            const chatView = scope.matches?.('.chat-view') ? scope : scope.querySelector('.chat-view');
+            const updatesUrl = chatView?.dataset.updatesUrl;
+            const currentUserId = Number(chatMessages.dataset.currentUserId);
+
+            if (updatesUrl) {
+                timer = window.setInterval(async function () {
+                    if (polling || !chatMessages.isConnected) return;
+                    polling = true;
+                    try {
+                        const lastMessageId = chatMessages.dataset.lastMessageId || '0';
+                        const response = await fetch(`${updatesUrl}?after=${lastMessageId}`, {
+                            headers: { Accept: 'application/json' }, signal: requests.signal,
+                        });
+
+                        if (!response.ok || !chatMessages.isConnected) return;
+
+                        const { messages } = await response.json();
+                        messages.forEach(function (message) {
+                            const sent = message.sender_id === currentUserId;
+                            const row = document.createElement('div');
+                            row.className = `message-row ${sent ? 'message-row-sent' : 'message-row-received'}`;
+                            row.innerHTML = `<span class="message-avatar role-${message.sender_role}"></span><div class="message-bubble role-${message.sender_role} ${sent ? 'message-sent' : 'message-received'}"><div class="message-author"></div><div class="message-text"></div><a class="message-attachment" target="_blank" rel="noopener" hidden><i data-lucide="paperclip" aria-hidden="true"></i> Attachment</a><div class="message-meta"></div></div>`;
+                            const bubble = row.querySelector('.message-bubble');
+                            row.querySelector('.message-avatar').textContent = message.sender_name.charAt(0).toUpperCase();
+                            bubble.querySelector('.message-author').textContent = message.sender_name;
+                            bubble.querySelector('.message-text').textContent = message.body;
+                            const attachment = bubble.querySelector('.message-attachment');
+                            if (message.attachment_url && attachment) {
+                                attachment.href = message.attachment_url;
+                                attachment.hidden = false;
+                            }
+                            bubble.querySelector('.message-meta').textContent = message.sent_at;
+                            chatMessages.appendChild(row);
+                            window.lucide?.createIcons();
+                            chatMessages.dataset.lastMessageId = message.id;
+                        });
+
+                        if (messages.length) chatMessages.scrollTop = chatMessages.scrollHeight;
+                    } catch { /* Retry transient failures on the next poll. */ }
+                    finally { polling = false; }
+                }, 5000);
+            }
         }
-
-        const sizeLabel = file.size >= 1024 * 1024
-            ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-            : `${Math.max(1, Math.round(file.size / 1024))} KB`;
-        replyAttachmentStatus.textContent = `${file.name} (${sizeLabel})`;
-        replyAttachmentStatus.hidden = false;
+    };
+    initializeMessageActions();
+    initializeChat();
+    document.addEventListener('ljs:split-before-update', (event) => {
+        if (event.target.dataset.splitView === 'messages') stopChat();
     });
-
-    if (chatMessages) {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-
-        const updatesUrl = document.querySelector('.chat-view')?.dataset.updatesUrl;
-        const currentUserId = Number(chatMessages.dataset.currentUserId);
-
-        if (updatesUrl) {
-            window.setInterval(async function () {
-                const lastMessageId = chatMessages.dataset.lastMessageId || '0';
-                const response = await fetch(`${updatesUrl}?after=${lastMessageId}`, {
-                    headers: { Accept: 'application/json' },
-                });
-
-                if (!response.ok) return;
-
-                const { messages } = await response.json();
-                messages.forEach(function (message) {
-                    const sent = message.sender_id === currentUserId;
-                    const row = document.createElement('div');
-                    row.className = `message-row ${sent ? 'message-row-sent' : 'message-row-received'}`;
-                    row.innerHTML = `<span class="message-avatar role-${message.sender_role}"></span><div class="message-bubble role-${message.sender_role} ${sent ? 'message-sent' : 'message-received'}"><div class="message-author"></div><div class="message-text"></div><a class="message-attachment" target="_blank" rel="noopener" hidden><i data-lucide="paperclip" aria-hidden="true"></i> Attachment</a><div class="message-meta"></div></div>`;
-                    const bubble = row.querySelector('.message-bubble');
-                    row.querySelector('.message-avatar').textContent = message.sender_name.charAt(0).toUpperCase();
-                    bubble.querySelector('.message-author').textContent = message.sender_name;
-                    bubble.querySelector('.message-text').textContent = message.body;
-                    const attachment = bubble.querySelector('.message-attachment');
-                    if (message.attachment_url && attachment) {
-                        attachment.href = message.attachment_url;
-                        attachment.hidden = false;
-                    }
-                    bubble.querySelector('.message-meta').textContent = message.sent_at;
-                    chatMessages.appendChild(row);
-                    window.lucide?.createIcons();
-                    chatMessages.dataset.lastMessageId = message.id;
-                });
-
-                if (messages.length) chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 5000);
-        }
-    }
+    document.addEventListener('ljs:split-updated', (event) => {
+        if (event.target.dataset.splitView !== 'messages') return;
+        initializeMessageActions(event.detail.panel);
+        initializeChat(event.detail.panel);
+    });
+    window.addEventListener('pagehide', () => stopChat());
 });

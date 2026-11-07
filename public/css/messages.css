@@ -215,6 +215,7 @@
 }
 
 .message-bubble {
+    min-width: 0;
     max-width: 84%;
     padding: 10px 16px;
     border-radius: 16px;
@@ -223,7 +224,8 @@
     position: relative;
     word-wrap: break-word;
 }
-.message-row { display: flex; align-items: flex-end; gap: 8px; }
+.message-row { display: flex; width: 100%; min-width: 0; align-items: flex-end; gap: 8px; }
+.message-bubble:has(> .message-subject) { width: 65%; }
 .message-row-sent { align-self: flex-end; flex-direction: row-reverse; }
 .message-row-received { align-self: flex-start; }
 .message-avatar { display: grid; width: 30px; height: 30px; flex: 0 0 30px; place-items: center; border-radius: 50%; color: #ffffff; font-size: 12px; font-weight: 800; }
@@ -291,19 +293,23 @@
 .reply-attach-button{display:grid;width:42px;height:42px;flex:0 0 42px;place-items:center;border:1px solid var(--color-border);border-radius:50%;background:#fff;color:var(--color-primary);cursor:pointer}.reply-attach-button:hover{border-color:var(--color-primary);background:var(--color-primary-soft)}.reply-attach-button input{display:none}.reply-attach-button svg{width:20px;height:20px}.reply-attachment-status{max-width:180px;margin-bottom:9px;padding:6px 9px;border-radius:999px;background:var(--color-primary-soft);color:var(--color-primary);font-size:11px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.reply-attachment-status[hidden]{display:none}
 
 .reply-input-wrapper {
+    display: flex;
+    flex-direction: column;
     flex: 1;
     min-width: 0;
-    background: transparent;
-    border: 0;
-    border-radius: 0;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
     padding: 0;
 }
+.reply-input-wrapper:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
 
 .reply-input {
+    display: block;
     width: 100%;
     min-height: 42px;
     box-sizing: border-box;
-    border: 1px solid var(--color-border);
+    border: 0;
     border-radius: 10px;
     background: #fff;
     outline: none;
@@ -314,7 +320,8 @@
     color: #1f2937;
     padding: 10px 12px;
 }
-.reply-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
+.messaging-container .reply-input-wrapper .reply-input { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.messaging-container .reply-input-wrapper .reply-input:focus { border: 0; box-shadow: none; }
 
 .reply-actions {
     display: flex;
@@ -465,5 +472,27 @@ body.client-messages-embed > main { width: 100%; height: 100%; min-width: 0; }
 
 
 /* Send button sits a little higher */
-.reply-box { padding-bottom: 26px; }
+.reply-box { padding-bottom: 26px; flex-wrap: nowrap; }
+.reply-box .reply-attachment-status { border-radius: 6px; white-space: normal; overflow-wrap: anywhere; }
+.compose-attachment-status.has-file,
+.reply-box .reply-attachment-status.has-file { display: flex; align-items: center; gap: 10px; flex: 0 1 340px; width: 340px; max-width: 100%; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-text); }
+.reply-box .reply-input-wrapper .reply-attachment-status { flex: 0 0 auto; width: auto; max-width: calc(100% - 16px); margin: 8px 8px 0; }
+.reply-box .reply-input-wrapper .reply-attachment-status.has-file { align-self: flex-start; width: 25%; min-width: min(180px, calc(100% - 16px)); max-width: min(260px, calc(100% - 16px)); gap: 6px; padding: 6px 8px; border-radius: 6px; }
+.reply-attachment-status.has-file .attachment-card-details strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.reply-attachment-status.has-file .attachment-card-details small { margin-top: 1px; font-size: 10px; }
+.reply-box .reply-attachment-status.has-file > svg { flex-basis: 18px; width: 18px; height: 18px; }
+.attachment-card-details { flex: 1; min-width: 0; }
+.attachment-card-details strong { display: block; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.attachment-card-details small { display: block; margin-top: 3px; color: var(--color-text-muted); font-size: 11px; font-weight: 400; }
+.compose-attachment-status.has-file > svg,
+.reply-attachment-status.has-file > svg { flex: 0 0 24px; width: 24px; height: 24px; color: var(--color-primary); }
+.messaging-container .attachment-card-remove,
+.compose-modal .attachment-card-remove { display: grid; place-items: center; flex: 0 0 28px; width: 28px; height: 28px; min-height: 28px; padding: 4px; border: 0; border-radius: 4px; background: transparent; color: var(--color-text-muted); cursor: pointer; }
+.attachment-card-remove svg { width: 16px; height: 16px; }
+.messaging-container .attachment-card-remove:hover,
+.compose-modal .attachment-card-remove:hover { background: #fff1f2; color: #b91c1c; }
+.attachment-card-remove:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.compose-attachment-status.is-error,
+.reply-attachment-status.is-error { background: #fff1f2; color: #b91c1c; }
 .reply-box .message-send-button { margin-bottom: 4px; }
+.message-text { white-space: pre-wrap; overflow-wrap: anywhere; }

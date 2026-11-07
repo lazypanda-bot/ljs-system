@@ -11,5 +11,6 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/split-view.js') }}?v={{ filemtime(public_path('js/split-view.js')) }}" defer></script>
 	<script src="{{ asset('js/messages.js') }}?v={{ filemtime(public_path('js/messages.js')) }}"></script>
 @endpush

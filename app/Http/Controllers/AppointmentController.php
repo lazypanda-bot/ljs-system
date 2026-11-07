@@ -53,33 +53,39 @@ class AppointmentController extends Controller
 			}
 		}
 
-		$appointments = $appointmentsQuery
+		$selectedId = $request->integer('selected');
+		$selectedAppointment = $selectedId
+			? (clone $appointmentsQuery)->find($selectedId)
+			: null;
+
+		$appointmentsQuery
 			->when($filter === 'active', fn ($query) => $query->whereIn('appointment_status', ['Pending', 'Confirmed']))
 			->when($filter === 'cancelled', fn ($query) => $query->whereIn('appointment_status', ['Cancelled', 'Rejected']))
 			->when($filter === 'done', fn ($query) => $query->where('appointment_status', 'Completed'))
 			->orderByRaw('CASE WHEN starts_at_utc IS NULL THEN 1 ELSE 0 END')
 			->orderBy('starts_at_utc')
 			->orderBy('preferred_date')
-			->orderBy('preferred_time')
-			->paginate(5)
+			->orderBy('preferred_time');
+
+		$page = max(1, $request->integer('page', 1));
+		if ($selectedAppointment && ! $request->filled('page')) {
+			$position = (clone $appointmentsQuery)->pluck('appointment_id')->search($selectedId);
+			if ($position !== false) {
+				$page = intdiv($position, 5) + 1;
+			}
+		}
+		$appointments = $appointmentsQuery->paginate(5, ['*'], 'page', $page)
 			->appends($request->except('selected'));
 
-		$selectedId = $request->integer('selected');
 		$selectedAppointment = $selectedId
-			? $appointments->getCollection()->firstWhere('appointment_id', $selectedId)
+			? $selectedAppointment
 			: $appointments->first();
 		$pendingProposal = $selectedAppointment?->proposals->firstWhere('status', 'Pending');
-		$proposalNotification = $pendingProposal
-			? AppNotification::query()
-				->where('user_id', $user->user_id)
-				->where('appointment_proposal_id', $pendingProposal->proposal_id)
-				->first()
-			: null;
 
 		$viewerTimezone = $user->timezone ?: config('appointments.default_timezone');
 		$isAdmin = $actingRole === 'admin';
 
-		return view('pages.appointments', compact('appointments', 'selectedAppointment', 'pendingProposal', 'proposalNotification', 'filter', 'viewerTimezone', 'isAdmin'));
+		return view('pages.appointments', compact('appointments', 'selectedAppointment', 'pendingProposal', 'filter', 'viewerTimezone', 'isAdmin'));
 	}
 
 	public function activeCount(Request $request)
@@ -97,6 +103,7 @@ class AppointmentController extends Controller
 
 		$appointments = Appointment::with(['assignment.property', 'assignment.user', 'client', 'proposals.proposedBy'])
 			->whereHas('assignment', fn ($query) => $query->where('user_id', $user->user_id))
+			->when($request->filled('selected'), fn ($query) => $query->whereKey($request->integer('selected')))
 			->when($filter === 'Reschedule', fn ($query) => $query->whereHas('proposals', fn ($proposal) => $proposal->where('status', 'Pending')))
 			->when(in_array($filter, ['Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'], true), fn ($query) => $query->where('appointment_status', $filter))
 			->when($search !== '', function ($query) use ($search) {
@@ -133,6 +140,7 @@ class AppointmentController extends Controller
 
 		$appointments = Appointment::with(['assignment.property', 'assignment.user', 'client', 'proposals.proposedBy'])
 			->where($tab === 'projects' ? $projectScope : $monitoringScope)
+			->when($request->filled('selected'), fn ($query) => $query->whereKey($request->integer('selected')))
 			->when($filter === 'Reschedule', fn ($query) => $query->whereHas('proposals', fn ($proposal) => $proposal->where('status', 'Pending')))
 			->when($filter !== '' && in_array($filter, ['Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'], true), fn ($query) => $query->where('appointment_status', $filter))
 			->when($search !== '', function ($query) use ($search) {
@@ -411,6 +419,11 @@ class AppointmentController extends Controller
 
 		$notified = $recipients->pluck('name')->filter()->implode(', ');
 
+		if ($request->expectsJson()) {
+			$request->session()->flash('success', 'Your new appointment time was proposed.');
+			return response()->json(['message' => 'Your new appointment time was proposed.'], 201);
+		}
+
 		return redirect()->back()->with('success', 'Your new appointment time was proposed.')->with('popup', [
 			'title' => 'Proposal sent',
 			'message' => 'Your new appointment time was proposed' . ($notified ? " and {$notified} was notified." : '.') . ' The schedule stays the same until they accept.',
@@ -498,7 +511,8 @@ class AppointmentController extends Controller
 		]);
 	}
 
-	public function blockDate(Request $request)
+	// Previous signature: public function blockDate(Request $request)
+	public function blockDate(Request $request, AppointmentSchedulingService $scheduling)
     {
         $user = Auth::user();
         if (! ($user instanceof User)) abort(403);
@@ -506,16 +520,22 @@ class AppointmentController extends Controller
         // Ensure authorized roles can block dates
         abort_unless(in_array($user->actingRole(), ['admin', 'broker', 'agent', 'lead_broker'], true), 403);
 
+        $blockingTimes = $scheduling->blockingTimes();
         $validated = $request->validate([
             'date' => ['required', 'date'],
-            'start_time' => ['nullable', 'date_format:H:i'],
-            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            // Previous unrestricted time validation:
+            // 'start_time' => ['nullable', 'date_format:H:i'],
+            // 'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'start_time' => ['nullable', 'required_with:end_time', 'date_format:H:i', \Illuminate\Validation\Rule::in($blockingTimes['starts'])],
+            'end_time' => ['nullable', 'required_with:start_time', 'date_format:H:i', 'after:start_time', \Illuminate\Validation\Rule::in($blockingTimes['ends'])],
             'reason' => ['nullable', 'string', 'max:255'],
 			'timezone' => ['nullable', 'timezone'],
         ]);
 
         // 1. Create the blocked date/time record
-		$validated['timezone'] = $validated['timezone'] ?: ($user->timezone ?: config('appointments.default_timezone'));
+		// Previous fallback assumed the optional timezone key was always present:
+		// $validated['timezone'] = $validated['timezone'] ?: ($user->timezone ?: config('appointments.default_timezone'));
+		$validated['timezone'] = ($validated['timezone'] ?? null) ?: ($user->timezone ?: config('appointments.default_timezone'));
 		$validated['acting_role'] = $user->actingRole();
 		$user->blockedDates()->create($validated);
 
@@ -640,7 +660,14 @@ class AppointmentController extends Controller
 			]);
 
 			try {
-				Mail::to($recipient->email, $recipient->name)->queue(new ActivityMail($title, $body . "\n\nOpen LJS Realty to review the appointment."));
+				// Previous proposal email, retained without adding any website link:
+				// Mail::to($recipient->email, $recipient->name)->queue(new ActivityMail($title, $body . "\n\nOpen LJS Realty to review the appointment."));
+				$emailBody = $body . "\n\nOpen LJS Realty to review the appointment.";
+				$actor = Auth::user();
+				if ($proposal->status === 'Accepted' && $actor instanceof User) {
+					$emailBody = $body . "\n\n" . $this->appointmentStatusEmailBody($appointment, $appointment->appointment_status, $actor, $recipient);
+				}
+				Mail::to($recipient->email, $recipient->name)->queue(new ActivityMail($title, $emailBody));
 			} catch (\Throwable $exception) {
 				Log::warning('Appointment proposal email could not be queued.', [
 					'appointment_id' => $appointment->appointment_id,
@@ -741,7 +768,44 @@ class AppointmentController extends Controller
 		}
 	}
 
- 	private function appointmentStatusEmailBody(Appointment $appointment, string $status, User $actor, User $recipient): string
+	private function appointmentStatusEmailBody(Appointment $appointment, string $status, User $actor, User $recipient): string
+	{
+		$property = $appointment->assignment?->property;
+		$professional = $appointment->assignment?->user;
+		$propertyName = $property?->property_name ?? 'your property appointment';
+		$timezone = $recipient->timezone ?: ($appointment->client_timezone ?: config('appointments.default_timezone'));
+		$start = $appointment->startInTimezone($timezone);
+		$end = $start->addMinutes(max(1, (int) config('appointments.slot_duration_minutes', 60)));
+		$address = collect([$property?->house_number, $property?->street, $property?->city, $property?->province])
+			->filter()->implode(', ');
+
+		$lines = [
+			$status === 'Confirmed' ? 'Your property viewing appointment is confirmed.' : "Your appointment for {$propertyName} was updated to {$status}.",
+			'',
+			"Property: {$propertyName}",
+			'Property type: ' . ($property?->property_type ?: 'Not provided'),
+			'Address: ' . ($address ?: 'Not provided'),
+			"Status: {$status}",
+			'Appointment date: ' . $start->format('M j, Y'),
+			'Appointment time: ' . $start->format('g:i A') . ' – ' . $end->format('g:i A') . " ({$timezone})",
+			"Appointment type: {$appointment->appointment_type}",
+			'Client: ' . $appointment->contact_name,
+			'Client contact number: ' . ($appointment->contact_number ?: 'Not provided'),
+			'Handled by: ' . ($professional?->name ?: 'Listing team'),
+			'Professional contact number: ' . ($professional?->contact_number ?: 'Not provided'),
+		];
+		if ($status === 'Cancelled' && filled($appointment->cancellation_reason)) {
+			$lines[] = "Cancellation reason: {$appointment->cancellation_reason}";
+		}
+		$lines[] = '';
+		$lines[] = "Updated by: {$actor->name}";
+		$lines[] = 'Open your LJS account directly if you need to manage this appointment.';
+
+		return implode("\n", $lines);
+	}
+
+	/* Previous appointment status email body retained for reference.
+	private function appointmentStatusEmailBody(Appointment $appointment, string $status, User $actor, User $recipient): string
 	{
 		$propertyName = $appointment->assignment?->property?->property_name ?? 'your property appointment';
 		$timezone = $recipient->timezone ?: ($appointment->client_timezone ?: config('appointments.default_timezone'));
@@ -771,4 +835,5 @@ class AppointmentController extends Controller
 
 		return implode("\n", $lines);
 	}
+	*/
 }

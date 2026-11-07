@@ -126,8 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.querySelectorAll('[data-auto-submit]').forEach((control) => {
-        control.addEventListener('change', () => control.form?.requestSubmit());
+    document.addEventListener('change', (event) => {
+        const control = event.target.closest?.('[data-auto-submit]');
+        control?.form?.requestSubmit();
     });
 
     document.querySelectorAll('.flash-toast').forEach((toast) => {
@@ -171,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (form.dataset.noConfirm !== undefined || form.dataset.confirmed === 'true') return false;
         const method = (form.querySelector('input[name="_method"]')?.value || form.method || 'GET').toUpperCase();
         if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) return false;
+        if (form.dataset.confirmMessage) return true;
         const path = new URL(form.action, window.location.href).pathname;
         return !confirmableFormExclusions.some((excluded) => path === excluded || path.startsWith(`${excluded}/`));
     };
@@ -285,10 +287,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (loginModalOverlay) {
+        let backdropPress = false;
+        let backdropRelease = false;
+        loginModalOverlay.addEventListener('pointerdown', (event) => {
+            backdropPress = event.target === loginModalOverlay && event.isPrimary;
+            backdropRelease = false;
+        }, true);
+        loginModalOverlay.addEventListener('pointerup', (event) => {
+            backdropRelease = event.target === loginModalOverlay && event.isPrimary;
+        }, true);
+        loginModalOverlay.addEventListener('pointercancel', () => {
+            backdropPress = false;
+            backdropRelease = false;
+        }, true);
         loginModalOverlay.addEventListener('click', (event) => {
-            if (event.target === loginModalOverlay) {
+            if (backdropPress && backdropRelease && event.target === loginModalOverlay) {
                 closeLoginModal();
             }
+            backdropPress = false;
+            backdropRelease = false;
         });
 
         if (loginModalOverlay.dataset.openIfError === 'true') {
@@ -654,31 +671,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 10000);
     }
 
-    const profileMenuButton = document.getElementById('profileMenuButton');
-    const profileMenu = document.getElementById('profileMenu');
+    [
+        ['profileMenuButton', 'profileMenu'],
+        ['publicProfileButton', 'publicProfileMenu'],
+    ].forEach(([buttonId, menuId]) => {
+        const button = document.getElementById(buttonId);
+        const menu = document.getElementById(menuId);
+        if (!button || !menu) return;
 
-    if (profileMenuButton && profileMenu) {
-        profileMenuButton.addEventListener('click', () => {
-            const isOpen = profileMenu.classList.toggle('open');
-            profileMenu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-            profileMenuButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        });
+        const setOpen = (open) => {
+            menu.classList.toggle('open', open);
+            menu.setAttribute('aria-hidden', String(!open));
+            button.setAttribute('aria-expanded', String(open));
+        };
 
+        button.addEventListener('click', () => setOpen(!menu.classList.contains('open')));
+
+        // Capture outside clicks before page controls can stop propagation.
         document.addEventListener('click', (event) => {
-            if (!profileMenu.contains(event.target) && !profileMenuButton.contains(event.target)) {
-                profileMenu.classList.remove('open');
-                profileMenu.setAttribute('aria-hidden', 'true');
-                profileMenuButton.setAttribute('aria-expanded', 'false');
+            if (!menu.contains(event.target) && !button.contains(event.target)) setOpen(false);
+        }, true);
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && menu.classList.contains('open')) {
+                setOpen(false);
+                button.focus();
             }
         });
-    }
-
-    const publicProfileButton = document.getElementById('publicProfileButton');
-    const publicProfileMenu = document.getElementById('publicProfileMenu');
-    if (publicProfileButton && publicProfileMenu) {
-        publicProfileButton.addEventListener('click', () => {
-            const isOpen = publicProfileMenu.classList.toggle('open');
-            publicProfileButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        });
-    }
+    });
 });

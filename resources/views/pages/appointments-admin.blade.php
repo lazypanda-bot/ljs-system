@@ -17,7 +17,7 @@
 @section('content')
     @php($staffMode = $staffMode ?? false)
     @php($isProjects = $staffMode || $tab === 'projects')
-    <div class="listings-management-container staff-page-surface au-page-card">
+    <div data-page-context="appointments" class="listings-management-container staff-page-surface au-page-card">
         @if (session('success'))
             <div class="alert alert-success" role="status">{{ session('success') }}</div>
         @endif
@@ -72,7 +72,7 @@
                             @php($canProposeTime = $canUpdateStatus && ! $appointment->proposals->contains('status', 'Pending'))
                             @php($statusLabel = $appointment->displayStatus())
                             @php($statusClass = $appointment->displayStatusClass())
-                            <tr>
+                            <tr id="appointment-{{ $appointment->appointment_id }}">
                                 <td class="fw-semibold">{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }}</td>
                                 <td>
                                     {{ $appointment->contact_name }}
@@ -109,7 +109,9 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    @if ($isProjects && $appointment->appointment_status === 'Pending' && ! $canUpdateStatus)
+                                    @if ($hasPendingProposal)
+                                        @include('pages.partials.appointment-proposal', ['allowResponse' => $isProjects])
+                                    @elseif ($isProjects && $appointment->appointment_status === 'Pending' && ! $canUpdateStatus)
                                         <span class="staff-readonly-note">Handled by {{ $appointment->assignment?->user?->name ?? 'the assigned admin' }}</span>
                                     @elseif ($isProjects && ! $canProposeTime)
                                         <span class="staff-readonly-note">No action needed</span>
@@ -143,6 +145,7 @@
                     <h2 id="reschedule-title-{{ $appointment->appointment_id }}">Reschedule appointment</h2>
                     <p class="appointment-reschedule-context">{{ $appointment->assignment?->property?->property_name ?? 'Property appointment' }} · {{ $appointment->contact_name }}</p>
                     <p class="appointment-propose-note">The other participant must accept. The scheduled time stays unchanged until then.</p>
+                    @include('components.appointment-hours')
                     <div class="appointment-propose-time appointment-reschedule-form-wrap">
                         <form method="POST" action="{{ route('appointments.proposals.store', $appointment) }}" data-proposal-availability-url="{{ route('appointments.proposals.availability', $appointment) }}">
                             @csrf

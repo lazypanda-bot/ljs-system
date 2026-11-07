@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @include('components.session-history-guard')
     {{-- <title>@yield('title', config('app.name', 'LJS'))</title> --}}
     <title>LJS Realty and Brokerage</title>
     <link rel="icon" type="image/png" href="{{ asset('images/ljs-logo.jpg') }}">
@@ -27,6 +28,7 @@
     @stack('styles')
     <link rel="stylesheet" href="{{ asset('css/icons.css') }}?v={{ filemtime(public_path('css/icons.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ filemtime(public_path('css/responsive.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/account-menu.css') }}?v={{ filemtime(public_path('css/account-menu.css')) }}">
 </head>
 <body class="landing-page">
     @include('components.flash-messages')
@@ -64,8 +66,7 @@
                                     {{ Auth::user()->name }}<i class="fas fa-chevron-down"></i>
                                 </button>
                                 <div class="public-profile-menu" id="publicProfileMenu" aria-hidden="true">
-                                    <a href="{{ route('app.page', ['page' => 'settings']) }}" class="public-profile-item"><i data-lucide="settings" aria-hidden="true"></i> Settings</a>
-                                    <form method="POST" action="{{ route('logout') }}">@csrf<button class="public-profile-item public-logout" type="submit"><i data-lucide="log-out" aria-hidden="true"></i> Logout</button></form>
+                                    @include('components.account-menu-content')
                                 </div>
                             </div>
                         </div>
@@ -302,8 +303,8 @@
     </script>
 
     <script src="{{ asset('js/global.js') }}?v={{ filemtime(public_path('js/global.js')) }}" defer></script>
-    <script src="{{ asset('js/app.js') }}" defer></script>
-    <script src="{{ asset('js/rush.js') }}" defer></script>
+    <script src="{{ asset('js/app.js') }}?v={{ filemtime(public_path('js/app.js')) }}" defer></script>
+    <script src="{{ asset('js/rush.js') }}?v={{ filemtime(public_path('js/rush.js')) }}" defer></script>
     <script src="{{ asset('js/about.js') }}" defer></script>
     <script src="{{ asset('js/properties.js') }}?v={{ filemtime(public_path('js/properties.js')) }}" defer></script>
     <script src="{{ asset('js/agents.js') }}" defer></script>

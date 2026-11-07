@@ -1,7 +1,7 @@
 <nav class="notifications-list" aria-label="Notification list">
     @forelse ($notifications as $notification)
         <a class="notification-list-item notification-{{ $notification->type }} {{ $notification->read_at ? 'read' : 'unread' }} {{ (int) ($selectedNotification?->notification_id) === (int) $notification->notification_id ? 'active' : '' }}"
-           href="{{ route('notifications.index', ['selected' => $notification->notification_id]) }}"
+           href="{{ route('notifications.index', array_merge(request()->only('filter'), ['page' => $notifications->currentPage(), 'selected' => $notification->notification_id]), false) }}"
            @if ((int) ($selectedNotification?->notification_id) === (int) $notification->notification_id) aria-current="true" @endif>
             <span class="notification-page-icon">{{ $notification->type === 'message' ? 'M' : ($notification->type === 'team' ? 'T' : ($notification->appointment_proposal_id ? 'A' : 'L')) }}</span>
             <span class="notification-list-copy"><strong>{{ $notification->title }}</strong><small>{{ $notification->body }}</small><time>{{ $notification->created_at->diffForHumans() }}</time></span>

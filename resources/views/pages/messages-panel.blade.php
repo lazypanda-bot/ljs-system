@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @include('components.session-history-guard')
     <title>Messages</title>
     <link rel="stylesheet" href="{{ asset('css/global.css') }}?v={{ filemtime(public_path('css/global.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/messages.css') }}?v={{ filemtime(public_path('css/messages.css')) }}">
@@ -14,6 +15,7 @@
 </head>
 <body class="client-messages-embed">
     <main>@include('pages.message-workspace', ['panelMode' => true])</main>
+    <script src="{{ asset('js/split-view.js') }}?v={{ filemtime(public_path('js/split-view.js')) }}" defer></script>
     <script src="{{ asset('js/messages.js') }}?v={{ filemtime(public_path('js/messages.js')) }}" defer></script>
 </body>
 </html>

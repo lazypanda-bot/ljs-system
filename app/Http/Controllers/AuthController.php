@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\LoginVerificationMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -198,9 +199,11 @@ class AuthController extends Controller
         ]);
 
         try {
-            Mail::raw("Your LJS Realty verification code is {$code}. It expires in 10 minutes.", function ($message) use ($user) {
-                $message->to($user->email, $user->name)->subject('LJS Realty login verification code');
-            });
+            // Previous plain-text verification email retained for reference:
+            // Mail::raw("Your LJS Realty verification code is {$code}. It expires in 10 minutes.", function ($message) use ($user) {
+            //     $message->to($user->email, $user->name)->subject('LJS Realty login verification code');
+            // });
+            Mail::to($user->email, $user->name)->send(new LoginVerificationMail($code));
         } catch (\Throwable $exception) {
             Log::error('Login OTP could not be sent.', ['user_id' => $user->user_id, 'error' => $exception->getMessage()]);
             throw ValidationException::withMessages(['email' => 'We could not send your verification code. Please try again.']);

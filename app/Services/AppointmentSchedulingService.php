@@ -12,6 +12,17 @@ use Illuminate\Validation\ValidationException;
 
 class AppointmentSchedulingService
 {
+    /** @return array{starts: array<int, string>, ends: array<int, string>} */
+    public function blockingTimes(): array
+    {
+        $starts = array_values(config('appointments.daily_slots', []));
+        $ends = array_map(fn (string $time) => CarbonImmutable::createFromFormat('!H:i', $time, 'UTC')
+            ->addMinutes(max(1, (int) config('appointments.slot_duration_minutes', 60)))
+            ->format('H:i'), $starts);
+
+        return ['starts' => $starts, 'ends' => array_values(array_unique($ends))];
+    }
+
     /** @return array<int, array{value: string, label: string}> */
     public function availableSlots(
         PropertyAssign $assignment,
@@ -72,7 +83,11 @@ class AppointmentSchedulingService
 
                 $slots[] = [
                     'value' => $slotUtc->format('Y-m-d\TH:i:s\Z'),
-                    'label' => $slotUtc->setTimezone($clientZone)->format('g:i A'),
+                    // Previous start-only label:
+                    // 'label' => $slotUtc->setTimezone($clientZone)->format('g:i A'),
+                    'label' => $slotUtc->setTimezone($clientZone)->format('g:i A') . ' – '
+                        . $slotUtc->addMinutes(max(1, (int) config('appointments.slot_duration_minutes', 60)))
+                            ->setTimezone($clientZone)->format('g:i A'),
                     'local_time' => $slotUtc->setTimezone($clientZone)->format('H:i'),
                     'available' => $available,
                 ];

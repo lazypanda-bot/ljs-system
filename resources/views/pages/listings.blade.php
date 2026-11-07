@@ -15,7 +15,7 @@
 		];
 		$groupCounts = collect(array_keys($listingGroups))->mapWithKeys(fn ($group) => [$group => $myProperties->filter(fn ($property) => $property->listingGroup() === $group)->count()]);
 	@endphp
-	<div class="listings-management-container staff-page-surface">
+	<div data-page-context="properties" class="listings-management-container staff-page-surface">
 		<div class="listings-header staff-page-heading">
 			<div>
 				<h1>My Listings</h1>

@@ -544,3 +544,10 @@
     visibility: visible;
     opacity: 1;
 }
+/* Time selectors use the same spacing as the existing block-date inputs. */
+.block-date-dialog select{padding:10px;border:1px solid var(--color-border);border-radius:7px;background:var(--color-surface);color:var(--color-text);font:inherit}
+
+.block-date-dialog > p {
+    font-size: 12px;
+    line-height: 1.6;
+}

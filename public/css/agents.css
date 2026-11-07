@@ -1,7 +1,7 @@
 .top-agents-section {
     width: 100%;
     padding: 100px 20px 10px;
-    background: #f8fafc;
+    background: var(--color-body);
     margin-top: 0;
 }
 .top-agents-container {
@@ -59,7 +59,7 @@
 }
 
 .landing-page .home-professionals-section {
-    padding: 32px 20px 56px;
+    padding: 20px 20px 32px;
 }
 
 .home-professionals-section .top-agents-container {
@@ -169,7 +169,7 @@
 }
 .agents-directory-section {
     padding: 104px 20px 56px;
-    background: #f8fafc;
+    background: var(--color-body);
 }
 .agents-directory-container {
     max-width: 1400px;
@@ -423,7 +423,7 @@
     .agents-grid { grid-template-columns: 1fr; }
     .agent-search-toolbar { align-items: stretch; flex-direction: column; }
     .agent-search-btn { width: 100%; }
-    .landing-page .home-professionals-section { padding: 24px 12px 40px; }
+    .landing-page .home-professionals-section { padding: 12px 12px 24px; }
     .home-professionals-section .top-agents-container { padding: 16px; }
     .home-professionals-section .home-professionals-header { align-items: flex-start; gap: 10px; }
     .home-professionals-header h2 { font-size: 21px; }

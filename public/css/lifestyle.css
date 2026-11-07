@@ -1,7 +1,7 @@
 /* Lifestyle Match quiz + results */
 
 .lifestyle-page {
-    background-color: #f8fafc;
+    background-color: var(--color-body);
     padding: 110px 20px 80px 20px;
     font-family: system-ui, -apple-system, sans-serif;
     min-height: 90vh;

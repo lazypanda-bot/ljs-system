@@ -4,10 +4,18 @@ Laravel 12 application for property listings, professional profiles, appointment
 
 ## Requirements
 
-- PHP 8.2 or newer with the extensions required by Laravel and SQLite/MySQL
+- PHP 8.2.35+, 8.3.36+, 8.4.27+, or 8.5.12+ within the corresponding release branch, with the extensions required by Laravel and SQLite/MySQL
 - Composer 2
-- Node.js 20 or newer and npm
+- Node.js 24.22.1 LTS or newer within the 24.x branch and npm (also supports patched 22.x from 22.23.4 and 26.x from 26.12.1)
 - SQLite for a local setup, or MySQL for a hosted installation
+
+## Security updates before deployment
+
+The PHP minimum versions above include the October 21, 2026 fixes for CVE-2026-109618 and CVE-2026-109619. Update the PHP runtime serving web requests as well as the CLI and queue workers; Composer updates alone do not patch PHP. Restart the web server/PHP workers and queue workers after updating, and verify the serving PHP version in the hosting control panel. The official advisories are available at [PHP security announcements](https://www.php.net/) and [Node.js October 2026 security releases](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases).
+
+Set `session.upload_progress.enabled=0` in the serving PHP configuration and restart PHP workers, following PHP's October 23 session upload progress advisory. This is an additional precaution, not a replacement for the runtime update. Plan to move off PHP 8.2 before its security support ends on December 31, 2026.
+
+Install the committed dependency versions with `composer install --no-dev --optimize-autoloader` and `npm ci`, then run `npm run build` in the build environment. Run `composer audit --locked` and `npm audit` before release. The production web root must be `public/`, with `APP_ENV=production` and `APP_DEBUG=false`. Keep the Vite development server private; serve the compiled assets in production.
 
 ## Local setup
 

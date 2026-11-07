@@ -151,6 +151,13 @@ class UserController extends Controller
     {
         $this->authorizeAdmin();
 
+        // Previously authorizeAdmin() allowed an Admin to change any other user's status.
+        abort_if(
+            Auth::user()?->normalizedRole() === 'admin' && $user->normalizedRole() === 'lead_broker',
+            403,
+            'Only a Lead Broker can change a Lead Broker account status.'
+        );
+
         // Only the account status can be changed from the users list.
         $validated = $request->validate([
             'account_status' => 'required|in:Active,Inactive',

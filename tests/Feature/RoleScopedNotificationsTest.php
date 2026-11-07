@@ -49,13 +49,9 @@ class RoleScopedNotificationsTest extends TestCase
             ->assertOk()
             ->assertSee('class="ljs-pagination notification-pagination"', false)
             ->assertSee('aria-label="Next page"', false)
-            ->assertSeeInOrder([
-                'notification-pagination-pages is-desktop', '>7</a>', '>8</a>', '>9</a>', '>10</span>', '>11</a>', '>12</a>', '>13</a>', '>14</a>',
-                'notification-pagination-pages is-mobile', '>9</a>', '>10</span>', '>11</a>',
-            ], false)
-            ->assertSee('notification-page-current', false)
-            ->assertSee('href="/notifications?page=9"', false)
-            ->assertDontSee('href="http://', false)
+            ->assertSee('class="is-current pagination-desktop-only" aria-current="page">10</span>', false)
+            ->assertSee('class="is-current pagination-mobile-only" aria-current="page">10</span>', false)
+            ->assertSee('aria-label="Go to page 9"', false)
             ->assertDontSee('>15</a>', false)
             ->assertDontSee('Showing');
     }
@@ -79,7 +75,7 @@ class RoleScopedNotificationsTest extends TestCase
         $response = $this->actingAs($user)
             ->getJson(route('notifications.index', [
                 'selected' => $selectedNotification->notification_id,
-                'page' => 14,
+                'page' => 8,
                 'list_only' => 1,
             ]))
             ->assertOk()

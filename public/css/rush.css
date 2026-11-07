@@ -1,6 +1,6 @@
 .rush-properties-section {
-    padding: 64px 20px;
-    background-color: #f8fafc;
+    padding: 40px 20px 20px;
+    background-color: var(--color-body);
     font-family: system-ui, -apple-system, sans-serif;
 }
 
@@ -140,6 +140,20 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.featured-photo-track { display: flex; width: 100%; height: 100%; overflow: hidden; }
+.featured-photo-track > img { display: block; flex: 0 0 100%; min-width: 0; max-width: 100%; }
+.featured-photo-track > img:not(:first-child) { display: none; }
+.featured-photo-track:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+@media (max-width: 1024px) {
+    .featured-photo-track { overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; }
+    .featured-photo-track::-webkit-scrollbar { display: none; }
+    .featured-photo-track > img,
+    .featured-photo-track > img:not(:first-child) { display: block; scroll-snap-align: start; }
+    .featured-photo-track ~ .rush-badges,
+    .featured-photo-track ~ .rush-img-count,
+    .featured-photo-track ~ .rush-agent-overlay { pointer-events: none; }
 }
 
 .rush-badges {
@@ -348,7 +362,7 @@
 
 @media (max-width: 760px) {
     .rush-properties-section {
-        padding: 48px 16px;
+        padding: 28px 16px 12px;
     }
 
     .rush-container {

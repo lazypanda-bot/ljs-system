@@ -43,9 +43,11 @@ class MessageController extends Controller
                 });
             })
             ->when(in_array($request->query('type'), ['direct', 'team'], true), fn ($query) => $query->where('type', $request->query('type')))
-            ->when($request->query('status') === 'unread', fn ($query) => $query->whereHas('messages', function ($messages) use ($user) {
-                $messages->where('sender_id', '!=', $user->user_id)
-                    ->whereRaw('conversation_messages.created_at > COALESCE((SELECT last_read_at FROM conversation_participants WHERE conversation_participants.conversation_id = conversation_messages.conversation_id AND conversation_participants.user_id = ?), ?)', [$user->user_id, '1970-01-01 00:00:00']);
+            ->when($request->query('status') === 'unread', fn ($query) => $query->where(function ($unread) use ($user, $request) {
+                $unread->whereHas('messages', function ($messages) use ($user) {
+                    $messages->where('sender_id', '!=', $user->user_id)
+                        ->whereRaw('conversation_messages.created_at > COALESCE((SELECT last_read_at FROM conversation_participants WHERE conversation_participants.conversation_id = conversation_messages.conversation_id AND conversation_participants.user_id = ?), ?)', [$user->user_id, '1970-01-01 00:00:00']);
+                })->when($request->filled('conversation'), fn ($selected) => $selected->orWhere('conversations.conversation_id', $request->integer('conversation')));
             }))
             ->latest('updated_at')
             ->get();
@@ -56,6 +58,8 @@ class MessageController extends Controller
             : ($panelMode ? null : $conversations->first());
 
         if ($conversation) {
+            // Loading the full thread must not replace its latest-message preview in the list.
+            $conversation = clone $conversation;
             $conversation->unsetRelation('messages');
             $conversation->load(['messages.sender', 'participants.user']);
             $conversation->participants()->where('user_id', $user->user_id)->update(['last_read_at' => now()]);
@@ -353,30 +357,40 @@ class MessageController extends Controller
             'team' => $countNotifications(fn ($query) => $query->where('type', 'team')),
         ];
 
-        $notifications = AppNotification::visibleTo($user)
+        $selectedId = $request->integer('selected');
+        $selectedNotification = $selectedId
+            ? AppNotification::visibleTo($user)->with($relations)->whereKey($selectedId)->first()
+            : null;
+
+        $notificationsQuery = AppNotification::visibleTo($user)
             ->with($relations)
-            ->when($filter === 'unread', fn ($query) => $query->whereNull('read_at'))
+            ->when($filter === 'unread', fn ($query) => $query->where(fn ($unread) => $unread
+                ->whereNull('read_at')
+                ->when($selectedNotification, fn ($selected) => $selected->orWhere('app_notifications.notification_id', $selectedNotification->notification_id))))
             ->when($filter === 'appointments', fn ($query) => $query->where($appointmentScope))
             ->when($filter === 'messages', fn ($query) => $query->where('type', 'message'))
             ->when($filter === 'team', fn ($query) => $query->where('type', 'team'))
             ->latest()
-            ->orderByDesc('notification_id')
-            ->paginate(9)
-            ->appends($request->except(['list_only', 'page']));
+            ->orderByDesc('notification_id');
+
+        $page = max(1, $request->integer('page', 1));
+        if ($selectedNotification && ! $request->filled('page')) {
+            $position = (clone $notificationsQuery)->pluck('notification_id')->search($selectedId);
+            if ($position !== false) {
+                $page = intdiv($position, 9) + 1;
+            }
+        }
+        $notifications = $notificationsQuery->paginate(9, ['*'], 'page', $page)
+            ->appends($request->except(['list_only', 'page', 'selected']));
 
         if ($request->boolean('list_only')) {
             return response()->json([
                 'html' => view('pages.partials.notification-list', [
                     'notifications' => $notifications,
-                    'selectedNotification' => null,
+                    'selectedNotification' => $selectedNotification,
                 ])->render(),
             ]);
         }
-
-        $selectedId = request()->integer('selected');
-        $selectedNotification = $selectedId
-            ? AppNotification::visibleTo($user)->with($relations)->whereKey($selectedId)->first()
-            : null;
 
         if ($selectedNotification && ! $selectedNotification->read_at) {
             $selectedNotification->update(['read_at' => now()]);
@@ -444,12 +458,17 @@ class MessageController extends Controller
                 $participant->update(['hidden_at' => null]);
             }
             AppNotification::create(['user_id' => $recipientId, 'type' => 'message', 'title' => 'New message from ' . $sender->name, 'body' => str($body)->limit(120), 'url' => route('messages.inbox', ['conversation' => $conversation->conversation_id])]);
+            // Previous per-message email delivery retained for reference.
+            // Chat updates remain available in the in-app inbox and notifications.
+            /*
             if ($participant->user) {
+                $emailPreview = trim(preg_replace('~https?://\S+~iu', '', $body));
                 Mail::to($participant->user->email, $participant->user->name)->queue(new ActivityMail(
                     'New message from ' . $sender->name,
-                    str($body)->limit(120)->toString() . "\n\nOpen Messages in LJS Realty to reply."
+                    str($emailPreview)->limit(120)->toString() . "\n\nOpen Messages in LJS Realty to reply."
                 ));
             }
+            */
         });
     }
 

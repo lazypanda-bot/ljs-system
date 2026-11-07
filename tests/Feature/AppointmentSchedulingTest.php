@@ -77,7 +77,8 @@ class AppointmentSchedulingTest extends TestCase
 
         $slots = $service->availableSlots($firstAssignment, $clientStart->toDateString(), 'America/Los_Angeles');
         $this->assertSame($providerStart->format('Y-m-d\TH:i:s\Z'), $slots[0]['value']);
-        $this->assertSame('5:00 PM', $slots[0]['label']);
+        // Previous start-only label: $this->assertSame('5:00 PM', $slots[0]['label']);
+        $this->assertSame('5:00 PM – 6:00 PM', $slots[0]['label']);
 
         BlockedDate::create([
             'user_id' => $professional->user_id,
@@ -137,7 +138,103 @@ class AppointmentSchedulingTest extends TestCase
             ->assertOk()
             ->assertJsonPath('slots.0.value', $providerStart->format('Y-m-d\TH:i:s\Z'))
             ->assertJsonPath('slots.0.local_time', $clientStart->format('H:i'))
-            ->assertJsonPath('slots.0.label', '5:00 PM');
+            // Previous start-only label: ->assertJsonPath('slots.0.label', '5:00 PM');
+            ->assertJsonPath('slots.0.label', '5:00 PM – 6:00 PM');
+    }
+
+    public function test_expired_proposal_shows_why_acceptance_fails(): void
+    {
+        Mail::fake();
+        $owner = User::factory()->create(['role_name' => 'Agent']);
+        $client = User::factory()->create(['role_name' => 'Client']);
+        [, $assignment] = $this->createAssignment($owner, 'Expired proposal home');
+        $start = CarbonImmutable::parse('2030-01-10 10:00', 'Asia/Manila')->utc();
+        $appointment = $this->createAppointment($assignment, $client, $start);
+        $proposal = $appointment->proposals()->create([
+            'proposed_by_user_id' => $client->user_id,
+            'starts_at_utc' => $start->addHour(),
+            'preferred_date' => '2030-01-10', 'preferred_time' => '11:00',
+            'timezone' => 'Asia/Manila', 'status' => 'Pending',
+        ]);
+        $this->travelTo($start->addHours(2));
+        $url = route('appointments.index', ['selected' => $appointment->appointment_id]);
+        $this->actingAs($owner)->from($url)
+            ->patch(route('appointments.proposals.respond', $proposal), [
+                'decision' => 'Accepted', 'response_proposal_id' => $proposal->proposal_id,
+            ])->assertSessionHasErrors('slot_start_utc');
+        $this->get($url)->assertOk()
+            ->assertSee('This proposed time has passed.')
+            ->assertSee('Choose a future appointment slot.')->assertSee('Decline');
+        $this->assertSame('Pending', $proposal->fresh()->status);
+        $this->assertTrue($appointment->fresh()->starts_at_utc->equalTo($start));
+        $this->patch(route('appointments.proposals.respond', $proposal), ['decision' => 'Rejected'])->assertRedirect();
+        $this->assertSame('Rejected', $proposal->fresh()->status);
+    }
+
+    public function test_ajax_proposal_returns_json_and_blocks_a_second_pending_proposal(): void
+    {
+        Mail::fake();
+        config(['appointments.daily_slots' => ['10:00', '11:00'], 'appointments.slot_capacity' => 1]);
+        $professional = User::factory()->create(['role_name' => 'Agent', 'timezone' => 'Asia/Manila']);
+        $client = User::factory()->create(['role_name' => 'Client', 'timezone' => 'Asia/Manila']);
+        [, $assignment] = $this->createAssignment($professional, 'AJAX proposal home');
+        $originalStart = CarbonImmutable::parse('2030-01-10 10:00', 'Asia/Manila')->utc();
+        $newStart = $originalStart->addHour();
+        $appointment = $this->createAppointment($assignment, $client, $originalStart, $client->timezone);
+        $payload = [
+            'preferred_date' => '2030-01-10',
+            'preferred_time' => '11:00',
+            'slot_start_utc' => $newStart->format('Y-m-d\TH:i:s\Z'),
+            'timezone' => $client->timezone,
+        ];
+
+        $this->actingAs($client)
+            ->postJson(route('appointments.proposals.store', $appointment), $payload)
+            ->assertCreated()
+            ->assertJsonPath('message', 'Your new appointment time was proposed.');
+
+        $this->postJson(route('appointments.proposals.store', $appointment), $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('preferred_time');
+
+        $this->assertSame(1, $appointment->proposals()->where('status', 'Pending')->count());
+        $this->assertTrue($appointment->fresh()->starts_at_utc->equalTo($originalStart));
+    }
+
+    public function test_assigned_roles_can_respond_in_appointments_but_monitoring_admin_cannot(): void
+    {
+        Mail::fake();
+        $client = User::factory()->create(['role_name' => 'Client']);
+        $monitor = User::factory()->create(['role_name' => 'Admin']);
+        $start = CarbonImmutable::parse('2030-01-10 10:00', 'Asia/Manila')->utc();
+
+        foreach (['Agent', 'Broker', 'Lead Broker', 'Admin'] as $role) {
+            $owner = User::factory()->create(['role_name' => $role]);
+            [$property, $assignment] = $this->createAssignment($owner, $role . ' proposal property');
+            if ($role === 'Admin') $property->update(['listing_mode' => 'admin']);
+            $appointment = $this->createAppointment($assignment, $client, $start);
+            $proposal = $appointment->proposals()->create([
+                'proposed_by_user_id' => $client->user_id,
+                'starts_at_utc' => $start->addHour(),
+                'preferred_date' => '2030-01-10',
+                'preferred_time' => '11:00',
+                'timezone' => 'Asia/Manila',
+                'status' => 'Pending',
+            ]);
+            $this->actingAs($owner);
+            if ($role === 'Lead Broker') session(['acting_as' => 'broker']);
+            $this->get(route('appointments.index', ['tab' => 'projects', 'selected' => $appointment->appointment_id]))
+                ->assertOk()->assertSee('>Accept</button>', false)->assertSee('Decline');
+
+            $this->actingAs($client)->get(route('appointments.index', ['selected' => $appointment->appointment_id]))
+                ->assertOk()->assertDontSee('name="decision"', false);
+
+            if ($role !== 'Admin') {
+                $this->actingAs($monitor)->get(route('appointments.index', ['tab' => 'monitoring', 'selected' => $appointment->appointment_id]))
+                    ->assertOk()->assertDontSee('name="decision"', false);
+                $this->patch(route('appointments.proposals.respond', $proposal), ['decision' => 'Accepted'])->assertForbidden();
+            }
+        }
     }
 
     public function test_client_can_propose_a_new_time_and_professional_can_accept_it(): void
@@ -181,18 +278,19 @@ class AppointmentSchedulingTest extends TestCase
             ->assertSee('Reschedule test home')
             ->assertSee('Proposed time')
             ->assertDontSee('Open related page')
-            ->assertDontSee('View appointment');
+            ->assertSee('View appointment');
 
         $this->actingAs($professional)
             ->get(route('notifications.index'))
             ->assertOk()
             ->assertSee('New appointment time proposal')
-            ->assertSee('Accept new time')
-            ->assertSee('Decline');
+            ->assertDontSee('name="decision"', false)
+            ->assertDontSee('name="decision"', false);
         $this->actingAs($professional)
             ->get(route('appointments.index'))
             ->assertOk()
-            ->assertDontSee('Accept new time');
+            ->assertSee('>Accept</button>', false)
+            ->assertSee('Decline');
 
         $proposal = $appointment->proposals()->firstOrFail();
         $this->actingAs($client)
@@ -245,11 +343,15 @@ class AppointmentSchedulingTest extends TestCase
         $this->actingAs($professional)
             ->get(route('notifications.index'))
             ->assertOk()
-            ->assertDontSee('Accept new time');
+            ->assertDontSee('name="decision"', false);
         $this->actingAs($client)
             ->get(route('notifications.index'))
             ->assertOk()
-            ->assertSee('Accept new time')
+            ->assertDontSee('name="decision"', false)
+            ->assertSee('View appointment');
+        $this->get(route('appointments.index', ['selected' => $appointment->appointment_id]))
+            ->assertOk()
+            ->assertSee('>Accept</button>', false)
             ->assertSee('Decline');
 
         $this->actingAs($professional)
@@ -533,6 +635,131 @@ class AppointmentSchedulingTest extends TestCase
         $this->assertSame(2, AppNotification::query()->where('title', 'Upcoming appointment')->count());
         $this->assertDatabaseCount('appointment_reminders', 2);
         Mail::assertQueued(ActivityMail::class, 2);
+    }
+
+    public function test_notification_link_opens_the_exact_appointment_for_each_role(): void
+    {
+        foreach (['Client', 'Agent', 'Broker', 'Lead Broker', 'Admin'] as $role) {
+            $client = User::factory()->create(['role_name' => 'Client']);
+            $owner = User::factory()->create(['role_name' => $role === 'Client' ? 'Agent' : $role]);
+            [$property, $assignment] = $this->createAssignment($owner, $role . ' notification target');
+            if ($role === 'Admin') {
+                $property->update(['listing_mode' => 'admin']);
+            }
+            $start = CarbonImmutable::now('UTC')->addDays(20)->setTime(9, 0);
+            $target = $this->createAppointment($assignment, $client, $start);
+            // Put the target beyond the first page in either sort direction.
+            for ($index = 1; $index <= 11; $index++) {
+                $offset = $role === 'Client' ? -$index : $index;
+                $this->createAppointment($assignment, $client, $start->addDays($offset));
+            }
+            $viewer = $role === 'Client' ? $client : $owner;
+            $notification = AppNotification::create([
+                'user_id' => $viewer->user_id,
+                'type' => 'appointment',
+                'audience' => 'personal',
+                'title' => 'Appointment update',
+                'body' => 'View this appointment.',
+                'appointment_id' => $target->appointment_id,
+            ]);
+            $this->actingAs($viewer)->withSession(['acting_as' => $role === 'Lead Broker' ? 'broker' : strtolower($role)]);
+            $parameters = ['selected' => $target->appointment_id];
+            if ($role === 'Admin') {
+                $parameters['tab'] = 'projects';
+            }
+            $url = route('appointments.index', $parameters, false) . '#appointment-' . $target->appointment_id;
+            $this->get(route('notifications.index', ['selected' => $notification->notification_id]))
+                ->assertOk()
+                ->assertSee('href="' . e($url) . '">View appointment</a>', false);
+            $response = $this->get($url)
+                ->assertOk()
+                ->assertSee('id="appointment-' . $target->appointment_id . '"', false);
+            if ($role === 'Client') {
+                $response->assertViewHas('appointments', fn ($appointments) => $appointments->count() === 2
+                    && $appointments->total() === 12 && $appointments->currentPage() === 3)
+                    ->assertViewHas('selectedAppointment', fn ($selected) => $selected?->is($target));
+            } else {
+                $response->assertViewHas('appointments', fn ($appointments) => $appointments->count() === 1
+                    && $appointments->first()->is($target));
+            }
+        }
+    }
+
+    public function test_notification_link_uses_the_monitoring_tab_for_admin_oversight(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $professional = User::factory()->create(['role_name' => 'Agent']);
+        $client = User::factory()->create(['role_name' => 'Client']);
+        [, $assignment] = $this->createAssignment($professional, 'Monitored notification target');
+        $target = $this->createAppointment($assignment, $client, CarbonImmutable::now('UTC')->addDays(5));
+        $notification = AppNotification::create([
+            'user_id' => $admin->user_id,
+            'type' => 'appointment',
+            'audience' => 'system',
+            'title' => 'New appointment request',
+            'body' => 'A client requested a viewing.',
+            'appointment_id' => $target->appointment_id,
+        ]);
+        $url = route('appointments.index', ['selected' => $target->appointment_id, 'tab' => 'monitoring'], false)
+            . '#appointment-' . $target->appointment_id;
+        $this->actingAs($admin)->get(route('notifications.index', ['selected' => $notification->notification_id]))
+            ->assertOk()
+            ->assertSee('href="' . e($url) . '">View appointment</a>', false);
+        $this->get($url)->assertOk()
+            ->assertViewHas('tab', 'monitoring')
+            ->assertViewHas('appointments', fn ($appointments) => $appointments->count() === 1
+                && $appointments->first()->is($target));
+    }
+
+    public function test_client_sidebar_selection_preserves_each_page_and_displays_the_clicked_appointment(): void
+    {
+        $professional = User::factory()->create(['role_name' => 'Agent']);
+        $client = User::factory()->create(['role_name' => 'Client']);
+        [, $assignment] = $this->createAssignment($professional, 'Sidebar selection home');
+        $start = CarbonImmutable::now('UTC')->addDays(10)->setTime(9, 0);
+        $appointments = collect();
+        for ($index = 0; $index < 7; $index++) {
+            $appointments->push($this->createAppointment($assignment, $client, $start->addDays($index)));
+        }
+        $this->actingAs($client);
+        foreach ([1 => $appointments[3], 2 => $appointments[6]] as $page => $target) {
+            $url = route('appointments.index', ['page' => $page, 'selected' => $target->appointment_id], false);
+            $this->get(route('appointments.index', ['page' => $page]))
+                ->assertOk()->assertSee(e($url), false);
+            $response = $this->get($url)->assertOk()
+                ->assertViewHas('appointments', fn ($items) => $items->total() === 7
+                    && $items->currentPage() === $page && $items->count() === ($page === 1 ? 5 : 2))
+                ->assertViewHas('selectedAppointment', fn ($selected) => $selected?->is($target))
+                ->assertSee('id="appointment-' . $target->appointment_id . '"', false)
+                ->assertDontSee('No appointments found.');
+
+            $document = new \DOMDocument;
+            $document->loadHTML($response->getContent(), LIBXML_NOERROR | LIBXML_NOWARNING);
+            $xpath = new \DOMXPath($document);
+            $items = $xpath->query('//a[contains(concat(" ", normalize-space(@class), " "), " appointment-master-item ")]');
+            $highlighted = $xpath->query('//a[contains(concat(" ", normalize-space(@class), " "), " appointment-master-item ") and contains(concat(" ", normalize-space(@class), " "), " active ")]');
+            $this->assertSame($page === 1 ? 5 : 2, $items->length);
+            $this->assertSame(1, $highlighted->length);
+            $this->assertSame('true', $highlighted->item(0)->getAttribute('aria-current'));
+            $this->assertSame($url, $highlighted->item(0)->getAttribute('href'));
+        }
+    }
+
+    public function test_client_cannot_select_another_clients_appointment(): void
+    {
+        $professional = User::factory()->create(['role_name' => 'Agent']);
+        $client = User::factory()->create(['role_name' => 'Client']);
+        $otherClient = User::factory()->create(['role_name' => 'Client']);
+        [, $ownAssignment] = $this->createAssignment($professional, 'Own sidebar home');
+        [, $privateAssignment] = $this->createAssignment($professional, 'Private sidebar home');
+        $start = CarbonImmutable::now('UTC')->addDays(10);
+        $own = $this->createAppointment($ownAssignment, $client, $start);
+        $private = $this->createAppointment($privateAssignment, $otherClient, $start);
+        $this->actingAs($client)->get(route('appointments.index', ['selected' => $private->appointment_id]))
+            ->assertOk()
+            ->assertViewHas('appointments', fn ($items) => $items->count() === 1 && $items->first()->is($own))
+            ->assertViewHas('selectedAppointment', null)
+            ->assertSee('Own sidebar home')->assertDontSee('Private sidebar home');
     }
 
     /** @return array{0: Property, 1: PropertyAssign} */

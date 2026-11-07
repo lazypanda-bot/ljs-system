@@ -1,6 +1,7 @@
 /* Shared date + time picker for appointment booking and time proposals; unavailable dates and times are greyed out and disabled. */
 window.LjsAvailability = {
     init({ dateInput, timeSelect, utcField, status, timezone, urlFor, ready = () => true, idleText = 'Choose a date first', readyText = 'Times are shown in your local time.' }) {
+        const events = new AbortController();
         const pad = (n) => String(n).padStart(2, '0');
         const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
         const todayIso = () => new Date().toLocaleDateString('en-CA', { timeZone: timezone() });
@@ -8,7 +9,10 @@ window.LjsAvailability = {
         const today = new Date(ty, tm - 1, td);
         const maxDate = new Date(ty, tm - 1, td + 44);
         let unavailable = new Set();
-        let datesLoaded = false;
+        // let datesLoaded = false;
+        let dateRequest = null;
+        let dateVersion = 0;
+        let slotVersion = 0;
         let view = new Date(ty, tm - 1, 1);
 
         dateInput.type = 'text';
@@ -72,6 +76,8 @@ window.LjsAvailability = {
         };
 
         const loadSlots = async () => {
+            const version = ++slotVersion;
+            const requestedDate = dateInput.value;
             utcField.value = '';
             if (!dateInput.value || !ready()) {
                 timeSelect.replaceChildren(new Option(idleText, ''));
@@ -81,12 +87,19 @@ window.LjsAvailability = {
             timeSelect.replaceChildren(new Option('Loading times…', ''));
             timeSelect.disabled = true;
             try {
-                const url = urlFor({ date: dateInput.value, withDates: false });
-                const response = await fetch(url, { headers: { Accept: 'application/json' } });
+                // Previous request used the live field value and did not refresh the calendar date state.
+                // const url = urlFor({ date: dateInput.value, withDates: false });
+                // const response = await fetch(url, { headers: { Accept: 'application/json' } });
+                const url = urlFor({ date: requestedDate, withDates: false });
+                const response = await fetch(url, { headers: { Accept: 'application/json' }, cache: 'no-store', signal: events.signal });
                 const data = await response.json();
+                if (version !== slotVersion || requestedDate !== dateInput.value) return;
                 if (!response.ok) throw new Error(data.message || 'Could not load available times.');
                 const slots = (data.all_slots || data.slots || []).map((slot) => ({ ...slot, available: Boolean(slot.available) }));
                 const open = slots.filter((slot) => slot.available).length;
+                if (open === 0) unavailable.add(requestedDate);
+                else unavailable.delete(requestedDate);
+                if (!pop.hidden) render();
                 const orderedSlots = [...slots.filter((slot) => slot.available), ...slots.filter((slot) => !slot.available)];
                 timeSelect.replaceChildren(new Option(open ? 'Select an available time' : 'No times available', ''));
                 orderedSlots.forEach((slot) => {
@@ -98,31 +111,42 @@ window.LjsAvailability = {
                 timeSelect.disabled = open === 0;
                 status.textContent = open ? readyText : 'No available times for this date. Choose another date.';
             } catch (error) {
+                if (error.name === 'AbortError' || version !== slotVersion || requestedDate !== dateInput.value) return;
                 timeSelect.replaceChildren(new Option('No times available', ''));
                 status.textContent = error.message;
             }
         };
 
-        const loadDates = async () => {
+        const loadDates = () => {
             if (!ready()) return;
-            try {
-                const url = urlFor({ date: todayIso(), withDates: true });
-                const response = await fetch(url, { headers: { Accept: 'application/json' } });
-                const data = await response.json();
-                if (response.ok && Array.isArray(data.unavailable_dates)) {
-                    unavailable = new Set(data.unavailable_dates);
-                    datesLoaded = true;
-                    if (dateInput.value && unavailable.has(dateInput.value)) {
-                        dateInput.value = '';
-                        loadSlots();
+            if (dateRequest) return dateRequest;
+            const version = ++dateVersion;
+            dateRequest = (async () => {
+                try {
+                    const url = urlFor({ date: todayIso(), withDates: true });
+                    // Previous request: const response = await fetch(url, { headers: { Accept: 'application/json' } });
+                    const response = await fetch(url, { headers: { Accept: 'application/json' }, cache: 'no-store', signal: events.signal });
+                    const data = await response.json();
+                    if (version !== dateVersion) return;
+                    if (response.ok && Array.isArray(data.unavailable_dates)) {
+                        unavailable = new Set(data.unavailable_dates);
+                        // Previous cache flag: datesLoaded = true;
+                        if (dateInput.value && unavailable.has(dateInput.value)) {
+                            dateInput.value = '';
+                            loadSlots();
+                            status.textContent = 'This date has no available slots. Choose another date.';
+                        }
+                        if (!pop.hidden) render();
                     }
-                    if (!pop.hidden) render();
-                }
-            } catch { /* calendar still blocks past dates; the server rejects bad slots */ }
+                } catch { /* calendar still blocks past dates; the server rejects bad slots */ }
+                finally { if (version === dateVersion) dateRequest = null; }
+            })();
+            return dateRequest;
         };
 
         const open = () => {
-            if (!datesLoaded) loadDates();
+            // Previous behavior fetched unavailable dates only once: if (!datesLoaded) loadDates();
+            loadDates();
             render();
             pop.hidden = false;
             requestAnimationFrame(positionPop);
@@ -151,18 +175,29 @@ window.LjsAvailability = {
         });
         document.addEventListener('click', (event) => {
             if (!host.contains(event.target) && !pop.contains(event.target)) pop.hidden = true;
-        });
+        }, { signal: events.signal });
         window.addEventListener('resize', () => {
             if (!pop.hidden) positionPop();
-        });
+        }, { signal: events.signal });
         window.addEventListener('scroll', () => {
             if (!pop.hidden) positionPop();
-        }, true);
+        }, { capture: true, signal: events.signal });
 
         timeSelect.addEventListener('change', () => {
             utcField.value = timeSelect.selectedOptions[0]?.dataset.slotUtc || '';
         });
 
-        return { reload: () => { datesLoaded = false; unavailable = new Set(); loadSlots(); }, loadSlots };
+        return {
+            // Previous reload: reload: () => { datesLoaded = false; unavailable = new Set(); loadSlots(); },
+            reload: () => {
+                dateVersion++;
+                dateRequest = null;
+                unavailable = new Set();
+                loadDates();
+                return loadSlots();
+            },
+            loadSlots,
+            destroy: () => { events.abort(); pop.remove(); },
+        };
     },
 };

@@ -7,7 +7,7 @@
 @endpush
 
 @section('content')
-    <div class="appointments-page appointments-split-page {{ auth()->user()?->normalizedRole() === 'client' ? 'appointments-client-page' : 'staff-page-surface' }}">
+    <div data-split-view="appointments" data-split-selected="{{ $selectedAppointment?->appointment_id }}" class="appointments-page appointments-split-page {{ auth()->user()?->normalizedRole() === 'client' ? 'appointments-client-page' : 'staff-page-surface' }}">
         <div class="appointments-page-header">
             <div>
                 <span>Schedule</span>
@@ -33,7 +33,7 @@
                     $statusClass = $appointment->displayStatusClass();
                 @endphp
                 <a class="appointment-master-item {{ (int) ($selectedAppointment?->appointment_id) === (int) $appointment->appointment_id ? 'active' : '' }}"
-                   href="{{ route('appointments.index', array_merge(request()->except('selected'), ['selected' => $appointment->appointment_id])) }}"
+                   href="{{ route('appointments.index', array_merge(request()->only('status'), ['page' => $appointments->currentPage(), 'selected' => $appointment->appointment_id]), false) }}"
                    @if ((int) ($selectedAppointment?->appointment_id) === (int) $appointment->appointment_id) aria-current="true" @endif>
                     <span class="appointment-date"><strong>{{ $appointmentStart->format('d') }}</strong><span>{{ $appointmentStart->format('M Y') }}</span></span>
                     <span class="appointment-master-copy">
@@ -48,7 +48,7 @@
                 {{ $appointments->links('pagination.ljs') }}
             </div>
 
-            <section class="appointment-detail-panel" aria-live="polite" aria-label="Appointment details">
+            <section class="appointment-detail-panel" @if ($selectedAppointment) id="appointment-{{ $selectedAppointment->appointment_id }}" @endif aria-live="polite" aria-label="Appointment details">
                 @if ($selectedAppointment)
                     @php
                         $viewer = auth()->user();
@@ -76,14 +76,7 @@
                     </dl>
 
                     @if ($pendingProposal)
-                        <div class="appointment-pending-proposal">
-                            <strong>A time proposal is pending.</strong>
-                            @if ($proposalNotification)
-                                <a href="{{ route('notifications.index', ['selected' => $proposalNotification->notification_id]) }}">Review it in Notifications</a>
-                            @else
-                                <a href="{{ route('notifications.index') }}">Review it in Notifications</a>
-                            @endif
-                        </div>
+                        @include('pages.partials.appointment-proposal', ['appointment' => $selectedAppointment])
                     @endif
 
                     <div class="appointment-detail-actions">
@@ -116,6 +109,7 @@
                             <details class="appointment-propose-time">
                                 <summary>Propose a new time</summary>
                                 <p class="appointment-propose-note">The other participant must accept; the scheduled time stays unchanged until then.</p>
+                                @include('components.appointment-hours')
                                 <form method="POST" action="{{ route('appointments.proposals.store', $selectedAppointment) }}" data-proposal-availability-url="{{ route('appointments.proposals.availability', $selectedAppointment) }}">
                                     @csrf
                                     <label>New date<input type="date" name="preferred_date" min="{{ now($viewerTimezone)->toDateString() }}" required></label>
@@ -155,6 +149,7 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/split-view.js') }}?v={{ filemtime(public_path('js/split-view.js')) }}" defer></script>
     <script src="{{ asset('js/availability-picker.js') }}?v={{ filemtime(public_path('js/availability-picker.js')) }}" defer></script>
     <script src="{{ asset('js/appointment-proposals.js') }}?v={{ filemtime(public_path('js/appointment-proposals.js')) }}" defer></script>
     <script src="{{ asset('js/appointment-cancel.js') }}?v={{ filemtime(public_path('js/appointment-cancel.js')) }}" defer></script>

@@ -102,8 +102,8 @@
 .settings-form { max-width: 900px; }
 .settings-profile-layout { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 2rem; align-items: start; }
 .settings-avatar-editor { display: grid; justify-items: center; gap: 0.65rem; }
-.settings-avatar-preview { position: relative; display: grid; width: 144px; height: 144px; place-items: center; overflow: visible; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-primary-soft); color: var(--color-primary); font-size: 42px; font-weight: 800; }
-.settings-avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.settings-avatar-preview { position: relative; display: grid; box-sizing: border-box; width: 144px; height: 144px; aspect-ratio: 1; place-items: center; overflow: hidden; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-primary-soft); color: var(--color-primary); font-size: 42px; font-weight: 800; }
+.settings-avatar-preview img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: cover; object-position: center; }
 .settings-avatar-preview > img { border-radius: inherit; }
 .settings-avatar-edit { min-height: 32px; padding: 0.35rem 0.9rem; border: 1px solid #2563eb; border-radius: 6px; background: #fff; color: #2563eb; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: background-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease; }
 .settings-avatar-edit:hover { background: #2563eb; color: #fff; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }

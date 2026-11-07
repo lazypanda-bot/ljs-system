@@ -42,7 +42,9 @@ class ReferralContactWorkflowTest extends TestCase
         ]);
         $this->assertDatabaseMissing('conversation_participants', ['user_id' => $referralOwner->user_id]);
         $this->assertDatabaseMissing('conversation_participants', ['user_id' => $otherProfessional->user_id]);
-        Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->subjectLine === 'New message from ' . $client->name);
+        // Previous per-message email expectation:
+        // Mail::assertQueued(ActivityMail::class, fn (ActivityMail $mail) => $mail->subjectLine === 'New message from ' . $client->name);
+        Mail::assertNothingQueued();
     }
 
     public function test_admin_listing_ignores_selected_message_recipient(): void

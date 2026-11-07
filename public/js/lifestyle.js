@@ -7,7 +7,9 @@
     var STEPS = [
         {
             key: 'lifestyle',
-            type: 'single',
+            type: 'multi',
+            maxSelections: 4,
+            required: true,
             title: 'Which lifestyle best describes you?',
             subtitle: 'This helps us understand what environment suits you best.',
             options: [
@@ -21,7 +23,9 @@
         },
         {
             key: 'location',
-            type: 'single',
+            type: 'multi',
+            maxSelections: 4,
+            required: true,
             title: 'Where do you prefer to live?',
             subtitle: 'Pick the setting that feels most like home.',
             options: [
@@ -72,6 +76,7 @@
         {
             key: 'must_haves',
             type: 'multi',
+            maxSelections: 7,
             title: 'What features are important?',
             subtitle: 'Select any that matter to you (optional).',
             options: [
@@ -86,6 +91,7 @@
         {
             key: 'amenities',
             type: 'multi',
+            maxSelections: 7,
             title: 'What amenities do you prefer?',
             subtitle: 'Select any that matter to you (optional).',
             options: [
@@ -135,8 +141,8 @@
     var state = {
         step: 0,
         answers: {
-            lifestyle: null,
-            location: null,
+            lifestyle: [],
+            location: [],
             property_type: null,
             budget: null,
             household: null,
@@ -186,10 +192,11 @@
         return state.answers[key].indexOf(value) !== -1;
     }
 
-    function toggleMulti(key, value) {
-        var list = state.answers[key];
+    function toggleMulti(step, value) {
+        var list = state.answers[step.key];
         var index = list.indexOf(value);
         if (index === -1) {
+            if (list.length >= step.maxSelections) return;
             list.push(value);
         } else {
             list.splice(index, 1);
@@ -209,7 +216,10 @@
                 var display;
 
                 if (Array.isArray(answer)) {
-                    display = answer.length ? answer.join(', ') : 'None selected';
+                    display = answer.length ? answer.map(function (value) {
+                        var matched = s.options.find(function (option) { return option.value === value; });
+                        return matched ? matched.label : value;
+                    }).join(', ') : 'None selected';
                 } else if (answer) {
                     var matched = s.options.filter(function (o) { return o.value === answer; })[0];
                     display = matched ? matched.label : answer;
@@ -244,6 +254,10 @@
             if (selected) {
                 card.classList.add('is-selected');
             }
+            card.setAttribute('aria-pressed', String(selected));
+            if (step.type === 'multi') {
+                card.disabled = !selected && state.answers[step.key].length >= step.maxSelections;
+            }
 
             var check = document.createElement('span');
             check.className = 'lifestyle-option-check';
@@ -268,7 +282,7 @@
 
             card.addEventListener('click', function () {
                 if (step.type === 'multi') {
-                    toggleMulti(step.key, option.value);
+                    toggleMulti(step, option.value);
                 } else {
                     state.answers[step.key] = option.value;
                 }
@@ -291,6 +305,9 @@
         if (step.type === 'single') {
             return !!state.answers[step.key];
         }
+        if (step.type === 'multi' && step.required) {
+            return state.answers[step.key].length > 0;
+        }
         return true;
     }
 
@@ -303,6 +320,9 @@
         eyebrow.textContent = step.type === 'summary' ? 'Almost there' : 'Question ' + (state.step + 1) + ' of ' + (STEPS.length - 1);
         titleEl.textContent = step.title;
         subtitleEl.textContent = step.subtitle;
+        if (step.type === 'multi') {
+            subtitleEl.textContent += ' Choose up to ' + step.maxSelections + ' (' + state.answers[step.key].length + ' selected).';
+        }
 
         renderOptions(step);
 
@@ -445,8 +465,8 @@
         state = {
             step: 0,
             answers: {
-                lifestyle: null,
-                location: null,
+                lifestyle: [],
+                location: [],
                 property_type: null,
                 budget: null,
                 household: null,

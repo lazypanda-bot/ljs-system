@@ -3,7 +3,7 @@
 @section('title', 'Admin Property')
 
 @section('content')
-    <div class="listings-management-container staff-page-surface">
+    <div data-page-context="properties" class="listings-management-container staff-page-surface">
         <div class="staff-property-admin-header">
             <div><h2>Property inventory</h2><p>Review submissions and manage listing status.</p></div>
         </div>

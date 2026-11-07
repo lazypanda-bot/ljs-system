@@ -48,14 +48,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.key === 'Escape' && activeModal) closeModal(activeModal);
     });
 
-    document.querySelectorAll('[data-proposal-availability-url]').forEach((form) => {
+    const initializeForms = (scope = document) => scope.querySelectorAll('[data-proposal-availability-url]').forEach((form) => {
+        if (form.dataset.proposalInitialized) return;
+        form.dataset.proposalInitialized = 'true';
         const date = form.querySelector('[name="preferred_date"]');
         const time = form.querySelector('[name="preferred_time"]');
         const utcSlot = form.querySelector('[name="slot_start_utc"]');
         const timezone = form.querySelector('[name="timezone"]');
         const status = form.querySelector('.appointment-slots-status');
 
-        window.LjsAvailability.init({
+        form._availability = window.LjsAvailability.init({
             dateInput: date,
             timeSelect: time,
             utcField: utcSlot,
@@ -70,15 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
             },
         });
 
-        // form.addEventListener('submit', (event) => {
-        //     if (!utcSlot.value) {
-        //         event.preventDefault();
-        //         status.textContent = 'Choose an available date and time before sending the proposal.';
-        //         date.focus();
-        //     }
-        // });
+        let submitting = false;
         form.addEventListener('submit', async (event) => {
+            // The shared confirmation handler cancels the first submit event.
+            if (event.defaultPrevented) return;
             event.preventDefault();
+            if (submitting) return;
 
             if (!utcSlot.value) {
                 status.textContent = 'Choose an available date and time before sending the proposal.';
@@ -89,6 +88,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             status.textContent = 'Sending proposal...';
             status.style.color = 'inherit';
+            submitting = true;
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) submitButton.disabled = true;
 
             try {
                 const response = await fetch(form.action, {
@@ -119,7 +121,16 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 status.textContent = error.message;
                 status.style.color = '#ef4444';
+            } finally {
+                submitting = false;
+                delete form.dataset.confirmed;
+                if (submitButton) submitButton.disabled = false;
             }
         });
     });
+    initializeForms();
+    document.addEventListener('ljs:split-before-update', (event) => {
+        event.target.querySelectorAll('[data-proposal-availability-url]').forEach((form) => form._availability?.destroy());
+    });
+    document.addEventListener('ljs:split-updated', (event) => initializeForms(event.detail.panel));
 });

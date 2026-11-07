@@ -1,6 +1,6 @@
 :root {
     /* Shared application color tokens */
-    --color-body: #f7fafc;
+    --color-body: #eef3f8;
     --color-surface: #ffffff;
     --color-border: #d4d9e6;
     --color-text: #0f172a;
@@ -83,7 +83,7 @@ body {
     border-radius: 16px;
     background: var(--color-surface);
     box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
-    text-align: center;
+    text-align: left;
 }
 .action-confirm-dialog h2 {
     margin: 0 0 8px;
@@ -97,7 +97,7 @@ body {
 }
 .action-confirm-actions {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 10px;
 }
 .action-confirm-actions button {

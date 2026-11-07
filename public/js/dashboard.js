@@ -121,3 +121,22 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+// Block only complete viewing intervals; blank start/end means the whole day.
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.querySelector('.block-date-dialog');
+    const start = form?.querySelector('[name="start_time"]');
+    const end = form?.querySelector('[name="end_time"]');
+    if (!start || !end) return;
+    const updateTimes = () => {
+        [...end.options].forEach((option) => {
+            option.disabled = Boolean(option.value && start.value && option.value <= start.value);
+        });
+        if (end.selectedOptions[0]?.disabled) end.value = '';
+        start.required = Boolean(end.value);
+        end.required = Boolean(start.value);
+    };
+    start.addEventListener('change', updateTimes);
+    end.addEventListener('change', updateTimes);
+    form.addEventListener('reset', () => queueMicrotask(updateTimes));
+    updateTimes();
+});

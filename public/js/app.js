@@ -7,9 +7,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const map = L.map('propertyMap', {
         zoomControl: false,
         maxZoom: 22,
+        dragging: true,
+        touchZoom: true,
+        scrollWheelZoom: true,
+        tapHold: false,
     }).setView([10.3157, 123.8854], 11);
-
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
     const searchInput = document.getElementById('mapSearchInput');
     const searchButton = document.getElementById('mapSearchButton');

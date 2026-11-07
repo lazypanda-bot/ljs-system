@@ -78,25 +78,7 @@
                     </button>
 
                     <div id="profileMenu" class="profile-menu" aria-hidden="true">
-                        <div class="profile-menu-header">
-                            <div class="avatar role-{{ Auth::user()->normalizedRole() }}">
-                                @if (Auth::user()->profile_photo)
-                                    <img src="{{ str_starts_with(Auth::user()->profile_photo, 'http') ? Auth::user()->profile_photo : asset('storage/' . Auth::user()->profile_photo) }}" alt="">
-                                @else
-                                    {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
-                                @endif
-                            </div>
-                            <div>
-                                <div class="profile-menu-title">{{ Auth::user()->name ?? 'User' }}</div>
-                                <div class="profile-menu-subtitle">{{ Auth::user()->email ?? '' }}</div>
-                            </div>
-                        </div>
-
-                        <a href="{{ route('app.page', ['page' => 'settings']) }}" class="profile-menu-item"><i data-lucide="settings" aria-hidden="true"></i> Settings</a>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="profile-menu-item profile-menu-logout"><i data-lucide="log-out" aria-hidden="true"></i> Logout</button>
-                        </form>
+                        @include('components.account-menu-content')
                     </div>
                 </div>
             @endauth

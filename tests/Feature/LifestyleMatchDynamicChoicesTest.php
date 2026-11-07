@@ -40,6 +40,33 @@ class LifestyleMatchDynamicChoicesTest extends TestCase
             ->assertJsonPath('matchScore', 100);
     }
 
+    public function test_multiple_lifestyles_and_locations_match_and_show_readable_preferences(): void
+    {
+        $owner = User::factory()->create(['role_name' => 'Agent']);
+        $property = $this->makeProperty($owner, 'nature_lover', 'quiet_suburb');
+
+        $this->postJson(route('lifestyle.match.results'), [
+            'lifestyle' => ['city_explorer', 'nature_lover', 'family_oriented', 'peace_seeker'],
+            'location' => ['city_center', 'quiet_suburb', 'near_coast', 'countryside'],
+        ])->assertOk()
+            ->assertJsonPath('matches.0.id', $property->property_id)
+            ->assertJsonPath('matchScore', 100)
+            ->assertJsonPath('preferences.lifestyle', 'City Explorer, Nature Lover, Family Oriented, Peace Seeker')
+            ->assertJsonPath('preferences.location', 'City Center, Quiet Suburb, Near the Coast, Countryside');
+    }
+
+    public function test_quiz_rejects_choices_above_each_selection_limit(): void
+    {
+        foreach (['lifestyle' => 4, 'location' => 4, 'must_haves' => 7, 'amenities' => 7] as $key => $limit) {
+            $choices = array_map(fn (int $index) => 'Choice ' . $index, range(1, $limit + 1));
+            $this->postJson(route('lifestyle.match.results'), [$key => $choices])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors($key);
+            array_pop($choices);
+            $this->postJson(route('lifestyle.match.results'), [$key => $choices])->assertOk();
+        }
+    }
+
     private function makeProperty(User $owner, string $lifestyle, string $location): Property
     {
         return Property::create([

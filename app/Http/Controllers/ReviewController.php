@@ -58,7 +58,7 @@ class ReviewController extends Controller
         $search = trim($request->string('q')->toString());
         $rating = $request->integer('rating');
         $professionalFilter = $request->string('professional')->toString();
-        $roleGroups = ['all-agents' => ['Agent'], 'all-brokers' => ['Broker', 'Lead Broker']];
+        $roleGroups = ['all-agents' => ['Agent'], 'all-brokers' => ['Broker'], 'all-lead-brokers' => ['Lead Broker']];
         $professionalId = ctype_digit($professionalFilter) ? (int) $professionalFilter : 0;
 
         $reviews = Review::with(['reviewer', 'reviewedUser', 'user', 'property'])

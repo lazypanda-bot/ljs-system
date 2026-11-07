@@ -252,9 +252,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!updatedTable) throw new Error('User table was not returned.');
 
             usersTable.innerHTML = updatedTable.innerHTML;
-            usersTable.querySelectorAll('select[data-auto-submit]').forEach((control) => {
-                control.addEventListener('change', () => control.form?.requestSubmit());
-            });
+            // Previous local bindings duplicated the delegated handler in global.js:
+            // usersTable.querySelectorAll('select[data-auto-submit]').forEach((control) => {
+            //     control.addEventListener('change', () => control.form?.requestSubmit());
+            // });
             filterStaffRows();
             if (updateHistory) window.history.pushState({}, '', relativeUrl);
         } catch (error) {

@@ -96,15 +96,24 @@ class LifestyleController extends Controller
 
     public function results(Request $request)
     {
+        // Keep older single-choice submissions compatible with the quiz.
+        foreach (['lifestyle', 'location'] as $key) {
+            if (is_string($request->input($key))) {
+                $request->merge([$key => [$request->input($key)]]);
+            }
+        }
+
         $answers = $request->validate([
-            'lifestyle'      => 'nullable|string',
-            'location'       => 'nullable|string',
+            'lifestyle'      => 'nullable|array|max:4',
+            'lifestyle.*'    => 'string|distinct',
+            'location'       => 'nullable|array|max:4',
+            'location.*'     => 'string|distinct',
             'property_type'  => 'nullable|string',
             'budget'         => 'nullable|string',
             'household'      => 'nullable|string',
-            'must_haves'     => 'nullable|array',
+            'must_haves'     => 'nullable|array|max:7',
             'must_haves.*'   => 'string',
-            'amenities'      => 'nullable|array',
+            'amenities'      => 'nullable|array|max:7',
             'amenities.*'    => 'string',
         ]);
 
@@ -155,7 +164,7 @@ class LifestyleController extends Controller
         // Lifestyle tag (25 pts)
         if (! empty($answers['lifestyle'])) {
             $possible += 25;
-            if (in_array($answers['lifestyle'], $this->storedTags($property->lifestyle_tag), true)) {
+            if (array_intersect($answers['lifestyle'], $this->storedTags($property->lifestyle_tag))) {
                 $earned += 25;
             }
         }
@@ -163,7 +172,7 @@ class LifestyleController extends Controller
         // Location tag (20 pts)
         if (! empty($answers['location'])) {
             $possible += 20;
-            if (in_array($answers['location'], $this->storedTags($property->location_tag), true)) {
+            if (array_intersect($answers['location'], $this->storedTags($property->location_tag))) {
                 $earned += 20;
             }
         }
@@ -250,10 +259,12 @@ class LifestyleController extends Controller
                 continue;
             }
 
-            $summary[$key] = self::PREFERENCE_LABELS[$key][$answers[$key]]
-                ?? (in_array($key, ['lifestyle', 'location'], true)
-                    ? Str::headline(str_replace('_', ' ', $answers[$key]))
-                    : $answers[$key]);
+            $summary[$key] = collect((array) $answers[$key])->map(fn (string $value) =>
+                self::PREFERENCE_LABELS[$key][$value]
+                    ?? (in_array($key, ['lifestyle', 'location'], true)
+                        ? Str::headline(str_replace('_', ' ', $value))
+                        : $value)
+            )->implode(', ');
         }
 
         if (! empty($answers['must_haves'])) {

@@ -1,4 +1,4 @@
-<div class="messaging-container {{ $isClient ? 'public-messaging' : '' }} {{ ($panelMode ?? false) ? 'client-messages-panel' : '' }} {{ $conversation && request()->filled('conversation') ? 'has-selected-thread' : '' }}">
+<div data-split-view="messages" data-split-selected="{{ $conversation?->conversation_id }}" class="messaging-container {{ $isClient ? 'public-messaging' : '' }} {{ ($panelMode ?? false) ? 'client-messages-panel' : '' }} {{ $conversation && request()->filled('conversation') ? 'has-selected-thread' : '' }}">
     <aside class="thread-list" aria-label="Conversations">
         <div class="thread-list-header"><span>Messages</span><button type="button" class="compose-message-btn" id="openComposeMessage" aria-label="Compose message"><i class="fas fa-pen" aria-hidden="true"></i><span>Compose</span></button></div>
         <form class="thread-filters" method="GET" action="{{ route('messages.inbox') }}" role="search">
@@ -16,16 +16,17 @@
                     $other = $item->type === 'team' ? null : $item->participants->first(fn ($participant) => $participant->user_id !== auth()->id());
                     $name = $item->type === 'team' ? ($item->team?->team_name ?? 'Team chat') : ($other?->user?->name ?? 'Direct message');
                     $role = $item->type === 'team' ? 'team' : ($other?->user?->normalizedRole() ?? 'user');
-                    $conversationUrl = ($panelMode ?? false)
-                        ? route('messages.inbox', ['conversation' => $item->conversation_id, 'panel' => 1])
-                        : route('messages.inbox', ['conversation' => $item->conversation_id]);
+                    $conversationUrl = route('messages.inbox', array_merge(request()->only(['q', 'type', 'status']), [
+                        'conversation' => $item->conversation_id,
+                        'panel' => ($panelMode ?? false) ? 1 : null,
+                    ]), false);
                     $removeConversationUrl = route('messages.conversations.delete', [
                         'conversation' => $item->conversation_id,
                         'panel' => ($panelMode ?? false) ? 1 : null,
                     ]);
                 @endphp
                 <div class="thread-entry role-{{ $role }} {{ $conversation?->conversation_id === $item->conversation_id ? 'active' : '' }}">
-                    <a href="{{ $conversationUrl }}" class="thread-item role-{{ $role }} {{ $conversation?->conversation_id === $item->conversation_id ? 'active' : '' }}">
+                    <a href="{{ $conversationUrl }}" class="thread-item role-{{ $role }} {{ $conversation?->conversation_id === $item->conversation_id ? 'active' : '' }}" @if ($conversation?->conversation_id === $item->conversation_id) aria-current="true" @endif>
                         <span class="thread-avatar role-{{ $role }}">{{ strtoupper(substr($name, 0, 1)) }}</span>
                         <div class="thread-info"><div class="thread-header"><span class="thread-name">{{ $name }}</span><span class="thread-time">{{ $lastMessage?->created_at?->diffForHumans(short: true) }}</span></div><div class="thread-snippet">{{ $snippet }}</div></div>
                     </a>
@@ -79,7 +80,7 @@
                     : route('messages.store', $conversation);
             @endphp
             <div class="chat-header">
-                <a class="thread-back" href="{{ route('messages.inbox', ['panel' => ($panelMode ?? false) ? 1 : null]) }}" aria-label="Back to conversations"><i data-lucide="arrow-left" aria-hidden="true"></i></a>
+                <a class="thread-back" href="{{ route('messages.inbox', array_merge(request()->only(['q', 'type', 'status']), ['panel' => ($panelMode ?? false) ? 1 : null]), false) }}" aria-label="Back to conversations"><i data-lucide="arrow-left" aria-hidden="true"></i></a>
                 <div class="chat-header-info"><h3>{{ $title }}</h3>@if ($conversation->type === 'team')<span>{{ $conversation->participants->count() }} participants</span>@endif</div>
             </div>
             <div class="chat-messages" data-last-message-id="{{ $conversation->messages->last()?->message_id ?? 0 }}" data-current-user-id="{{ auth()->id() }}">
@@ -122,8 +123,10 @@
             <form class="reply-box" method="POST" action="{{ $replyUrl }}" enctype="multipart/form-data">
                 @csrf
                 <label class="reply-attach-button" for="replyAttachment" title="Attach a file" aria-label="Attach a file"><i data-lucide="plus" aria-hidden="true"></i><input id="replyAttachment" name="attachment" type="file"></label>
-                <div class="reply-input-wrapper"><textarea class="reply-input" name="body" placeholder="Type a message..." rows="1" maxlength="4000" required></textarea></div>
-                <div class="reply-attachment-status" id="replyAttachmentStatus" aria-live="polite" hidden></div>
+                <div class="reply-input-wrapper">
+                    <div class="reply-attachment-status" id="replyAttachmentStatus" aria-live="polite" hidden></div>
+                    <textarea class="reply-input" name="body" placeholder="Type a message..." rows="1" maxlength="4000" required></textarea>
+                </div>
                 <button class="message-send-button" type="submit"><span>Send</span></button>
             </form>
         @else

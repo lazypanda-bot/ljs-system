@@ -23,12 +23,11 @@
     </section>
 
     <section class="map-search-section">
-        <div class="map-section-header">
-            <span class="map-section-tag">WHERE YOUR NEXT HOME BEGINS</span>
-            <h2>Find Your Perfect Property</h2>
-        </div>
-
         <div class="map-shell">
+            <div class="map-section-header">
+                <span class="map-section-tag">WHERE YOUR NEXT HOME BEGINS</span>
+                <h2>Find Your Perfect Property</h2>
+            </div>
             <div class="map-toolbar">
                 <div class="map-search-box">
                     <span><i class="fas fa-magnifying-glass" aria-hidden="true"></i></span>
@@ -102,7 +101,13 @@
                         <article class="rush-card rush-status-card-{{ $statusClass }}">
                             <!-- Image Container -->
                             <div class="rush-card-img-container">
-                                <img src="{{ $imageUrl }}" alt="{{ $item->property_name }}">
+                                <div class="featured-photo-track" data-featured-photos role="region" aria-label="{{ $item->property_name }} photos" tabindex="0">
+                                    @forelse ($item->images as $photo)
+                                        <img src="{{ asset('storage/' . $photo->image_path) }}" alt="{{ $item->property_name }} - photo {{ $loop->iteration }}" loading="lazy" draggable="false">
+                                    @empty
+                                        <img src="{{ $imageUrl }}" alt="{{ $item->property_name }}" loading="lazy" draggable="false">
+                                    @endforelse
+                                </div>
                                 
                                 <!-- Top Badges -->
                                 <div class="rush-badges">
@@ -112,7 +117,7 @@
 
                                 <!-- Favorite Button -->
                                 <!-- Image Counter -->
-                                <span class="rush-img-count">
+                                <span class="rush-img-count" data-featured-photo-count>
                                     1/{{ max(1, $item->images->count()) }}
                                 </span>
 

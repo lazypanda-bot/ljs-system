@@ -1,5 +1,5 @@
 body.auth-page {
-    background: linear-gradient(rgba(226, 238, 250, 0.62), rgba(226, 238, 250, 0.62)), url('../images/day.png') center / cover fixed;
+    background: var(--color-body, #eef3f8);
 }
 
 .login-container {

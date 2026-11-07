@@ -41,8 +41,13 @@
                             </td>
                             <td><span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-1">{{ $user->role_name }}</span></td>
                             <td>
+                                {{-- Previous self-only restriction retained for reference:
                                 @if ((int) $user->user_id === (int) auth()->id())
                                     <span class="badge rounded-pill px-3 py-1 bg-success-subtle text-success">{{ $user->account_status }}</span>
+                                --}}
+                                @php($protectedLeadBroker = auth()->user()?->normalizedRole() === 'admin' && $user->normalizedRole() === 'lead_broker')
+                                @if ((int) $user->user_id === (int) auth()->id() || $protectedLeadBroker)
+                                    <span class="badge rounded-pill px-3 py-1 {{ $user->account_status === 'Active' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' }}" @if ($protectedLeadBroker) title="Only a Lead Broker can change this account's status." @endif>{{ $user->account_status }}</span>
                                 @else
                                     <form method="POST" action="{{ route('admin.users.update', $user->user_id) }}" class="au-status-form">
                                         @csrf @method('PUT')

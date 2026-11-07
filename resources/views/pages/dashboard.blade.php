@@ -227,8 +227,23 @@
             <input type="hidden" name="timezone" value="{{ auth()->user()?->timezone ?? config('appointments.default_timezone') }}">
             <div class="block-date-dialog-header"><h2>Block a date</h2><button type="button" id="closeBlockDateModal" aria-label="Close">&times;</button></div>
             <label>Date<input type="date" name="date" min="{{ now()->toDateString() }}" required></label>
-            <label>Start time<input type="time" name="start_time"></label>
+            {{-- <label>Start time<input type="time" name="start_time"></label>
             <label>End time<input type="time" name="end_time"></label>
+            --}}
+            @php($blockingTimes = app(\App\Services\AppointmentSchedulingService::class)->blockingTimes())
+            <p>Viewing hours: 8:00 AM–12:00 PM and 1:00 PM–5:00 PM.<br>Lunch break: 12:00 PM–1:00 PM. <br>Leave both times blank to block the whole day.</p>
+            <label>Start time<select name="start_time">
+                <option value="">Whole day</option>
+                @foreach ($blockingTimes['starts'] as $time)
+                    <option value="{{ $time }}">{{ \Carbon\CarbonImmutable::createFromFormat('!H:i', $time)->format('g:i A') }}</option>
+                @endforeach
+            </select></label>
+            <label>End time<select name="end_time">
+                <option value="">Whole day</option>
+                @foreach ($blockingTimes['ends'] as $time)
+                    <option value="{{ $time }}">{{ \Carbon\CarbonImmutable::createFromFormat('!H:i', $time)->format('g:i A') }}</option>
+                @endforeach
+            </select></label>
             <label>Reason<input type="text" name="reason" placeholder="Personal appointment"></label>
             <button type="submit">Block date</button>
         </form>

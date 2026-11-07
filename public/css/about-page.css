@@ -4,6 +4,7 @@
     --about-green: var(--color-primary, #1f6cff);
     --about-line: #d9e3f3;
     color: var(--about-ink);
+    background: var(--color-surface);
 }
 
 .business-about-page .business-about-hero {
@@ -244,7 +245,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 .about-offer-section {
     padding-block: 72px;
     padding-inline: 0;
-    background: #ffffff;
+    background: var(--color-body);
 }
 
 .about-section-heading {
@@ -331,7 +332,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 
 .about-journey-section {
     padding-block: 72px;
-    background: linear-gradient(180deg, #edf4ff 0%, #f8fbff 100%);
+    background: #e4eefb;
     border-block: 1px solid #d9e3f3;
 }
 
@@ -391,7 +392,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 
 .about-trust-section {
     padding-block: 72px;
-    background: #fff;
+    background: var(--color-surface);
 }
 
 .about-trust-layout {
@@ -445,7 +446,7 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
 
 .about-professionals-section {
     padding-block: 72px;
-    background: #f8fbff;
+    background: #e8f0fa;
     border-top: 1px solid #d9e3f3;
 }
 

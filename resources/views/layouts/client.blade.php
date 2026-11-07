@@ -4,6 +4,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        @include('components.session-history-guard')
         <title>@yield('title', config('app.name', 'LJS Realty and Brokerage'))</title>
         <link rel="icon" type="image/png" href="{{ asset('images/ljs-logo.jpg') }}">
 
@@ -22,6 +23,7 @@
         @stack('styles')
         <link rel="stylesheet" href="{{ asset('css/icons.css') }}?v={{ filemtime(public_path('css/icons.css')) }}">
         <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ filemtime(public_path('css/responsive.css')) }}">
+        <link rel="stylesheet" href="{{ asset('css/account-menu.css') }}?v={{ filemtime(public_path('css/account-menu.css')) }}">
     </head>
     <body>
         @include('components.flash-messages')
@@ -46,6 +48,7 @@
         <script src="{{ asset('js/admin.js') }}" defer></script>
         <script src="{{ asset('js/addproperty.js') }}" defer></script>
 
+        <script src="{{ asset('js/page-context.js') }}?v={{ filemtime(public_path('js/page-context.js')) }}" defer></script>
         @stack('scripts')
     </body>
 </html>

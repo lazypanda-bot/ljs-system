@@ -3,7 +3,7 @@
 @section('title', 'Notifications')
 
 @section('content')
-    <div class="notifications-page {{ auth()->user()?->normalizedRole() === 'client' ? 'notifications-client-page' : 'staff-page-surface' }}" data-mobile-selected="{{ request()->filled('selected') && $selectedNotification ? 'true' : 'false' }}">
+    <div data-split-view="notifications" data-split-selected="{{ $selectedNotification?->notification_id }}" class="notifications-page {{ auth()->user()?->normalizedRole() === 'client' ? 'notifications-client-page' : 'staff-page-surface' }}" data-mobile-selected="{{ request()->filled('selected') && $selectedNotification ? 'true' : 'false' }}">
         @php
             $activeFilter = $filter ?? 'all';
             $filterOptions = [
@@ -37,18 +37,12 @@
             $appointment = $proposal?->appointment ?? $selected?->appointment;
             $viewer = auth()->user();
             $viewerTimezone = $viewer?->timezone ?? config('appointments.default_timezone');
-            $proposer = $proposal?->proposedBy;
-            $proposalProposerIsClient = $proposal && $appointment && $proposer
-                && $proposer->normalizedRole() === 'client'
-                && ((int) $appointment->client_id === (int) $proposer->user_id
-                    || ($appointment->client_id === null && strcasecmp($appointment->contact_email, $proposer->email) === 0));
-            $viewerIsAssignedProfessional = (int) $appointment?->assignment?->user_id === (int) $viewer?->user_id;
-            $viewerIsClient = $appointment && $viewer?->normalizedRole() === 'client'
-                && ((int) $appointment->client_id === (int) $viewer?->user_id
-                    || ($appointment->client_id === null && strcasecmp($appointment->contact_email, $viewer?->email ?? '') === 0));
-            $canRespondToProposal = $proposal?->status === 'Pending'
-                && (($proposalProposerIsClient && $viewerIsAssignedProfessional)
-                    || (! $proposalProposerIsClient && $viewerIsClient));
+            $appointmentUrl = $appointment ? route('appointments.index', array_merge(
+                ['selected' => $appointment->appointment_id],
+                $viewer?->actingRole() === 'admin'
+                    ? ['tab' => $appointment->assignment?->property?->listing_mode === 'admin' ? 'projects' : 'monitoring']
+                    : []
+            ), false) . '#appointment-' . $appointment->appointment_id : null;
             $appointmentStart = $appointment?->startInTimezone($viewerTimezone);
             $proposedStart = $proposal?->starts_at_utc?->setTimezone($viewerTimezone);
             $appointmentStatusLabel = $appointment?->displayStatus();
@@ -61,7 +55,7 @@
             <section class="notification-detail-panel" aria-live="polite" aria-label="Notification details">
                 @if ($selected)
                     <header class="notification-detail-header">
-                        {{-- <button type="button" class="notification-detail-back" data-close-notification-detail data-list-url="{{ route('notifications.index') }}" aria-label="Back to notifications"><i data-lucide="arrow-left" aria-hidden="true"></i><span>Notifications</span></button> --}}
+                        <a class="notification-detail-back" data-close-notification-detail href="{{ route('notifications.index', array_merge(request()->only('filter'), ['page' => $notifications->currentPage()]), false) }}" aria-label="Back to notifications"><i data-lucide="arrow-left" aria-hidden="true"></i><span>Notifications</span></a>
                         <span class="notification-detail-kicker">{{ $selected->type === 'listing' ? 'APPOINTMENT & LISTING' : strtoupper($selected->type) }}</span>
                         <h2>{{ $selected->title }}</h2>
                         <p>{{ $selected->body }}</p>
@@ -82,6 +76,7 @@
                                 @if ($appointment->additional_note)<div><dt>Notes</dt><dd>{{ $appointment->additional_note }}</dd></div>@endif
                                 @if ($appointment->cancellation_reason)<div><dt>Cancellation reason</dt><dd>{{ $appointment->cancellation_reason }}</dd></div>@endif
                             </dl>
+                            <a class="notification-appointment-link" href="{{ $appointmentUrl }}">View appointment</a>
                         </section>
                     @endif
 
@@ -92,14 +87,8 @@
                             <p class="notification-proposal-by">Proposed by {{ $proposal->proposedBy?->name ?? 'Appointment participant' }}</p>
                             @if ($proposal->message)<p>{{ $proposal->message }}</p>@endif
                             <span class="notification-proposal-status">Proposal {{ strtolower($proposal->status) }}</span>
-                            @if ($canRespondToProposal)
-                                <form method="POST" action="{{ route('appointments.proposals.respond', $proposal) }}" class="notification-proposal-actions">
-                                    @csrf @method('PATCH')
-                                    <button type="submit" name="decision" value="Accepted">Accept new time</button>
-                                    <button type="submit" name="decision" value="Rejected">Decline</button>
-                                </form>
-                            @elseif ($proposal->status === 'Pending')
-                                <p class="notification-proposal-pending">Waiting for the other participant to respond.</p>
+                            @if ($proposal->status === 'Pending')
+                                <p class="notification-proposal-pending">Reschedule awaiting a response in Appointments.</p>
                             @endif
                         </section>
                     @endif
@@ -118,94 +107,6 @@
 @endpush
 
 @push('scripts')
-<script>
-(function () {
-    const initializeNotifications = () => {
-        const page = document.querySelector('.notifications-page');
-        const list = page?.querySelector('.notifications-list');
-        if (!page || !list) return;
-        const filterToggle = page.querySelector('.notification-filter-menu-toggle');
-
-        const isMobile = window.matchMedia('(max-width: 768px)');
-        const setDetailMode = () => {
-            page.classList.toggle('mobile-detail-open', isMobile.matches && page.dataset.mobileSelected === 'true');
-        };
-        setDetailMode();
-        isMobile.addEventListener?.('change', setDetailMode);
-        filterToggle?.addEventListener('click', () => {
-            const open = !page.classList.contains('filters-open');
-            page.classList.toggle('filters-open', open);
-            filterToggle.setAttribute('aria-expanded', String(open));
-        });
-        document.querySelector('[data-close-notification-detail]')?.addEventListener('click', (event) => {
-            window.location.href = event.currentTarget.dataset.listUrl;
-        });
-
-        let activeRequest;
-        const loadNotificationPage = async (url, updateHistory = true) => {
-            activeRequest?.abort();
-            const request = new AbortController();
-            activeRequest = request;
-            list.setAttribute('aria-busy', 'true');
-            list.classList.add('is-loading');
-            list.querySelector('.notification-pagination-status').textContent = '';
-
-            const requestedUrl = new URL(url, window.location.href);
-            if (requestedUrl.hostname !== window.location.hostname) {
-                throw new Error('Pagination link points to another site.');
-            }
-            const relativeUrl = `${requestedUrl.pathname}${requestedUrl.search}${requestedUrl.hash}`;
-            const fetchUrl = new URL(relativeUrl, window.location.href);
-            fetchUrl.searchParams.set('list_only', '1');
-
-            try {
-                const response = await fetch(fetchUrl, {
-                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                    credentials: 'same-origin',
-                    signal: request.signal,
-                });
-                if (!response.ok) throw new Error(`Request failed (${response.status}).`);
-                const body = await response.text();
-                let html = body;
-                try {
-                    html = JSON.parse(body).html || body;
-                } catch {}
-                const template = document.createElement('template');
-                template.innerHTML = html;
-                const updatedList = template.content.querySelector('.notifications-list');
-                if (!updatedList) throw new Error('Notification list was not returned.');
-
-                list.innerHTML = updatedList.innerHTML;
-                if (updateHistory) window.history.pushState({}, '', relativeUrl);
-            } catch (error) {
-                if (error.name !== 'AbortError') {
-                    list.querySelector('.notification-pagination-status').textContent = `Unable to update notifications. ${error.message}`;
-                }
-            } finally {
-                if (activeRequest === request) {
-                    activeRequest = null;
-                    list.removeAttribute('aria-busy');
-                    list.classList.remove('is-loading');
-                }
-            }
-        };
-
-        document.addEventListener('click', (event) => {
-            const target = event.target instanceof Element ? event.target : event.target?.parentElement;
-            const link = target?.closest('.notification-pagination a');
-            if (!link || !list.contains(link)) return;
-            event.preventDefault();
-            loadNotificationPage(link.href);
-        });
-
-        window.addEventListener('popstate', () => loadNotificationPage(window.location.href, false));
-    };
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeNotifications, { once: true });
-    } else {
-        initializeNotifications();
-    }
-})();
-</script>
+    <script src="{{ asset('js/split-view.js') }}?v={{ filemtime(public_path('js/split-view.js')) }}" defer></script>
+    <script src="{{ asset('js/notifications.js') }}?v={{ filemtime(public_path('js/notifications.js')) }}" defer></script>
 @endpush

@@ -143,6 +143,37 @@ class AdminManagementPagesTest extends TestCase
         $this->actingAs($agent)->delete(route('admin.reviews.destroy', $keep))->assertForbidden();
     }
 
+    public function test_review_professional_filters_separate_agents_brokers_and_lead_brokers_for_admin_views(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $client = User::factory()->create(['role_name' => 'Client']);
+        $professionals = [];
+        foreach (['all-agents' => 'Agent', 'all-brokers' => 'Broker', 'all-lead-brokers' => 'Lead Broker'] as $filter => $role) {
+            $professional = User::factory()->create(['role_name' => $role]);
+            $professionals[$filter] = $professional;
+            Review::create([
+                'user_id' => $professional->user_id, 'reviewer_id' => $client->user_id,
+                'reviewed_user_id' => $professional->user_id, 'rating' => 5, 'review' => 'Review for '.$role,
+            ]);
+        }
+
+        foreach ([$admin, $professionals['all-lead-brokers']] as $viewer) {
+            $this->actingAs($viewer)->withSession(['acting_as' => 'admin']);
+            $this->get(route('app.page', ['page' => 'review']))->assertOk()
+                ->assertSee('All professionals')->assertSee('>Lead Brokers</option>', false)
+                ->assertDontSee('Agents only')->assertDontSee('Brokers only')->assertDontSee('<optgroup', false)
+                ->assertViewHas('reviews', fn ($reviews) => $reviews->total() === 3);
+            foreach ($professionals as $filter => $professional) {
+                $this->get(route('app.page', ['page' => 'review', 'professional' => $filter]))->assertOk()
+                    ->assertViewHas('reviews', fn ($reviews) => $reviews->total() === 1
+                        && (int) $reviews->first()->reviewed_user_id === (int) $professional->user_id);
+            }
+            $this->get(route('app.page', ['page' => 'review', 'professional' => $professionals['all-lead-brokers']->user_id]))
+                ->assertOk()->assertViewHas('reviews', fn ($reviews) => $reviews->total() === 1
+                    && (int) $reviews->first()->reviewed_user_id === (int) $professionals['all-lead-brokers']->user_id);
+        }
+    }
+
     public function test_new_user_is_emailed_role_email_and_initial_password_and_failed_adds_reopen_the_modal(): void
     {
         \Illuminate\Support\Facades\Mail::fake();

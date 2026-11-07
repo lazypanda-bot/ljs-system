@@ -7,7 +7,7 @@
 @endpush
 
 @section('content')
-    <div class="listings-management-container staff-page-surface au-page-card">
+    <div data-page-context="users" class="listings-management-container staff-page-surface au-page-card">
         @if ($errors->any())
             <div class="alert alert-danger" role="alert">
                 @foreach ($errors->all() as $error)
@@ -20,7 +20,8 @@
         @endif
         @php($userFailed = $errors->any() && old('role_name') !== null)
         @php($teamFailed = $errors->any() && old('role_name') === null && old('user_id') !== null && ! isset($team))
-        @php($showTeams = isset($team) || $teamFailed)
+        {{-- Previous default: @php($showTeams = isset($team) || $teamFailed) --}}
+        @php($showTeams = isset($team) || $teamFailed || request('tab') === 'teams')
         <header class="staff-property-admin-header">
             <div><h2>Staff management</h2><p>Manage staff accounts and teams.</p></div>
         </header>

@@ -72,12 +72,12 @@ class ClientNotificationSplitTest extends TestCase
             ->assertDontSee('publicNavigation', false);
     }
 
-    public function test_notifications_are_paginated_five_per_page_and_selection_stays_on_current_page(): void
+    public function test_notifications_are_paginated_nine_per_page_and_selection_stays_on_current_page(): void
     {
         $client = User::factory()->create(['role_name' => 'Client']);
         $notifications = collect();
 
-        for ($index = 1; $index <= 6; $index++) {
+        for ($index = 1; $index <= 10; $index++) {
             $notifications->push(AppNotification::create([
                 'user_id' => $client->user_id,
                 'type' => 'listing',
@@ -91,7 +91,7 @@ class ClientNotificationSplitTest extends TestCase
         $this->actingAs($client)
             ->get(route('notifications.index'))
             ->assertOk()
-            ->assertViewHas('notifications', fn ($page) => $page->perPage() === 5 && $page->count() === 5);
+            ->assertViewHas('notifications', fn ($page) => $page->perPage() === 9 && $page->count() === 9);
 
         $secondPage = $this->get(route('notifications.index', ['page' => 2]))
             ->assertOk()
