@@ -262,6 +262,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const loginModalOverlay = document.getElementById('loginModalOverlay');
+    const privacyPolicyModal = document.getElementById('privacyPolicyModal');
+    document.getElementById('authPrivacyLink')?.addEventListener('click', () => privacyPolicyModal?.showModal());
+    privacyPolicyModal?.querySelector('.privacy-policy-close')?.addEventListener('click', () => privacyPolicyModal.close());
     const loginModalClose = document.querySelector('.login-modal-close');
     const openLoginBtns = document.querySelectorAll('#openLoginModal, [data-open-login-modal]');
 

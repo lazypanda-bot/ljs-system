@@ -45,7 +45,7 @@
             <!-- Add New User Modal -->
             <div class="au-modal-overlay {{ $userFailed ? 'open' : '' }}" id="addUserModalOverlay">
                 {{-- @if ($errors->any())
-                    <div style="color: red; margin-bottom: 15px;">
+                    <div class="au-form-error-summary">
                         <ul>
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>

@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 .settings-page-wrapper {
     max-width: 1200px;
     margin: 0 auto;
@@ -257,21 +258,6 @@
 .settings-badge-rejected {
     background: #fee2e2;
     color: #b91c1c;
-}
-
-@media (max-width: 700px) {
-    .landing-page .settings-page-wrapper {
-        padding-top: 5.5rem;
-    }
-
-    .settings-form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .settings-profile-layout {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
 }
 
 .password-input-wrapper {

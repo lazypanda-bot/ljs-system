@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 /* Container Layout */
 .reviews-wrapper {
     padding: 24px;
@@ -297,8 +298,3 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 900px) {
-    .metrics-grid {
-        grid-template-columns: 1fr;
-    }
-}

@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 :root {
     /* Shared application color tokens */
     --color-body: #eef3f8;
@@ -182,9 +183,6 @@ body {
     from { opacity: 0; transform: translateX(18px); }
     to { opacity: 1; transform: translateX(0); }
 }
-@media (max-width: 600px) {
-    .flash-toast-stack { top: 12px; right: 12px; width: calc(100vw - 24px); }
-}
 .staff-page-surface {
     margin: 22px 24px;
     padding: 28px;
@@ -231,13 +229,3 @@ select:not([multiple]):not([size]) {
 .availability-day.is-selected{background:#2563eb;color:#fff}
 .availability-day.is-unavailable,.availability-day:disabled{background:#f1f5f9;color:#b6bfcc;text-decoration:line-through;cursor:not-allowed}
 select option:disabled{color:#9ca3af}
-
-@media (max-width: 768px) {
-    input:not([type="hidden"]),
-    textarea,
-    select,
-    [contenteditable="true"] {
-        scroll-margin-top: 24px;
-        scroll-margin-bottom: 160px;
-    }
-}

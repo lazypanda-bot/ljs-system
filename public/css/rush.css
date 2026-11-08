@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 .rush-properties-section {
     padding: 40px 20px 20px;
     background-color: var(--color-body);
@@ -146,15 +147,6 @@
 .featured-photo-track > img { display: block; flex: 0 0 100%; min-width: 0; max-width: 100%; }
 .featured-photo-track > img:not(:first-child) { display: none; }
 .featured-photo-track:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
-@media (max-width: 1024px) {
-    .featured-photo-track { overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; }
-    .featured-photo-track::-webkit-scrollbar { display: none; }
-    .featured-photo-track > img,
-    .featured-photo-track > img:not(:first-child) { display: block; scroll-snap-align: start; }
-    .featured-photo-track ~ .rush-badges,
-    .featured-photo-track ~ .rush-img-count,
-    .featured-photo-track ~ .rush-agent-overlay { pointer-events: none; }
-}
 
 .rush-badges {
     position: absolute;
@@ -352,56 +344,4 @@
 
 .dot.active {
     background: #2563eb;
-}
-
-@media (max-width: 1024px) {
-    .rush-property-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 760px) {
-    .rush-properties-section {
-        padding: 28px 16px 12px;
-    }
-
-    .rush-container {
-        padding: 16px;
-    }
-
-    .rush-property-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
-    }
-
-    .rush-card-img-container {
-        height: 170px;
-    }
-}
-
-@media (max-width: 520px) {
-    .rush-header.home-section-header {
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .rush-header.home-section-header h2 {
-        font-size: 1.5rem;
-    }
-
-    .home-section-link {
-        min-height: 36px;
-        padding-inline: 9px;
-        font-size: 12px;
-    }
-
-    .rush-property-grid {
-        grid-template-columns: minmax(0, 1fr);
-    }
-}
-@media (max-width: 1024px) {
-    .rush-property-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 14px; padding-bottom: 8px; }
-    .rush-property-grid .rush-card { flex: 0 0 min(280px, 78%); scroll-snap-align: start; }
-    .top-agents-track { justify-content: flex-start; overflow-x: auto; scroll-snap-type: x mandatory; }
-    .top-agents-track .agent-highlight-card { flex: 0 0 min(240px, 78%); width: auto; scroll-snap-align: start; }
 }

@@ -58,7 +58,7 @@
 			@foreach ($trend as $bucket)
 				<div class="report-trend-row"><time>{{ $bucket['label'] }}</time><div class="report-trend-bars" aria-label="{{ $bucket['inquiries'] }} inquiries, {{ $bucket['appointments'] }} appointments, {{ $bucket['completed'] }} completed, {{ $bucket['sold'] }} sold">
 					@foreach (['inquiries' => 'Inquiries', 'appointments' => 'Appointments', 'completed' => 'Completed', 'sold' => 'Sold'] as $key => $label)
-						<span class="trend-bar trend-{{ $key }}" title="{{ $label }}: {{ $bucket[$key] }}" style="--bar-size: {{ max(3, ($bucket[$key] / $trendMax) * 100) }}%"></span>
+						<span class="trend-bar trend-{{ $key }}" title="{{ $label }}: {{ $bucket[$key] }}" data-bar-size="{{ max(3, ($bucket[$key] / $trendMax) * 100) }}"></span>
 					@endforeach
 				</div><span class="report-trend-total">{{ array_sum(array_slice($bucket, 1)) }}</span></div>
 			@endforeach
@@ -111,4 +111,7 @@
 <link rel="stylesheet" href="{{ asset('css/staff-pages.css') }}?v={{ filemtime(public_path('css/staff-pages.css')) }}">
 <link rel="stylesheet" href="{{ asset('css/reports.css') }}?v={{ filemtime(public_path('css/reports.css')) }}">
 <link rel="stylesheet" href="{{ asset('css/report-chart.css') }}?v={{ filemtime(public_path('css/report-chart.css')) }}">
+@endpush
+@push('scripts')
+<script src="{{ asset('js/reports.js') }}?v={{ filemtime(public_path('js/reports.js')) }}" defer></script>
 @endpush

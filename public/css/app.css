@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -101,11 +102,6 @@ body {
 .map-shell > .map-section-header {
     margin-bottom: 0;
     padding: 32px 28px 8px;
-}
-@media (max-width: 520px) {
-    .map-shell > .map-section-header { padding: 24px 16px 4px; }
-    .map-shell > .map-section-header h2 { font-size: 24px; line-height: 1.25; }
-    .map-shell .map-section-tag { font-size: 11px; }
 }
 .map-toolbar {
     display: flex;
@@ -551,13 +547,6 @@ body.client-messages-open .floating-actions { z-index: 1302; }
     font-weight: 700;
     letter-spacing: 0;
 }
-@media (max-width: 520px) {
-    .hero-content { padding-left: 0; }
-    .hero-title { font-size: 32px; }
-}
-@media (max-width: 380px) {
-    .hero-title { font-size: 28px; }
-}
 .hero-subtitle {
     font-size: 18px;
     color: #374151;
@@ -592,11 +581,6 @@ body.client-messages-open .floating-actions { z-index: 1302; }
     50% { transform: scale(1.025); box-shadow: 0 5px 22px rgba(234, 120, 35, 0.38), 0 0 0 9px rgba(234, 120, 35, 0.16); }
     66% { transform: scale(1); box-shadow: 0 4px 16px rgba(34, 163, 82, 0.28), 0 0 0 2px rgba(34, 163, 82, 0.16); }
     83% { transform: scale(1.025); box-shadow: 0 5px 22px rgba(34, 163, 82, 0.38), 0 0 0 9px rgba(34, 163, 82, 0.16); }
-}
-@media (prefers-reduced-motion: reduce) {
-    .landing-page main .hero-section .hero-btn { animation: none; transition: none; }
-    .landing-page main .hero-section .hero-btn:hover,
-    .landing-page main .hero-section .hero-btn:focus-visible { transform: none; }
 }
 /* FOOTER */
 .site-footer {
@@ -835,8 +819,6 @@ body.client-messages-open .floating-actions { z-index: 1302; }
 .site-footer-full .footer-social-facebook:focus-visible { outline: 2px solid #1877f2; outline-offset: 3px; }
 .footer-social-messenger { background: linear-gradient(135deg, #0099ff, #a033ff); }
 .footer-social-link svg { width: 18px; height: 18px; }
-@media (max-width: 800px) { .site-footer-full .footer-grid { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 520px) { .site-footer-full .footer-grid { grid-template-columns: 1fr; } .site-footer-full .brand-col { align-items: flex-start; text-align: left; } }
 
 /* FOR TESTING ONLY. DELETE AFTER. */
 .test-login-form {

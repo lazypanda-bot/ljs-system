@@ -52,17 +52,30 @@ class AppointmentHoursAndEmailTest extends TestCase
             [$owner, , $assignment] = $this->listing($role);
             $date = now('Asia/Manila')->addDays(7)->toDateString();
             $this->actingAs($owner)->withSession(['acting_as' => $mode]);
-            $this->post(route('appointments.block-date'), ['date' => $date, 'start_time' => '08:00', 'end_time' => '09:00'])
+            $this->post(route('appointments.block-date'), ['date' => $date, 'time_slot' => 'morning'])
                 ->assertRedirect()->assertSessionHasNoErrors();
             $slots = app(AppointmentSchedulingService::class)->daySlots($assignment, $date, 'Asia/Manila');
             $this->assertFalse(collect($slots)->firstWhere('local_time', '08:00')['available']);
-            $this->assertTrue(collect($slots)->firstWhere('local_time', '09:00')['available']);
+            $this->assertFalse(collect($slots)->firstWhere('local_time', '11:00')['available']);
+            $this->assertTrue(collect($slots)->firstWhere('local_time', '13:00')['available']);
 
-            $wholeDay = now('Asia/Manila')->addDays(8)->toDateString();
-            $this->post(route('appointments.block-date'), ['date' => $wholeDay])->assertSessionHasNoErrors();
+            $afternoon = now('Asia/Manila')->addDays(8)->toDateString();
+            $this->post(route('appointments.block-date'), ['date' => $afternoon, 'time_slot' => 'afternoon'])
+                ->assertRedirect()->assertSessionHasNoErrors();
+            $afternoonSlots = app(AppointmentSchedulingService::class)->daySlots($assignment, $afternoon, 'Asia/Manila');
+            $this->assertTrue(collect($afternoonSlots)->firstWhere('local_time', '11:00')['available']);
+            $this->assertFalse(collect($afternoonSlots)->firstWhere('local_time', '13:00')['available']);
+            $this->assertFalse(collect($afternoonSlots)->firstWhere('local_time', '16:00')['available']);
+
+            $wholeDay = now('Asia/Manila')->addDays(9)->toDateString();
+            $this->post(route('appointments.block-date'), ['date' => $wholeDay, 'time_slot' => 'whole_day'])
+                ->assertRedirect()->assertSessionHasNoErrors();
             $this->assertSame([], app(AppointmentSchedulingService::class)->availableSlots($assignment, $wholeDay, 'Asia/Manila'));
             $this->get(route('app.page', ['page' => 'dashboard']))->assertOk()
-                ->assertSee('<select name="start_time">', false)->assertSee('<select name="end_time">', false)
+                ->assertSee('<select name="time_slot" required>', false)
+                ->assertSee('Morning (8:00 AM–12:00 PM)')
+                ->assertSee('Afternoon (1:00 PM–5:00 PM)')
+                ->assertDontSee('<select name="start_time">', false)->assertDontSee('<select name="end_time">', false)
                 ->assertSee('Lunch break: 12:00 PM–1:00 PM');
         }
     }

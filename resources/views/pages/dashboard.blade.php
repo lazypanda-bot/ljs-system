@@ -230,8 +230,13 @@
             {{-- <label>Start time<input type="time" name="start_time"></label>
             <label>End time<input type="time" name="end_time"></label>
             --}}
-            @php($blockingTimes = app(\App\Services\AppointmentSchedulingService::class)->blockingTimes())
-            <p>Viewing hours: 8:00 AM–12:00 PM and 1:00 PM–5:00 PM.<br>Lunch break: 12:00 PM–1:00 PM. <br>Leave both times blank to block the whole day.</p>
+            <p>Viewing hours: 8:00 AM–12:00 PM and 1:00 PM–5:00 PM.<br>Lunch break: 12:00 PM–1:00 PM. Choose a time slot or block the whole day.</p>
+            <label>Time slot<select name="time_slot" required>
+                <option value="whole_day">Whole day</option>
+                <option value="morning">Morning (8:00 AM–12:00 PM)</option>
+                <option value="afternoon">Afternoon (1:00 PM–5:00 PM)</option>
+            </select></label>
+            {{--
             <label>Start time<select name="start_time">
                 <option value="">Whole day</option>
                 @foreach ($blockingTimes['starts'] as $time)
@@ -244,6 +249,7 @@
                     <option value="{{ $time }}">{{ \Carbon\CarbonImmutable::createFromFormat('!H:i', $time)->format('g:i A') }}</option>
                 @endforeach
             </select></label>
+            --}}
             <label>Reason<input type="text" name="reason" placeholder="Personal appointment"></label>
             <button type="submit">Block date</button>
         </form>

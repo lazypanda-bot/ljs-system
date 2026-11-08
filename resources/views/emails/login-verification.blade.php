@@ -42,13 +42,13 @@
                     </tr>
                     <tr>
                         <td class="email-content" style="padding: 34px 36px 36px;">
-                            <p style="margin: 0 0 12px; color: #1f6cff; font-size: 11px; font-weight: 700; line-height: 18px; letter-spacing: 1.8px; text-transform: uppercase;">One more step</p>
-                            <h1 class="email-heading" style="margin: 0 0 16px; color: #172b42; font-family: Georgia, 'Times New Roman', serif; font-size: 34px; font-weight: 400; line-height: 1.2;">Your login code.</h1>
+                            {{-- <p style="margin: 0 0 12px; color: #1f6cff; font-size: 11px; font-weight: 700; line-height: 18px; letter-spacing: 1.8px; text-transform: uppercase;">One more step</p> --}}
+                            <h1 class="email-heading" style="margin: 0 0 16px; color: #172b42; font-family: Georgia, 'Times New Roman', serif; font-size: 34px; font-weight: 400; line-height: 1.2;">Your verification code.</h1>
                             {{-- <p style="margin: 0 0 26px; color: #526479; font-size: 14px; line-height: 23px;">Enter this verification code in the LJS login window you already have open.</p> --}}
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border: 1px solid #d9e5ff; border-radius: 12px; background-color: #f0f5ff;">
                                 <tr>
                                     <td align="center" style="padding: 23px 12px 21px;">
-                                        <p style="margin: 0 0 10px; color: #526e9a; font-size: 10px; font-weight: 700; line-height: 16px; letter-spacing: 1.8px; text-transform: uppercase;">Verification code</p>
+                                        {{-- <p style="margin: 0 0 10px; color: #526e9a; font-size: 10px; font-weight: 700; line-height: 16px; letter-spacing: 1.8px; text-transform: uppercase;">Verification code</p> --}}
                                         <p class="verification-code" dir="ltr" style="margin: 0; color: #1554cf; font-family: 'Courier New', Courier, monospace; font-size: 44px; font-weight: 700; line-height: 56px; letter-spacing: 8px; white-space: nowrap;">{{ $code }}</p>
                                     </td>
                                 </tr>

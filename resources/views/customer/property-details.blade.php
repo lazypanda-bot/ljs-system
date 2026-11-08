@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/appointment-create.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/appointment-create.css') }}?v={{ filemtime(public_path('css/appointment-create.css')) }}">
 @endpush
 
 @section('content')
@@ -202,7 +202,7 @@
     </div>
 
     @auth
-    <div id="appointmentModal" class="modal-overlay {{ $errors->any() ? 'active' : '' }}" @if ($errors->any()) style="display:flex" @endif>
+    <div id="appointmentModal" class="modal-overlay {{ $errors->any() ? 'active' : '' }}">
         <div class="modal-content appointment-create-page" role="dialog" aria-modal="true" aria-labelledby="appointmentModalTitle">
             <button type="button" class="appointment-modal-close" onclick="closeAppointmentModal()" aria-label="Close">&times;</button>
             <h1 id="appointmentModalTitle">Book a viewing</h1>

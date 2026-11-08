@@ -1,5 +1,12 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 body.auth-page {
     background: var(--color-body, #eef3f8);
+}
+
+/* Login verification helper text, previously inline in verify-otp.blade.php. */
+.otp-inbox-note {
+    margin: 0 0 14px;
+    font-size: 0.82rem;
 }
 
 .login-container {
@@ -48,4 +55,3 @@ body.auth-page {
 .otp-back { display: block; margin-top: 18px; color: #667eea; font-size: 13px; text-align: center; text-decoration: none; }
 
 @keyframes slide-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-@media (max-width: 480px) { .login-card, .otp-card { padding: 25px; } .login-header h1 { font-size: 1.5rem; } }

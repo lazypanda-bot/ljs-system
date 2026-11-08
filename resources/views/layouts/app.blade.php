@@ -21,14 +21,14 @@
     <link rel="stylesheet" href="{{ asset('css/properties.css') }}?v={{ filemtime(public_path('css/properties.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/property-details.css') }}?v={{ filemtime(public_path('css/property-details.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/agents.css') }}?v={{ filemtime(public_path('css/agents.css')) }}">
-    <link rel="stylesheet" href="{{ asset('css/lifestyle.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/lifestyle.css') }}?v={{ filemtime(public_path('css/lifestyle.css')) }}">
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     @stack('styles')
     <link rel="stylesheet" href="{{ asset('css/icons.css') }}?v={{ filemtime(public_path('css/icons.css')) }}">
-    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ filemtime(public_path('css/responsive.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/account-menu.css') }}?v={{ filemtime(public_path('css/account-menu.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ filemtime(public_path('css/responsive.css')) }}">
 </head>
 <body class="landing-page">
     @include('components.flash-messages')

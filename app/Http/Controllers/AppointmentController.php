@@ -511,7 +511,7 @@ class AppointmentController extends Controller
 		]);
 	}
 
-	// Previous signature: public function blockDate(Request $request)
+	//public function blockDate(Request $request)
 	public function blockDate(Request $request, AppointmentSchedulingService $scheduling)
     {
         $user = Auth::user();
@@ -523,6 +523,7 @@ class AppointmentController extends Controller
         $blockingTimes = $scheduling->blockingTimes();
         $validated = $request->validate([
             'date' => ['required', 'date'],
+            'time_slot' => ['nullable', \Illuminate\Validation\Rule::in(['whole_day', 'morning', 'afternoon'])],
             // Previous unrestricted time validation:
             // 'start_time' => ['nullable', 'date_format:H:i'],
             // 'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
@@ -531,6 +532,21 @@ class AppointmentController extends Controller
             'reason' => ['nullable', 'string', 'max:255'],
 			'timezone' => ['nullable', 'timezone'],
         ]);
+
+        if (isset($validated['time_slot'])) {
+            if ($request->exists('start_time') || $request->exists('end_time')) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'time_slot' => 'Choose a time slot or provide start and end times, not both.',
+                ]);
+            }
+
+            [$validated['start_time'], $validated['end_time']] = match ($validated['time_slot']) {
+                'morning' => ['08:00', '12:00'],
+                'afternoon' => ['13:00', '17:00'],
+                default => [null, null],
+            };
+            unset($validated['time_slot']);
+        }
 
         // 1. Create the blocked date/time record
 		// Previous fallback assumed the optional timezone key was always present:
@@ -804,8 +820,7 @@ class AppointmentController extends Controller
 		return implode("\n", $lines);
 	}
 
-	/* Previous appointment status email body retained for reference.
-	private function appointmentStatusEmailBody(Appointment $appointment, string $status, User $actor, User $recipient): string
+	/* private function appointmentStatusEmailBody(Appointment $appointment, string $status, User $actor, User $recipient): string
 	{
 		$propertyName = $appointment->assignment?->property?->property_name ?? 'your property appointment';
 		$timezone = $recipient->timezone ?: ($appointment->client_timezone ?: config('appointments.default_timezone'));

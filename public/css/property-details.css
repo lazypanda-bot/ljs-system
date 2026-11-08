@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 .property-details-page {
     max-width: 1400px;
     margin: 0 auto;
@@ -18,13 +19,6 @@
     aspect-ratio: 16 / 7;
     max-height: 380px;
     object-fit: cover;
-}
-
-@media (max-width: 700px) {
-    .banner {
-        aspect-ratio: 16 / 10;
-        max-height: 260px;
-    }
 }
 .favorite {
     position: absolute;
@@ -145,7 +139,6 @@
     font-size: 20px;
 }
 .property-message-fab:hover { transform: translateY(-2px); }
-@media (max-width: 600px) { .property-message-fab { right: 18px; bottom: 18px; } }
 .outlinebutton {
     background-color: transparent;
     border-color: #0d6efd;
@@ -225,35 +218,6 @@
 .contact-action-secondary { border-color: var(--color-primary); background: var(--color-surface); color: var(--color-primary); }
 .contact-action-primary { background: var(--color-primary); color: #fff; }
 .contact-action:hover { filter: brightness(.96); }
-
-@media (max-width: 900px) {
-    .property-details-page { width: min(100% - 32px, 760px); padding-top: 88px; }
-    .property-gallery { grid-template-columns: minmax(0, 1fr); }
-    .property-image-frame { height: 300px; max-height: 42svh; }
-    .property-main-image { height: 100% !important; max-height: 100% !important; }
-    .property-gallery-controls { grid-template-columns: 40px minmax(0, 1fr) 40px; grid-template-rows: none; align-items: center; }
-    .property-gallery-controls #propertyImagePrevious :is(i, svg),
-    .property-gallery-controls #propertyImageNext :is(i, svg) { transform: none; }
-    .property-thumbnail-strip { flex-direction: row; overflow-x: auto; overflow-y: hidden; }
-    .property-thumbnail { width: 76px; height: 56px; flex-basis: 76px; }
-    .property-content-layout { grid-template-columns: minmax(0, 1fr); }
-    .property-sidebar { position: static; }
-}
-
-@media (max-width: 600px) {
-    .property-details-page { width: calc(100% - 24px); padding-top: 84px; padding-bottom: 32px; }
-    .property-breadcrumb { margin-bottom: 12px; font-size: 13px; }
-    .property-image-frame { height: 220px; max-height: 38svh; }
-    .property-main-image { object-fit: contain !important; }
-    .property-gallery-controls { grid-template-columns: 34px minmax(0, 1fr) 34px; gap: 6px; padding: 8px; }
-    .gallery-nav-button { width: 34px; height: 34px; }
-    .property-details-price { font-size: 24px; }
-    .property-details-heading h1 { font-size: 22px; }
-    .property-details-panel,.professional-contact-card { padding: 16px; }
-    .property-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .property-metrics > div { padding: 9px; font-size: 13px; }
-    .property-amenities-list { grid-template-columns: minmax(0, 1fr); }
-}
 .professional-name-link { color: inherit; text-decoration: none; }
 .professional-name-link[href]:hover { color: var(--color-primary); text-decoration: underline; }
 

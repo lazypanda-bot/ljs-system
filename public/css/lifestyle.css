@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 /* Lifestyle Match quiz + results */
 
 .lifestyle-page {
@@ -569,72 +570,3 @@
 }
 
 /* ---------- Responsive ---------- */
-
-@media (max-width: 900px) {
-    .lifestyle-quiz-body,
-    .lifestyle-results-body {
-        flex-direction: column;
-    }
-
-    .lifestyle-progress,
-    .lifestyle-question-panel,
-    .lifestyle-results-sidebar {
-        flex-basis: auto;
-        width: 100%;
-    }
-
-    .lifestyle-options {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .lifestyle-matches-grid.properties-grid .property-card {
-        flex-basis: 100%;
-        max-width: 100%;
-    }
-
-    .lifestyle-progress {
-        padding: 10px 12px;
-    }
-
-    .lifestyle-progress-header {
-        display: none;
-    }
-
-    .lifestyle-steps-list {
-        flex-direction: row;
-        justify-content: space-between;
-        gap: 4px;
-    }
-
-    .lifestyle-step-item {
-        padding: 0;
-    }
-
-    .lifestyle-step-item.is-active {
-        background: transparent;
-    }
-
-    .lifestyle-step-text {
-        display: none;
-    }
-
-    .lifestyle-step-bubble {
-        width: 28px;
-        height: 28px;
-        flex-basis: 28px;
-    }
-}
-
-@media (max-width: 560px) {
-    .lifestyle-page {
-        padding: 86px 12px 48px;
-    }
-
-    .lifestyle-quiz-header {
-        margin-bottom: 18px;
-    }
-
-    .lifestyle-options {
-        grid-template-columns: 1fr;
-    }
-}

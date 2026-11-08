@@ -25,7 +25,12 @@
                 <label for="modalLoginPassword">Password</label>
                 <div class="password-field"><input id="modalLoginPassword" name="password" type="password" placeholder="Enter your password" required autocomplete="current-password"><button type="button" class="password-toggle" data-password-target="modalLoginPassword" aria-label="Show password">Show</button></div>
             </div>
-            <div class="auth-form-options"><button type="button" class="forgot-password-link" id="authForgotLink">Forgot password?</button></div>
+            {{--<div class="auth-form-options"><button type="button" class="forgot-password-link" id="authForgotLink">Forgot password?</button></div>
+            --}}
+            <div class="auth-form-options">
+                {{-- <button type="button" class="forgot-password-link" id="authPrivacyLink" aria-haspopup="dialog" aria-controls="privacyPolicyModal">Privacy Policy</button> --}}
+                <button type="button" class="forgot-password-link" id="authForgotLink">Forgot password?</button>
+            </div>
             <div class="auth-login-status" id="authLoginStatus" role="alert" aria-live="polite"></div>
             <button type="submit" class="login-submit-btn">Login</button>
         </form>
@@ -97,3 +102,28 @@
         </form>
     </section>
 </div>
+
+<dialog id="privacyPolicyModal" class="privacy-policy-modal" aria-labelledby="privacyPolicyTitle">
+    <header class="privacy-policy-header">
+        {{-- Previous heading: <h2 id="privacyPolicyTitle">Privacy Policy</h2> --}}
+        <div class="privacy-policy-heading">
+            <span class="privacy-policy-icon" aria-hidden="true">
+                {{-- Previous shield icon:
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+                    <path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6l-8-3Z"/>
+                    <path d="m9 12 2 2 4-4"/>
+                </svg>
+                --}}
+                <img src="{{ asset('images/ljs-logo.jpg') }}" width="42" height="42" alt="">
+            </span>
+            <div>
+                <p class="privacy-policy-brand">LJS Realty &amp; Brokerage</p>
+                <h2 id="privacyPolicyTitle">Privacy Policy</h2>
+            </div>
+        </div>
+        <button type="button" class="privacy-policy-close" aria-label="Close privacy policy" autofocus>&times;</button>
+    </header>
+    <div class="privacy-policy-content">
+        @include('components.privacy-policy-content')
+    </div>
+</dialog>

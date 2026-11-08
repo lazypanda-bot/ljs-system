@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 .appointment-create-page { 
     max-width: 900px;
     margin: 0 auto; 
@@ -151,17 +152,6 @@
     margin: -4px 0 0 172px;
     color: var(--color-text-muted);
     font-size: 12px;
-}
-
-@media (max-width: 620px) {
-    .appointment-create-page label {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 6px;
-    }
-
-    .appointment-create-page .appointment-slots-status {
-        margin: -4px 0 0;
-    }
 }
 .modal-overlay { padding: 16px; overflow: visible; }
 .modal-content.appointment-create-page { max-height: none; overflow: visible; }

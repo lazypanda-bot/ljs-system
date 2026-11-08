@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 .property-create-page{max-width:1160px;margin:0 auto;padding:26px}
 .property-create-back{
     display:inline-flex;
@@ -305,52 +306,6 @@
 }
 .property-create-actions .btn-save:hover{
     background:var(--color-success)
-}
-@media(max-width:760px){
-    .property-create-page{
-        margin:12px;padding:18px
-    }
-    .property-create-section{
-        padding:17px
-    }
-    .property-create-fields-four{
-        grid-template-columns:repeat(2,minmax(0,1fr))
-    }
-    .property-choice-list{
-        grid-template-columns:repeat(auto-fill,minmax(135px,1fr))
-    }
-    .property-upload-zone{
-        min-height:128px;
-        padding:24px 16px
-    }
-}
-@media(max-width:520px){
-    .property-create-page{
-        padding:14px
-    }
-    .property-create-fields,
-    .property-create-fields-four{
-        grid-template-columns:1fr
-    }
-    .property-create-field-wide{
-        grid-column:auto
-    }
-    .property-create-actions{
-        align-items:stretch;
-        flex-direction:column-reverse
-    }
-    .property-create-actions>a,.property-create-actions .btn-save{
-        width:100%;
-        justify-content:center;
-        text-align:center
-    }
-    .property-add-choice>div{
-        align-items:stretch;
-        flex-direction:column
-    }
-    .property-add-choice button{
-        width:100%
-    }
 }
 
 .property-create-field[hidden], .property-edit-field[hidden] { display: none !important; }

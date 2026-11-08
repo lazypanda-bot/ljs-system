@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 .properties {
     background-color: var(--color-body);
     padding: 110px 40px 80px;
@@ -242,18 +243,6 @@
 @keyframes lifestyleImagePan {
     0% { transform: translateY(0); }
     100% { transform: translateY(-37.5%); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .media img {
-        animation: none;
-        height: 100%;
-        transform: none;
-    }
-
-    .lifestyle {
-        animation: none;
-    }
 }
 
 /* 4-Column Properties Grid */

@@ -3,7 +3,7 @@
 @section('title', $pageTitle ?? 'Reviews')
 
 @push('styles')
-	<link rel="stylesheet" href="{{ asset('css/review.css') }}">
+	<link rel="stylesheet" href="{{ asset('css/review.css') }}?v={{ filemtime(public_path('css/review.css')) }}">
 @endpush
 
 @section('content')

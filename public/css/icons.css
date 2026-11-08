@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 :root {
     --ui-radius: 10px;
     --ui-control-height: 40px;
@@ -298,8 +299,6 @@ svg.lucide {
 .content-area .live-empty,
 .content-area .notifications-empty { color: var(--color-text-muted); padding: 28px; text-align: center; }
 .content-area a:not(.btn-action):not(.btn-icon):not(.staff-action-button):not(.btn-add-property):not(.btn-request-listing) { text-decoration: none; }
-@media (max-width: 700px) { .staff-page-surface { margin: 14px 12px; padding: 20px; }.content-area > .appointments-page.staff-page-surface,.content-area > .live-report-page.staff-page-surface,.content-area > .notifications-page.staff-page-surface { padding: 20px; } }
-@media(max-width:600px){.content-area .au-tabs-search-row .au-search-wrapper{width:100%}}
 
 body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main button:not([aria-label]):not(.gallery-nav-button):not(.about-contact-dialog-close):not([onclick*="close"]),
 body.landing-page:not(:has(.dashboard-container)):not(:has(.lifestyle-page)) main a[class*="btn"],

@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 /* ADMIN PROPERTY */
 .listings-management-container { 
     background: #fff; 
@@ -573,10 +574,6 @@
 .listing-rejection-note p { margin: 5px 0 0; white-space: pre-wrap; }
 .listing-rejection-note a { display: inline-block; margin-top: 8px; color: #991b1b; font-weight: 700; }
 .listing-resubmit-locked { display: inline-block; margin-top: 8px; color: #991b1b; font-weight: 800; }
-
-@media (max-width: 720px) {
-    .property-approval-panel { grid-template-columns: minmax(0, 1fr); }
-}
 .staff-listing-tabs { display: flex; gap: 8px; margin: 0 0 20px; border-bottom: 1px solid var(--color-border); }
 .staff-listing-panel[hidden] { display: none !important; }
 .staff-listing-tab { border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--color-text-muted); cursor: pointer; font-weight: 700; padding: 10px 14px; }
@@ -696,7 +693,6 @@
 .staff-reject-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
 .staff-reject-modal-actions .staff-reject-button,.staff-reject-modal-actions .staff-view-button { width: auto; min-height: 36px; }
 .staff-table-empty { padding: 28px !important; color: var(--color-text-muted) !important; text-align: center; }
-@media (max-width: 700px) { .staff-property-admin-header { align-items: flex-start; flex-direction: column; }.staff-property-admin-header .btn-add-property { margin-left: 0; } }
 .staff-property-tabs a.au-tab-btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
 .staff-filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
 .staff-filter-bar .search-box { flex: 1 1 260px; }
@@ -824,115 +820,6 @@
 .listing-rejection-summary { display: grid; gap: 5px; padding: 10px 12px; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2; color: #7f1d1d; }
 .listing-rejection-summary strong { font-size: 11px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
 .listing-rejection-summary p { margin: 0; color: #7f1d1d; font-size: 12px; line-height: 1.45; white-space: pre-wrap; }
-@media (max-width: 720px) {
-    .content-area .staff-property-tabs,
-    .content-area .listing-group-tabs,
-    .content-area .listings-toolbar,
-    .content-area .staff-filter-bar { align-items: stretch; flex-direction: column; }
-    .content-area .listing-group-tabs {
-        flex-direction: row;
-        align-items: center;
-        gap: 8px;
-    }
-    .content-area .listing-group-tab {
-        flex: 1 1 0;
-        min-width: 0;
-        padding: 10px 8px;
-        white-space: nowrap;
-    }
-    .content-area .listings-toolbar .search-box,
-    .content-area .staff-filter-bar .search-box {
-        flex: none;
-        min-height: 42px;
-        height: auto;
-    }
-    .content-area .staff-property-tabs .au-tab-btn,
-    .content-area .listings-toolbar .search-box,
-    .content-area .staff-filter-bar .search-box,
-    .content-area .listings-toolbar select,
-    .content-area .staff-filter-bar select,
-    .content-area .listings-toolbar .btn-add-property,
-    .content-area .staff-filter-bar .btn-add-property { width: 100%; }
-}
-@media (max-width: 720px) {
-    .content-area .staff-property-table .staff-view-button,
-    .content-area .staff-property-table .staff-approve-button,
-    .content-area .staff-property-table .staff-reject-button,
-    .content-area .compose-message-btn {
-        display: inline-flex;
-        width: 42px;
-        min-width: 42px;
-        height: 42px;
-        min-height: 42px;
-        align-items: center;
-        justify-content: center;
-        gap: 0;
-        padding: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        font-size: 0;
-    }
-    .content-area .listings-toolbar .btn-add-property,
-    .content-area .staff-filter-bar .btn-add-property {
-        display: inline-flex;
-        width: auto;
-        min-width: max-content;
-        min-height: 42px;
-        height: 42px;
-        align-self: flex-end;
-        align-items: center;
-        justify-content: center;
-        gap: 7px;
-        margin-left: 0;
-        padding: 0 16px;
-        border-radius: 999px;
-        overflow: visible;
-        white-space: nowrap;
-        font-size: 13px;
-    }
-    .content-area .staff-property-referral-cell .staff-referral-copy {
-        display: inline-flex;
-        width: auto;
-        min-width: max-content;
-        min-height: 34px;
-        height: 34px;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 0 12px;
-        border-radius: 999px;
-        overflow: visible;
-        white-space: nowrap;
-        font-size: 12px;
-    }
-    .content-area .staff-property-table .staff-view-button,
-    .content-area .staff-property-table .staff-approve-button,
-    .content-area .staff-property-table .staff-reject-button {
-        width: 36px;
-        min-width: 36px;
-        height: 36px;
-        min-height: 36px;
-    }
-    .content-area .listings-toolbar .btn-add-property i,
-    .content-area .staff-filter-bar .btn-add-property i,
-    .content-area .staff-property-referral-cell .staff-referral-copy i,
-    .content-area .staff-property-table .staff-view-button i,
-    .content-area .staff-property-table .staff-approve-button i,
-    .content-area .staff-property-table .staff-reject-button i,
-    .content-area .compose-message-btn i,
-    .content-area .listings-toolbar .btn-add-property svg,
-    .content-area .staff-filter-bar .btn-add-property svg,
-    .content-area .staff-property-referral-cell .staff-referral-copy svg,
-    .content-area .staff-property-table .staff-view-button svg,
-    .content-area .staff-property-table .staff-approve-button svg,
-    .content-area .staff-property-table .staff-reject-button svg,
-    .content-area .compose-message-btn svg {
-        flex: 0 0 auto;
-        width: 16px;
-        height: 16px;
-        font-size: 16px;
-    }
-}
 .au-members-trigger { padding: 3px 12px; border: 0; border-radius: 999px; background: #e0f2fe; color: #0369a1; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .au-members-trigger:hover { background: #bae6fd; }
 .au-members-list { display: grid; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; max-height: 50vh; overflow-y: auto; }

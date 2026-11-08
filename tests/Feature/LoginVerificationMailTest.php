@@ -34,6 +34,21 @@ class LoginVerificationMailTest extends TestCase
         $mail->assertSeeInText('123456');
         $mail->assertSeeInText('Never share this code');
         $this->assertSame('LJS Realty login verification code', $mail->envelope()->subject);
+        $this->assertStringContainsString('Keep your code private.', $html);
+        $this->assertStringContainsString('Never share this code with anyone.', $html);
+    }
+
+    public function test_verification_subject_stays_plain_without_a_code_or_random_reference(): void
+    {
+        $first = new LoginVerificationMail('123456');
+        $second = new LoginVerificationMail('123456');
+
+        $this->assertSame('LJS Realty login verification code', $first->envelope()->subject);
+        $this->assertSame($first->envelope()->subject, $second->envelope()->subject);
+        $this->assertSame($first->envelope()->subject, $first->envelope()->subject);
+        $restored = unserialize(serialize($first));
+        $this->assertSame($first->envelope()->subject, $restored->envelope()->subject);
+        $this->assertStringNotContainsString('123456', $first->envelope()->subject);
     }
 
     public function test_login_sends_the_styled_email_with_the_same_code_and_expiry(): void

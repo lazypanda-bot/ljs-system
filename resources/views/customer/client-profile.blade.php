@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/client-profile.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/client-profile.css') }}?v={{ filemtime(public_path('css/client-profile.css')) }}">
 @endpush
 
 @section('content')
@@ -23,8 +23,8 @@
                     @endif
                 </div>
                 <div>
-                    <label style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px;">Change Profile Photo</label>
-                    <input type="file" name="profile_photo" style="font-size: 13px;">
+                    <label class="profile-photo-label">Change Profile Photo</label>
+                    <input type="file" name="profile_photo" class="profile-photo-input">
                 </div>
             </div>
 
@@ -44,17 +44,17 @@
     </div>
 
     <div class="profile-card">
-        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 14px; color: var(--color-text);">My Appointments History</h3>
+        <h3 class="profile-history-title">My Appointments History</h3>
         @forelse($appointments ?? [] as $appointment)
             <div class="profile-appointment-item">
                 <div>
-                    <p style="font-weight: 600; font-size: 14px;">{{ $appointment->property->title ?? 'Property Viewing' }}</p>
-                    <small style="color: var(--color-text-muted);">{{ $appointment->appointment_date ?? 'Date TBD' }}</small>
+                    <p class="profile-appointment-title">{{ $appointment->property->title ?? 'Property Viewing' }}</p>
+                    <small class="profile-appointment-date">{{ $appointment->appointment_date ?? 'Date TBD' }}</small>
                 </div>
                 <span class="profile-badge-pending">{{ ucfirst($appointment->status ?? 'Pending') }}</span>
             </div>
         @empty
-            <p style="color: var(--color-text-muted); font-size: 13px;">No appointments booked yet.</p>
+            <p class="profile-history-empty">No appointments booked yet.</p>
         @endforelse
     </div>
 

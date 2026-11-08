@@ -1,3 +1,4 @@
+/* Responsive rules for this stylesheet are in public/css/responsive.css. */
 .business-about-page {
     --about-ink: #17212b;
     --about-muted: #64748b;
@@ -235,13 +236,6 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     font-size: 11px;
 }
 
-@media (max-width: 960px) and (min-width: 761px) {
-    .about-owner-inner {
-        grid-template-columns: 48px minmax(0, 1fr) minmax(240px, .8fr);
-        gap: 20px;
-    }
-}
-
 .about-offer-section {
     padding-block: 72px;
     padding-inline: 0;
@@ -477,122 +471,6 @@ body:has(.business-about-page) .landing-nav:not(.scrolled) .landing-nav-link.act
     color: var(--color-primary, #1f6cff);
 }
 
-@media (max-width: 760px) {
-    .about-content-width,
-    .about-company-section,
-    .about-owner-inner {
-        width: calc(100% - 48px);
-    }
-
-    .about-company-section {
-        grid-template-columns: 1fr;
-        gap: 20px;
-        padding-block: 52px;
-    }
-
-    .about-company-visual img {
-        min-height: 280px;
-    }
-
-    .about-company-copy h2,
-    .about-section-heading h2 {
-        font-size: 27px;
-    }
-
-    .about-company-values {
-        display: grid;
-        gap: 14px;
-    }
-
-    .about-owner-inner {
-        grid-template-columns: 1fr;
-        gap: 18px;
-        padding-block: 42px;
-    }
-
-    .about-owner-image {
-        margin-top: 8px;
-    }
-
-    .about-owner-copy h2 {
-        font-size: 26px;
-    }
-
-    .about-offer-section,
-    .about-journey-section {
-        padding-block: 50px 56px;
-    }
-
-    .about-offer-grid,
-    .about-journey-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .about-offer-grid {
-        gap: 12px;
-    }
-
-    .about-offer-card {
-        padding: 22px;
-    }
-
-    .about-journey-step {
-        min-height: 0;
-        padding: 18px;
-        box-shadow: 0 10px 24px rgba(31, 108, 255, .06);
-    }
-
-    .business-about-page .business-about-hero {
-        min-height: 500px;
-        padding: 64px 24px 76px;
-    }
-
-    .business-about-page .business-about-hero h1 {
-        font-size: 38px;
-    }
-
-    .about-trust-section {
-        padding-block: 52px;
-    }
-
-    .about-trust-layout {
-        grid-template-columns: 1fr;
-        gap: 22px;
-    }
-
-    .about-trust-layout .about-section-heading {
-        position: static;
-    }
-
-    .about-trust-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .about-professionals-section {
-        padding-block: 52px;
-    }
-
-    .about-professionals-card {
-        align-items: flex-start;
-        flex-direction: column;
-        padding: 0;
-    }
-
-    .about-professionals-card h2 {
-        font-size: 24px;
-    }
-
-    .about-professionals-card .business-secondary-link {
-        width: 100%;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .about-offer-card {
-        transition: none;
-    }
-}
-
 button.business-secondary-link {
     background: transparent;
     font-family: inherit;
@@ -756,26 +634,6 @@ a.about-contact-option:hover {
     font-weight: 700;
 }
 
-@media (max-width: 520px) {
-    .about-contact-dialog {
-        padding: 20px;
-    }
-
-    .about-contact-dialog-header h2 {
-        font-size: 22px;
-    }
-
-    .about-contact-option {
-        gap: 10px;
-        padding-inline: 10px;
-    }
-
-    .about-contact-coming-soon {
-        max-width: 68px;
-        text-align: right;
-    }
-}
-
 .business-about-page .business-about-cta {
     width: 100%;
     max-width: none;
@@ -799,10 +657,4 @@ a.about-contact-option:hover {
 
 .business-about-page .business-primary-link:hover {
     background: #1556d9;
-}
-
-@media (max-width: 760px) {
-    .business-about-page .business-about-cta {
-        padding: 52px 24px;
-    }
 }
