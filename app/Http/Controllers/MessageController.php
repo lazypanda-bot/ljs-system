@@ -65,12 +65,13 @@ class MessageController extends Controller
             $conversation->participants()->where('user_id', $user->user_id)->update(['last_read_at' => now()]);
         }
 
+        $canReplyToConversation = $conversation !== null && $this->canWriteConversation($conversation, $user);
         $contacts = $this->availableContacts($user);
         $isClient = $user->normalizedRole() === 'client';
 
         $view = $panelMode ? 'pages.messages-panel' : 'pages.messages';
 
-        return view($view, compact('conversations', 'conversation', 'contacts', 'isClient', 'panelMode'));
+        return view($view, compact('conversations', 'conversation', 'contacts', 'isClient', 'panelMode', 'canReplyToConversation'));
     }
 
     public function direct(User $recipient)
@@ -198,7 +199,7 @@ class MessageController extends Controller
     public function store(Request $request, Conversation $conversation)
     {
         $user = $this->user();
-        abort_unless($this->participates($conversation, $user), 403);
+        abort_unless($this->canWriteConversation($conversation, $user), 403);
 
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:4000'],
@@ -233,7 +234,7 @@ class MessageController extends Controller
     {
         $user = $this->user();
         $conversation = Conversation::findOrFail($message->conversation_id);
-        abort_unless($this->participates($conversation, $user), 403);
+        abort_unless($this->canWriteConversation($conversation, $user), 403);
         abort_unless((int) $message->sender_id === (int) $user->user_id, 403);
 
         $message->delete();
@@ -249,7 +250,7 @@ class MessageController extends Controller
     {
         $user = $this->user();
         $conversation = Conversation::findOrFail($message->conversation_id);
-        abort_unless($this->participates($conversation, $user), 403);
+        abort_unless($this->canWriteConversation($conversation, $user), 403);
         abort_unless((int) $message->sender_id === (int) $user->user_id, 403);
 
         $validated = $request->validate(['body' => ['required', 'string', 'max:4000']]);
@@ -495,6 +496,23 @@ class MessageController extends Controller
     private function participates(Conversation $conversation, User $user): bool
     {
         return $conversation->participants()->where('user_id', $user->user_id)->exists();
+    }
+
+    private function canWriteConversation(Conversation $conversation, User $user): bool
+    {
+        if (! $this->participates($conversation, $user)) {
+            return false;
+        }
+
+        if ($conversation->type !== 'team') {
+            return true;
+        }
+
+        $team = $conversation->team;
+
+        return $team instanceof Team
+            && $team->team_status === 'Active'
+            && $team->members()->where('user_id', $user->user_id)->where('status', 'Approved')->exists();
     }
 
     private function user(): User

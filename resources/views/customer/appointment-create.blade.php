@@ -22,6 +22,11 @@
 		<label>Email<input type="email" name="contact_email" required value="{{ auth()->user()->email ?? '' }}"></label>
 		<label>Appointment type<select name="appointment_type" required><option>Property viewing</option><option>Consultation</option><option>Site visit</option></select></label>
 		<label>Date<input type="date" name="preferred_date" id="appointmentDate" min="{{ now()->toDateString() }}" required></label>
+		<label>Time period<select name="time_period" id="appointmentTimePeriod" required disabled>
+			<option value="">Choose a time period</option>
+			<option value="morning">Morning (8:00 AM–12:00 PM)</option>
+			<option value="afternoon">Afternoon (1:00 PM–5:00 PM)</option>
+		</select></label>
 		<label>Available time<select name="preferred_time" id="appointmentTime" required disabled><option value="">Choose a date and professional first</option></select></label>
 		<p class="appointment-slots-status" id="appointmentSlotsStatus" role="status" aria-live="polite">Times are shown in your time zone.</p>
 		<label>Notes<textarea name="additional_note" rows="4"></textarea></label>

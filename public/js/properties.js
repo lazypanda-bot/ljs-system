@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         propertyMainImage.src = thumbnail.src;
         propertyMainImage.alt = thumbnail.alt;
         propertyThumbnails.forEach((item, itemIndex) => item.classList.toggle('active', itemIndex === activePropertyImage));
+        thumbnail.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
     };
 
     propertyThumbnails.forEach((thumbnail, index) => thumbnail.addEventListener('click', () => showPropertyImage(index)));

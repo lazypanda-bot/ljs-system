@@ -1,9 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', (event) => {
         const target = event.target instanceof Element ? event.target : event.target?.parentElement;
-        const deleteUserButton = target?.closest('[data-delete-user]');
         const deleteTeamButton = target?.closest('[data-delete-team]');
-        if (deleteUserButton) window.deleteUser(deleteUserButton.dataset.deleteUser);
         if (deleteTeamButton) window.deleteTeam(deleteTeamButton.dataset.deleteTeam);
     });
 
@@ -44,6 +42,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const openAddUserBtn = document.getElementById('openAddUserModal');
     const allUsersTab = document.querySelector('[data-tab="all-users"]');
     const allUsersPanel = document.getElementById('all-users');
+    const roleSelect = document.getElementById('role');
+    const licenseNumberField = document.getElementById('licenseNumberField');
+    const licenseNumberInput = document.getElementById('licenseNumber');
+    const licenseNumberLabel = document.getElementById('licenseNumberLabel');
+    const updateLicenseNumberField = () => {
+        if (!roleSelect || !licenseNumberField || !licenseNumberInput || !licenseNumberLabel) return;
+
+        const role = roleSelect.value;
+        const isProfessional = ['Lead Broker', 'Broker', 'Agent'].includes(role);
+        const isAgent = role === 'Agent';
+        licenseNumberField.hidden = !isProfessional;
+        licenseNumberInput.disabled = !isProfessional;
+        licenseNumberInput.required = isProfessional;
+        licenseNumberLabel.textContent = `${isAgent ? 'Accreditation number' : 'PRC license number'} *`;
+        licenseNumberInput.placeholder = isAgent ? 'Enter accreditation number' : 'Enter PRC license number';
+    };
+
+    roleSelect?.addEventListener('change', updateLicenseNumberField);
+    roleSelect?.form?.addEventListener('reset', () => requestAnimationFrame(updateLicenseNumberField));
+    updateLicenseNumberField();
+
     if (openAddUserBtn && allUsersTab && allUsersPanel) {
         openAddUserBtn.addEventListener('click', function () {
             if (!allUsersPanel.classList.contains('active')) {
@@ -279,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.addEventListener('popstate', () => loadUsersPage(window.location.href, false));
 
-    // Delete User
+    /* **FOR DELETE ACTIONS** Temporarily disabled; restore together with the admin delete route.
     window.deleteUser = async function(userId) {
         if (await window.appConfirm('Are you sure you want to delete this user? This action cannot be undone.')) {
             fetch(`/admin/users/${userId}`, {
@@ -298,6 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error:', error));
         }
     };
+    */
 
     // Delete Team
     window.deleteTeam = async function(teamId) {

@@ -8,6 +8,7 @@ use App\Models\ConversationParticipant;
 use App\Models\AppNotification;
 use App\Models\Property;
 use App\Models\PropertyInquiry;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -215,6 +216,136 @@ class MessagingSearchAttachmentTest extends TestCase
             ->assertSee('Team Lead')
             ->assertSee('data-members-modal', false)
             ->assertSee('role="dialog"', false);
+    }
+
+    public function test_inactive_team_conversation_is_read_only_and_preserves_history(): void
+    {
+        $leader = User::factory()->create(['role_name' => 'Broker']);
+        $member = User::factory()->create(['role_name' => 'Agent']);
+        $team = Team::create([
+            'user_id' => $leader->user_id,
+            'team_name' => 'Archived Team',
+            'team_status' => 'Inactive',
+        ]);
+        $team->members()->create([
+            'user_id' => $member->user_id,
+            'status' => 'Approved',
+        ]);
+        $conversation = Conversation::create([
+            'type' => 'team',
+            'team_id' => $team->team_id,
+            'created_by' => $leader->user_id,
+        ]);
+        $conversation->participants()->createMany([
+            ['user_id' => $leader->user_id],
+            ['user_id' => $member->user_id],
+        ]);
+        $message = ConversationMessage::create([
+            'conversation_id' => $conversation->conversation_id,
+            'sender_id' => $leader->user_id,
+            'body' => 'Archived team message.',
+        ]);
+
+        $this->actingAs($member)->get(route('messages.inbox', ['conversation' => $conversation->conversation_id]))
+            ->assertOk()
+            ->assertSee('Archived team message.')
+            ->assertSee('Inactive team · read-only archive')
+            ->assertSee('This team conversation is read-only.')
+            ->assertDontSee('name="body" placeholder="Type a message..."', false)
+            ->assertDontSee('data-edit-message', false);
+
+        $this->post(route('messages.store', $conversation), ['body' => 'Cannot send this.'])->assertForbidden();
+        $this->patch(route('messages.update', $message), ['body' => 'Cannot edit this.'])->assertForbidden();
+        $this->delete(route('messages.destroy', $message))->assertForbidden();
+
+        $this->assertDatabaseHas('conversation_messages', [
+            'message_id' => $message->message_id,
+            'body' => 'Archived team message.',
+        ]);
+    }
+
+    public function test_transferred_member_cannot_write_old_team_chat_after_reactivation(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $leader = User::factory()->create(['role_name' => 'Broker']);
+        $member = User::factory()->create(['role_name' => 'Agent']);
+        $team = Team::create([
+            'user_id' => $leader->user_id,
+            'team_name' => 'Reactivated Team',
+            'team_status' => 'Inactive',
+        ]);
+        $team->members()->create([
+            'user_id' => $member->user_id,
+            'status' => 'Approved',
+        ]);
+        $conversation = Conversation::create([
+            'type' => 'team',
+            'team_id' => $team->team_id,
+            'created_by' => $leader->user_id,
+        ]);
+        $conversation->participants()->createMany([
+            ['user_id' => $leader->user_id],
+            ['user_id' => $member->user_id],
+        ]);
+
+        $team->members()->where('user_id', $member->user_id)->delete();
+        $team->update(['team_status' => 'Active']);
+
+        $this->actingAs($member)->post(route('messages.store', $conversation), ['body' => 'Cannot send after transfer.'])
+            ->assertForbidden();
+        $this->get(route('messages.inbox', ['conversation' => $conversation->conversation_id]))
+            ->assertOk()
+            ->assertSee('Read-only · no longer a member of this team');
+    }
+
+    public function test_transferred_team_leader_cannot_write_old_chat_after_reactivation(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $formerLeader = User::factory()->create(['role_name' => 'Broker']);
+        $currentLeader = User::factory()->create(['role_name' => 'Broker']);
+
+        $archivedTeam = Team::create([
+            'user_id' => $formerLeader->user_id,
+            'team_name' => 'Former Leader Team',
+            'team_status' => 'Inactive',
+        ]);
+        $archivedTeam->members()->create([
+            'user_id' => $formerLeader->user_id,
+            'status' => 'Approved',
+        ]);
+        $conversation = Conversation::create([
+            'type' => 'team',
+            'team_id' => $archivedTeam->team_id,
+            'created_by' => $formerLeader->user_id,
+        ]);
+        $conversation->participants()->create(['user_id' => $formerLeader->user_id]);
+
+        $activeTeam = Team::create([
+            'user_id' => $currentLeader->user_id,
+            'team_name' => 'New Leader Team',
+            'team_status' => 'Active',
+        ]);
+        $activeTeam->members()->create([
+            'user_id' => $currentLeader->user_id,
+            'status' => 'Approved',
+        ]);
+
+        $this->actingAs($admin)->put(route('admin.teams.update', $activeTeam), [
+            'user_id' => $formerLeader->user_id,
+            'team_name' => $activeTeam->team_name,
+            'member_ids' => [],
+        ])->assertRedirect(route('admin.teams.index'));
+
+        $this->assertDatabaseMissing('team_members', [
+            'team_id' => $archivedTeam->team_id,
+            'user_id' => $formerLeader->user_id,
+        ]);
+
+        $archivedTeam->update(['team_status' => 'Active']);
+
+        $this->actingAs($formerLeader)->post(route('messages.store', $conversation), [
+            'body' => 'Cannot send after leaving the old team.',
+        ])->assertForbidden();
     }
 
     public function test_removing_conversation_hides_it_only_for_current_user_until_new_message(): void

@@ -403,6 +403,7 @@
         transform: none;
     }
     .property-thumbnail-strip {
+        max-height: none;
         flex-direction: row;
         overflow-x: auto;
         overflow-y: hidden;

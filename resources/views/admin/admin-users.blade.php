@@ -102,6 +102,11 @@
                                     </select>
                                 </div>
 
+                                <div class="mb-3" id="licenseNumberField" hidden>
+                                    <label for="licenseNumber" class="form-label" id="licenseNumberLabel">PRC license number *</label>
+                                    <input type="text" class="form-control" id="licenseNumber" name="license_number" value="{{ old('license_number') }}" maxlength="100" pattern="[A-Za-z0-9\-\/ ]+" title="Letters, numbers, spaces, hyphens and slashes only" disabled>
+                                </div>
+
                                 <!-- Initial Password Input Field -->
                                 <div class="mb-3">
                                     <label for="password" class="form-label">Initial Password *</label>
@@ -128,10 +133,9 @@
         </div>
 
         <!-- Teams Section -->
-        <div class="au-tab-content {{ $showTeams ? 'active' : '' }}" id="teams">
+        <div class="au-tab-content {{ $showTeams ? 'active' : '' }} {{ isset($team) ? 'au-team-edit-open' : '' }}" id="teams">
             @if (isset($team))
                 @php($selectedMemberIds = old('member_ids', $team->members->pluck('user_id')->all()))
-                @php($currentTeamUserIds = $team->members->pluck('user_id')->push($team->user_id)->unique()->all())
                 <div class="au-modal-overlay au-team-edit-modal open" role="presentation">
                     <section class="au-form-card" role="dialog" aria-modal="true" aria-labelledby="editTeamHeading">
                         <h3 id="editTeamHeading">Edit Team</h3>
@@ -141,7 +145,7 @@
                                 <label class="au-team-field"><span>Team name</span><input class="form-control" name="team_name" value="{{ old('team_name', $team->team_name) }}" maxlength="255" required></label>
                                 <label class="au-team-field"><span>Team leader</span><select class="form-select team-leader-select" name="user_id" required>
                                     @foreach($allUsers->whereIn('role_name', ['Broker', 'Lead Broker']) as $user)
-                                        @php($isTakenOutsideTeam = in_array($user->user_id, $takenUserIds ?? [], true) && ! in_array($user->user_id, $currentTeamUserIds, true))
+                                        @php($isTakenOutsideTeam = in_array((int) $user->user_id, $takenUserIds ?? [], true) && ! in_array((int) $user->user_id, $currentTeamUserIds, true))
                                         <option value="{{ $user->user_id }}" @selected((int) old('user_id', $team->user_id) === (int) $user->user_id) @disabled($isTakenOutsideTeam)>
                                             {{ $user->name }} ({{ $user->role_name }}){{ $isTakenOutsideTeam ? ' - Already in team' : '' }}
                                         </option>
@@ -150,7 +154,7 @@
                             <fieldset class="au-member-picker-fieldset"><legend>Team members</legend>
                                 <div class="au-member-picker">
                                     @foreach($allUsers as $user)
-                                        @php($isTakenOutsideTeam = in_array($user->user_id, $takenUserIds ?? [], true) && ! in_array($user->user_id, $currentTeamUserIds, true))
+                                        @php($isTakenOutsideTeam = in_array((int) $user->user_id, $takenUserIds ?? [], true) && ! in_array((int) $user->user_id, $currentTeamUserIds, true))
                                         <label class="au-member-choice {{ $isTakenOutsideTeam ? 'is-disabled' : '' }}">
                                             <input type="checkbox" class="member-checkbox" name="member_ids[]" value="{{ $user->user_id }}" data-userid="{{ $user->user_id }}" data-taken="{{ $isTakenOutsideTeam ? 'true' : 'false' }}"
                                                 @checked(in_array($user->user_id, $selectedMemberIds))
@@ -233,6 +237,7 @@
                                 <th>TEAM NAME</th>
                                 <th>LEADER</th>
                                 <th>MEMBERS</th>
+                                <th>STATUS</th>
                                 <th>CREATED</th>
                                 <th class="text-end">ACTIONS</th>
                             </tr>
@@ -247,26 +252,42 @@
                                         <td>
                                             <button type="button" class="au-members-trigger" data-team-members='@json($team->members->map(fn ($member) => ['name' => $member->user?->name ?? 'Unknown', 'role' => $member->user?->role_name, 'status' => $member->status])->values())' data-team-name="{{ $team->team_name ?? 'Team' }}" data-team-leader="{{ $team->user?->name }}">{{ $team->members->count() }} members</button>
                                         </td>
+                                        <td>
+                                            <form method="POST" action="{{ route('admin.teams.update', $team->team_id) }}" class="au-status-form">
+                                                @csrf @method('PUT')
+                                                <select name="team_status" class="au-status-select status-{{ strtolower($team->team_status) }}" aria-label="Status for {{ $team->team_name ?? 'team' }}" data-auto-submit>
+                                                    @foreach (['Active', 'Inactive'] as $statusOption)
+                                                        <option value="{{ $statusOption }}" @selected($team->team_status === $statusOption)>{{ $statusOption }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </form>
+                                        </td>
                                         <td class="text-muted">{{ $team->created_at->format('M d, Y') }}</td>
                                         <td class="text-end">
                                             <div class="au-action-group">
-                                                <a href="{{ route('admin.teams.edit', $team->team_id) }}" class="au-editteam-btn">
-                                                    <i class="fas fa-pen text-primary"></i>
-                                                </a>
+                                                @if ($team->team_status === 'Active')
+                                                    <a href="{{ route('admin.teams.edit', $team->team_id) }}" class="au-editteam-btn" aria-label="Edit {{ $team->team_name }}">
+                                                        <i class="fas fa-pen text-primary"></i>
+                                                    </a>
+                                                @else
+                                                    <span class="text-muted">Reactivate to edit</span>
+                                                @endif
+                                                {{-- **FOR DELETE ACTIONS** Team deletion is temporarily disabled.
                                                 <button class="au-deleteteam-btn" data-delete-team="{{ $team->team_id }}" type="button">
                                                     <i class="fas fa-trash text-danger"></i>
                                                 </button>
+                                                --}}
                                             </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted py-5">No teams found</td>
+                                        <td colspan="7" class="text-center text-muted py-5">No teams found</td>
                                     </tr>
                                 @endforelse
                             @else
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-5">No teams found</td>
+                                    <td colspan="7" class="text-center text-muted py-5">No teams found</td>
                                 </tr>
                             @endif
                         </tbody>

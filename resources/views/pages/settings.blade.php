@@ -101,14 +101,15 @@
 										<div>
 											<strong>Profile reminder</strong>
 											<p>
-												Please input your {{ strtolower($credentialLabel) }}.
+												Your {{ strtolower($credentialLabel) }} has not been added yet. Please contact an admin.
 											</p>
 										</div>
 									</div>
 								@endif
 								<div class="form-group">
 									<label for="license_number">{{ $credentialLabel }}</label>
-									<input type="text" id="license_number" name="license_number" value="{{ old('license_number', $profile?->license_number) }}" maxlength="100" pattern="[A-Za-z0-9\-\/ ]+" title="Letters, numbers, spaces, hyphens and slashes only" placeholder="{{ $credentialPlaceholder }}" required>
+									<input type="text" id="license_number" value="{{ $profile?->license_number }}" placeholder="{{ $credentialPlaceholder }}" readonly aria-readonly="true">
+									<small>Added by an admin. Contact an admin if this number needs to be corrected.</small>
 								</div>
 								<div class="form-group">
 									<label for="professional_bio">Professional bio</label>
@@ -139,7 +140,10 @@
 					@include('pages.settings._password-form')
 				@endif
 
-				@include('pages.settings._delete-account')
+				@if (! $isProfessional)
+					{{-- **FOR DELETE ACTIONS** Professionals cannot delete their accounts; admins manage their status. --}}
+					@include('pages.settings._delete-account')
+				@endif
 			</section>
 			@if ($isClient)
 				<section id="history-section" class="settings-panel" role="tabpanel" aria-labelledby="history-tab" hidden>

@@ -150,6 +150,11 @@
                         <form method="POST" action="{{ route('appointments.proposals.store', $appointment) }}" data-proposal-availability-url="{{ route('appointments.proposals.availability', $appointment) }}">
                             @csrf
                             <label>New date<input type="date" name="preferred_date" min="{{ now($viewerTimezone)->toDateString() }}" required></label>
+                            <label>Time period<select name="time_period" required disabled>
+                                <option value="">Choose a time period</option>
+                                <option value="morning">Morning (8:00 AM–12:00 PM)</option>
+                                <option value="afternoon">Afternoon (1:00 PM–5:00 PM)</option>
+                            </select></label>
                             <label>Available time<select name="preferred_time" required disabled><option value="">Choose a date first</option></select></label>
                             <input type="hidden" name="slot_start_utc">
                             <input type="hidden" name="timezone" value="{{ $viewerTimezone }}">

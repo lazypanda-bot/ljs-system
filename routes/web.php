@@ -532,8 +532,11 @@ Route::post('/lead/toggle', function () {
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/users/{user}/credentials', [UserController::class, 'downloadCredentials'])->name('users.credentials');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
-    Route::resource('users', UserController::class);
-    Route::resource('teams', TeamController::class);
+    // **FOR DELETE ACTIONS** Temporarily disabled; restore this route when user deletion is re-enabled.
+    // Route::resource('users', UserController::class);
+    Route::resource('users', UserController::class)->except(['destroy']);
+    // **FOR DELETE ACTIONS** Temporarily disabled; restore this route when team deletion is re-enabled.
+    Route::resource('teams', TeamController::class)->except(['destroy']);
 });
 
 
@@ -561,4 +564,3 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 //         ? redirect()->route('home')
 //         : redirect()->route('app.page', ['page' => 'dashboard']);
 // })->name('test.login');
-

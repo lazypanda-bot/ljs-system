@@ -10,7 +10,9 @@
                     <th>ROLE</th>
                     <th>STATUS</th>
                     <th>DATE JOINED</th>
+                    {{-- **FOR DELETE ACTIONS** Temporarily disabled with the user delete action.
                     <th class="text-end">ACTIONS</th>
+                    --}}
                 </tr>
             </thead>
             <tbody>
@@ -63,6 +65,7 @@
                                 @endif
                             </td>
                             <td class="text-muted">{{ $user->created_at->format('M d, Y') }}</td>
+                            {{-- **FOR DELETE ACTIONS** Temporarily disabled with the user delete action.
                             <td class="text-end">
                                 <div class="au-action-group">
                                     <button class="au-deleteuser-btn" data-delete-user="{{ $user->user_id }}" type="button" aria-label="Delete {{ $user->name }}">
@@ -70,10 +73,11 @@
                                     </button>
                                 </div>
                             </td>
+                            --}}
                         </tr>
                     @endforeach
                 @else
-                    <tr><td colspan="8" class="text-center text-muted py-5">No users found</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted py-5">No users found</td></tr>
                 @endif
             </tbody>
         </table>

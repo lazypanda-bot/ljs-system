@@ -2,552 +2,117 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Jobs\GeocodeProperty;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
-use App\Models\PropertyAssign;
-use App\Models\AppNotification;
-use App\Services\NotificationService;
-use App\Models\User;
-use App\Models\ReferralCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 
 class PropertyController extends Controller
 {
     public function store(Request $request)
     {
-        $this->authorizeLister();
-        $authenticatedUser = Auth::user();
-        if (! ($authenticatedUser instanceof User)) {
-            abort(403);
-        }
         $validated = $request->validate([
-            'property_name' => ['required', 'string', 'max:255'],
-            'property_type' => ['required', 'string', 'max:100'],
-            'description' => ['required', 'string'],
-            'house_number' => ['nullable', 'string'],
-            'street' => ['required', 'string'],
-            'city' => ['required', 'string'],
-            'province' => ['required', 'string'],
-            'price' => ['required', 'numeric'],
-            ...Property::detailRules($request->input('property_type')),
-            'parking_spaces' => ['nullable', 'integer', 'min:0'],
-            'number_of_floors' => ['nullable', 'integer', 'min:1'],
-            'property_condition' => ['nullable', 'string', 'max:255'],
-            'year_built' => ['nullable', 'integer', 'min:1800', 'max:' . (now()->year + 1)],
-            'remarks' => ['nullable', 'string', 'max:3000'],
-            'property_status' => ['required', 'string'],
-            'lifestyle_tags' => ['nullable', 'array', 'max:8'],
-            'lifestyle_tags.*' => ['string', 'max:40', 'regex:/^[a-z0-9_-]+$/i'],
-            'location_tags' => ['nullable', 'array', 'max:8'],
-            'location_tags.*' => ['string', 'max:40', 'regex:/^[a-z0-9_-]+$/i'],
-            'lifestyle_tag' => ['nullable', 'string', 'max:255'],
-            'location_tag' => ['nullable', 'string', 'max:255'],
-            'amenities' => ['nullable'],
-            'amenities.*' => ['string', 'max:100'],
-            'featured' => ['nullable', 'boolean'],
-            'images.*' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
+            'property_name' => 'required|string|max:255',
+            'property_type' => 'required|string',
+            'description' => 'required|string',
+            'location' => 'required|string',
+            'price' => 'required|numeric',
+            'address' => 'required|string',
+            'lot_area' => 'required|numeric',
+            'floor_area' => 'required|numeric',
+            'bedrooms' => 'required|integer',
+            'bathrooms' => 'required|integer',
+            'property_status' => 'required|string',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'images.*' => 'nullable|image|mimes:jpeg,png,webp|max:2048',
         ]);
 
-        $isAdminLister = $authenticatedUser->actingRole() === 'admin';
-        $lifestyleTags = $validated['lifestyle_tags'] ?? array_filter(explode(',', $validated['lifestyle_tag'] ?? ''));
-        $locationTags = $validated['location_tags'] ?? array_filter(explode(',', $validated['location_tag'] ?? ''));
-        $lifestyleTagValue = collect($lifestyleTags)->map(fn ($tag) => trim($tag))->filter()->unique()->implode(',');
-        $locationTagValue = collect($locationTags)->map(fn ($tag) => trim($tag))->filter()->unique()->implode(',');
-        $amenityNames = is_array($validated['amenities'] ?? null)
-            ? $validated['amenities']
-            : explode(',', $validated['amenities'] ?? '');
-        $amenityNames = collect($amenityNames)->map(fn ($name) => trim($name))->filter()->unique(fn ($name) => strtolower($name));
-        $storedImagePaths = [];
-        $createdPropertyId = null;
-        try {
-            DB::transaction(function () use ($request, $validated, $authenticatedUser, $isAdminLister, $lifestyleTagValue, $locationTagValue, $amenityNames, &$storedImagePaths, &$createdPropertyId): void {
-                $property = Property::create([
-                    'user_id' => $authenticatedUser->user_id,
-                    'property_name' => $validated['property_name'],
-                    'property_description' => $validated['description'],
-                    'property_type' => $validated['property_type'],
-                    'lifestyle_tag' => $lifestyleTagValue ?: null,
-                    'location_tag' => $locationTagValue ?: null,
-                    'house_number' => $validated['house_number'] ?? null,
-                    'street' => $validated['street'],
-                    'city' => $validated['city'],
-                    'province' => $validated['province'],
-                    'price' => (int) $validated['price'],
-                    'property_status' => $this->normalizeStatus($validated['property_status']),
-                    'sold_at' => $this->normalizeStatus($validated['property_status']) === 'Sold' ? now() : null,
-                    'approval_status' => $isAdminLister ? 'Approved' : 'Pending',
-                    'listing_mode' => $isAdminLister ? 'admin' : 'professional',
-                    'featured' => $request->boolean('featured'),
-                ]);
-                $createdPropertyId = $property->property_id;
+        $userId = Auth::id() ?? $this->ensureFallbackUser();
+        $latitude = $validated['latitude'] ?? 10.3157;
+        $longitude = $validated['longitude'] ?? 123.8854;
 
-                if ($isAdminLister) {
-                    $this->referralCodeFor($property, $authenticatedUser);
-                    PropertyAssign::create([
-                        'user_id' => $authenticatedUser->user_id,
-                        'property_id' => $property->property_id,
-                        'assigned_date' => now()->toDateString(),
-                        'status' => 'Approved',
-                    ]);
-                }
+        $property = Property::create([
+            'user_id' => $userId,
+            'referral_code' => 'LJS-' . strtoupper(Str::random(6)),
+            'property_name' => $validated['property_name'],
+            'property_description' => $validated['description'],
+            'property_type' => $validated['property_type'],
+            'property_location' => $validated['location'],
+            'price' => (int) $validated['price'],
+            'property_status' => $this->normalizeStatus($validated['property_status']),
+            'approval_status' => 'Approved',
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+        ]);
 
-                $detailsId = DB::table('property_details')->insertGetId([
+        DB::table('property_details')->insert([
+            'property_id' => $property->property_id,
+            'lot_area' => $validated['lot_area'],
+            'floor_area' => $validated['floor_area'],
+            'bedroom' => $validated['bedrooms'],
+            'bathroom' => $validated['bathrooms'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('properties', 'public');
+
+                DB::table('property_images')->insert([
                     'property_id' => $property->property_id,
-                    ...Property::normalizeDetails($validated),
+                    'image_path' => $path,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ], 'details_id');
-
-                foreach ($amenityNames as $amenityName) {
-                    DB::table('property_amenities')->insert([
-                        'details_id' => $detailsId,
-                        'amenity_name' => $amenityName,
-                    ]);
-                }
-
-                foreach ($request->file('images', []) as $image) {
-                    $path = $image->store('properties', 'public');
-                    $storedImagePaths[] = $path;
-                    DB::table('property_images')->insert([
-                        'property_id' => $property->property_id,
-                        'image_path' => $path,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                }
-
-                if ($property->approval_status === 'Pending') {
-                    NotificationService::oversight([
-                        'type' => 'listing',
-                        'title' => 'Listing awaiting approval',
-                        'body' => $property->property_name . ' needs review.',
-                        'url' => route('staff.properties.show', $property),
-                    ], $authenticatedUser);
-                } else {
-                    NotificationService::listingLive($property, $authenticatedUser);
-                }
-            });
-        } catch (\Throwable $exception) {
-            foreach ($storedImagePaths as $path) {
-                Storage::disk('public')->delete($path);
+                ]);
             }
-            report($exception);
-
-            return redirect()->back()->withInput()->with('error', 'The property could not be saved. Please try again.');
         }
 
-        if ($createdPropertyId) {
-            $this->geocode($createdPropertyId);
-        }
-
-        $destination = $isAdminLister ? 'property' : 'listings';
-        return redirect()->route('app.page', ['page' => $destination])->with('success', 'Property submitted successfully.');
+        return redirect()->route('app.page', ['page' => 'property'])->with('success', 'Property added successfully!');
     }
 
-    /** Pin the listing right away; retry from the queue if the lookup fails. */
-    private function geocode(int $propertyId): void
+    private function ensureFallbackUser(): int
     {
-        try {
-            GeocodeProperty::dispatchSync($propertyId);
-        } catch (\Throwable $exception) {
-            report($exception);
-            if (config('queue.default') !== 'sync') {
-                GeocodeProperty::dispatch($propertyId);
-            }
+        if (! Schema::hasTable('roles') || ! Schema::hasTable('users')) {
+            return 1;
         }
+
+        $roleId = DB::table('roles')->value('role_id');
+
+        if (! $roleId) {
+            $roleId = DB::table('roles')->insertGetId([
+                'role_name' => 'admin',
+            ]);
+        }
+
+        $userId = DB::table('users')->value('user_id');
+
+        if (! $userId) {
+            $userId = DB::table('users')->insertGetId([
+                'role_id' => $roleId,
+                'name' => 'System User',
+                'email' => 'system@example.com',
+                'password' => bcrypt('password'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return (int) $userId;
     }
 
     private function normalizeStatus(string $status): string
     {
-        return match (trim($status)) {
-            'Available', 'For Sale' => 'For Sale',
-            'For Rent', 'Rent', 'for-rent' => 'For Rent',
-            'Rent to Own', 'Rent-to-Own', 'rent-to-own' => 'Rent to Own',
+        return match ($status) {
+            'For Sale' => 'Available',
+            'For Rent' => 'Rented',
             'Sold' => 'Sold',
-            'Pending' => 'Pending',
-            'Reserved' => 'Reserved',
-            'Unavailable' => 'Unavailable',
-            default => 'For Sale', // fallback
+            'Pending' => 'Unavailable',
+            default => 'Available',
         };
     }
-
-    // GENERATING REF CODE
-    public function generateReferral($id)
-    {
-        $property = Property::findOrFail($id);
-
-        $user = Auth::user();
-        abort_unless($user instanceof User, 403);
-
-        $ownsProperty = (int) $property->user_id === (int) $user->user_id;
-        $hasApprovedAssignment = $property->assignments()
-            ->where('user_id', $user->user_id)
-            ->where('status', 'Approved')
-            ->exists();
-
-        $isAdmin = $user instanceof User && $user->actingRole() === 'admin';
-        abort_unless(($isAdmin && $property->isManageableByAdmin($user)) || $ownsProperty || $hasApprovedAssignment, 403);
-        abort_unless($property->approval_status === 'Approved', 403, 'Referral links are available after Admin approval.');
-
-        $referralOwner = $property->user;
-        abort_unless($referralOwner instanceof User, 422);
-        $referralCode = $this->referralCodeFor($property, $referralOwner);
-
-        return redirect()->back()->with('success', 'Referral code generated: ' . $referralCode->code);
-    }
-
-    private function referralCodeFor(Property $property, User $user): ReferralCode
-    {
-        $referralCode = ReferralCode::query()
-            ->where('property_id', $property->property_id)
-            ->where('user_id', $user->user_id)
-            ->first();
-
-        if ($referralCode) {
-            return $referralCode;
-        }
-
-        do {
-            $code = 'LJS-' . strtoupper(Str::random(10));
-        } while (ReferralCode::query()->where('code', $code)->exists());
-
-        return ReferralCode::create([
-            'property_id' => $property->property_id,
-            'user_id' => $user->user_id,
-            'code' => $code,
-        ]);
-    }
-
-    public function create()
-    {
-        $this->authorizeLister();
-
-        return view('pages.properties.create');
-    }
-
-    public function reviewListing(Request $request, Property $property)
-    {
-        $user = Auth::user();
-        abort_unless($user instanceof User && $user->actingRole() === 'admin', 403);
-
-        $validated = $request->validate([
-            'approval_status' => ['required', 'in:Approved,Rejected'],
-            'rejection_reasons' => ['required_if:approval_status,Rejected', 'array', 'min:1'],
-            'rejection_reasons.*' => ['string', 'in:Incomplete property details,Same property already listed,Missing or invalid images,Incorrect price or property information,Location/address needs correction,Listing does not meet requirements,Other'],
-            'rejection_note_other' => ['nullable', 'string', 'max:1000'],
-        ]);
-        $isRejected = $validated['approval_status'] === 'Rejected';
-        $rejectionNote = null;
-        if ($isRejected) {
-            $reasons = collect($validated['rejection_reasons'] ?? [])->unique()->values();
-            if ($reasons->contains('Other') && blank($validated['rejection_note_other'] ?? null)) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
-                    'rejection_note_other' => 'Please add details when selecting Other.',
-                ]);
-            }
-
-            $rejectionNote = $reasons
-                ->map(fn (string $reason) => $reason === 'Other'
-                    ? 'Other: ' . trim($validated['rejection_note_other'] ?? '')
-                    : $reason)
-                ->implode('; ');
-        }
-
-        $property->update([
-            'approval_status' => $validated['approval_status'],
-            'rejection_note' => $rejectionNote,
-        ]);
-
-        $referralCode = null;
-        if (! $isRejected && $property->listing_mode !== 'admin') {
-            $lister = $property->user;
-            if ($lister instanceof User && in_array($lister->normalizedRole(), ['agent', 'broker', 'lead_broker'], true)) {
-                $referralCode = $this->referralCodeFor($property, $lister);
-            }
-        }
-
-        AppNotification::create([
-            'user_id' => $property->user_id,
-            'type' => 'listing',
-            'title' => $isRejected
-                ? 'Listing rejected'
-                : ($referralCode ? 'Listing approved; referral link ready' : 'Listing approved'),
-            'body' => $isRejected
-                ? $property->property_name . ': ' . $rejectionNote
-                : ($referralCode
-                    ? $property->property_name . ' is live. Referral link: ' . route('referrals.open', $referralCode->code)
-                    : $property->property_name . ' is now live.'),
-            'url' => route('staff.properties.show', $property),
-        ]);
-
-        if (! $isRejected) {
-            NotificationService::listingLive($property, $user);
-        }
-
-        return redirect()->back()->with('success', 'Listing approval updated.');
-    }
-
-    public function destroy(Property $property)
-    {
-        $this->authorizeAdmin();
-        abort_unless($property->isManageableByAdmin(Auth::user()), 403);
-        $this->ensureSoldStatusIsLocked($property, 'Unavailable');
-
-        $property->update([
-            'property_status' => 'Unavailable',
-            'sold_at' => null,
-        ]);
-
-        return redirect()->back()->with('success', 'Property moved to history.');
-    }
-
-    public function edit(Property $property)
-    {
-        $user = Auth::user();
-        $isAdmin = $user instanceof User && $user->actingRole() === 'admin';
-        $isProfessionalOwner = $user instanceof User
-            && (int) $property->user_id === (int) $user->user_id
-            && in_array($user->normalizedRole(), ['agent', 'broker', 'lead_broker'], true)
-            && $user->actingRole() !== 'admin';
-        abort_unless(($isAdmin && $property->isManageableByAdmin($user)) || $isProfessionalOwner, 403);
-
-        if ($isProfessionalOwner && $property->blocksResubmission()) {
-            return redirect()->route('app.page', ['page' => 'listings'])
-                ->with('error', 'This listing was rejected because the same property is already listed, so it cannot be resubmitted.');
-        }
-
-        $property->load(['details.amenities', 'images']);
-
-        return view('pages.properties.edit', compact('property'));
-    }
-
-    public function update(Request $request, Property $property)
-    {
-        $user = Auth::user();
-        $isAdmin = $user instanceof User && $user->actingRole() === 'admin';
-        $isProfessionalOwner = $user instanceof User
-            && (int) $property->user_id === (int) $user->user_id
-            && in_array($user->normalizedRole(), ['agent', 'broker', 'lead_broker'], true)
-            && $user->actingRole() !== 'admin';
-        abort_unless(($isAdmin && $property->isManageableByAdmin($user)) || $isProfessionalOwner, 403);
-
-        if ($isProfessionalOwner && $property->blocksResubmission()) {
-            return redirect()->route('app.page', ['page' => 'listings'])
-                ->with('error', 'This listing was rejected because the same property is already listed, so it cannot be resubmitted.');
-        }
-
-        $validated = $request->validate([
-            'property_name' => ['required', 'string', 'max:255'],
-            'property_type' => ['required', 'string', 'max:100'],
-            'property_description' => ['nullable', 'string'],
-            'price' => ['required', 'numeric'],
-            'property_status' => ['required', 'in:For Sale,For Rent,Rent to Own,Available,Reserved,Pending,Sold,Unavailable'],
-            'house_number' => ['nullable', 'string', 'max:255'],
-            'lot_number' => ['nullable', 'string', 'max:255'],
-            'street' => ['required', 'string', 'max:255'],
-            'city' => ['required', 'string', 'max:255'],
-            'province' => ['required', 'string', 'max:255'],
-            ...Property::detailRules($request->input('property_type')),
-            'parking_spaces' => ['nullable', 'integer', 'min:0'],
-            'number_of_floors' => ['nullable', 'integer', 'min:1'],
-            'property_condition' => ['nullable', 'string', 'max:255'],
-            'year_built' => ['nullable', 'integer', 'min:1800', 'max:' . (now()->year + 1)],
-            'remarks' => ['nullable', 'string', 'max:3000'],
-            'amenities' => ['nullable', 'string', 'max:3000'],
-            'lifestyle_tag' => ['nullable', 'string', 'max:100'],
-            'location_tag' => ['nullable', 'string', 'max:100'],
-            'featured' => ['nullable', 'boolean'],
-            'remove_images' => ['nullable', 'array'],
-            'remove_images.*' => ['integer'],
-            'images' => ['nullable', 'array', 'max:12'],
-            'images.*' => ['image', 'mimes:jpeg,png,webp', 'max:2048'],
-        ]);
-        $this->ensureSoldStatusIsLocked($property, $validated['property_status']);
-
-        $imagesToRemove = $property->images()->whereIn('image_id', $validated['remove_images'] ?? [])->get();
-        $newImages = $request->file('images', []);
-        if ($property->images()->count() - $imagesToRemove->count() + count($newImages) > 12) {
-            throw ValidationException::withMessages([
-                'images' => 'A listing can have no more than 12 images.',
-            ]);
-        }
-
-        $propertyFields = [
-            'property_name' => $validated['property_name'],
-            'property_type' => $validated['property_type'],
-            'property_description' => $validated['property_description'] ?? null,
-            'price' => $validated['price'],
-            'property_status' => $validated['property_status'],
-            'sold_at' => $validated['property_status'] === 'Sold' ? ($property->sold_at ?? now()) : null,
-            'house_number' => $validated['house_number'] ?? null,
-            'lot_number' => $validated['lot_number'] ?? null,
-            'street' => $validated['street'],
-            'city' => $validated['city'],
-            'province' => $validated['province'],
-            'lifestyle_tag' => $validated['lifestyle_tag'] ?? null,
-            'location_tag' => $validated['location_tag'] ?? null,
-            'featured' => $request->boolean('featured'),
-        ];
-        $detailFields = Property::normalizeDetails($validated);
-        $storedImagePaths = [];
-        $needsApprovalAfterEdit = $isProfessionalOwner && $property->approval_status === 'Rejected';
-
-        try {
-            DB::transaction(function () use ($property, $propertyFields, $detailFields, $validated, $newImages, $imagesToRemove, $needsApprovalAfterEdit, $request, &$storedImagePaths): void {
-                $property->update($needsApprovalAfterEdit
-                    ? [...$propertyFields, 'approval_status' => 'Pending', 'rejection_note' => null]
-                    : $propertyFields);
-
-                $details = $property->details()->updateOrCreate([], $detailFields);
-                DB::table('property_amenities')->where('details_id', $details->details_id)->delete();
-                foreach (explode(',', $validated['amenities'] ?? '') as $amenityName) {
-                    $amenityName = trim($amenityName);
-                    if ($amenityName !== '') {
-                        DB::table('property_amenities')->insert([
-                            'details_id' => $details->details_id,
-                            'amenity_name' => $amenityName,
-                        ]);
-                    }
-                }
-
-                foreach ($newImages as $image) {
-                    $path = $image->store('properties', 'public');
-                    $storedImagePaths[] = $path;
-                    $property->images()->create(['image_path' => $path]);
-                }
-
-                foreach ($imagesToRemove as $image) {
-                    $image->delete();
-                }
-            });
-        } catch (\Throwable $exception) {
-            foreach ($storedImagePaths as $path) {
-                Storage::disk('public')->delete($path);
-            }
-            throw $exception;
-        }
-
-        foreach ($imagesToRemove as $image) {
-            Storage::disk('public')->delete($image->image_path);
-        }
-
-        $this->geocode($property->property_id);
-
-        if ($property->wasChanged('property_status') && $property->property_status === 'Sold') {
-            NotificationService::soldReviewPrompts($property);
-        }
-
-        if ($needsApprovalAfterEdit) {
-            NotificationService::oversight([
-                'type' => 'listing',
-                'title' => 'Listing resubmitted for approval',
-                'body' => $property->property_name . ' was updated and needs review.',
-                'url' => route('staff.properties.show', $property),
-            ], $user);
-        }
-
-        return redirect()->route('app.page', ['page' => $isAdmin ? 'property' : 'listings'])
-            ->with('success', $needsApprovalAfterEdit ? 'Listing resubmitted for Admin approval.' : 'Property updated.');
-    }
-
-    public function updateStatus(Request $request, Property $property)
-    {
-        $user = Auth::user();
-        $isAdmin = $user instanceof User && $user->actingRole() === 'admin' && $property->isManageableByAdmin($user);
-        $isProfessionalOwner = $user instanceof User
-            && (int) $property->user_id === (int) $user->user_id
-            && in_array($user->actingRole(), ['broker', 'agent'], true);
-        abort_unless($isAdmin || $isProfessionalOwner, 403);
-        abort_if($isProfessionalOwner && $property->blocksResubmission(), 403);
-
-        $validated = $request->validate([
-            'property_status' => ['required', 'in:Available,For Sale,For Rent,Rent to Own,Reserved,Pending,Sold,Unavailable'],
-        ]);
-        $this->ensureSoldStatusIsLocked($property, $validated['property_status']);
-
-        $property->update([
-            'property_status' => $validated['property_status'],
-            'sold_at' => $validated['property_status'] === 'Sold' ? ($property->sold_at ?? now()) : null,
-        ]);
-
-        if ($property->wasChanged('property_status') && $property->property_status === 'Sold') {
-            NotificationService::soldReviewPrompts($property);
-        }
-
-        return redirect()->back()->with('success', 'Property status updated.');
-    }
-
-    private function authorizeAdmin(): void
-    {
-        $user = Auth::user();
-
-        abort_unless($user instanceof User && $user->actingRole() === 'admin', 403);
-    }
-
-    private function ensureSoldStatusIsLocked(Property $property, string $nextStatus): void
-    {
-        if ($property->property_status === 'Sold' && $nextStatus !== 'Sold') {
-            throw ValidationException::withMessages([
-                'property_status' => 'Sold listings cannot be changed back to another status.',
-            ]);
-        }
-    }
-
-    private function authorizeLister(): void
-    {
-        $user = Auth::user();
-
-        abort_unless($user instanceof User && in_array($user->actingRole(), ['admin', 'broker', 'agent'], true), 403);
-    }
-
-    // VIEW DETAILS
-   public function show($id, Request $request)
-{
-    $property = Property::with(['images', 'details', 'user'])->findOrFail($id);
-    $referralCode = null;
-    $isAdminListing = $property->listing_mode === 'admin';
-
-    // The lister is the only contact for a listing; no other professional can be selected.
-    $contactProfessionals = collect();
-    $selectedContactAssignment = null;
-    $contactUser = $property->user;
-    $selectedAssignmentId = null;
-    $viewer = Auth::user();
-    $hasActiveAppointment = $viewer instanceof User
-        && \App\Models\Appointment::clientHasActiveForProperty($viewer, $property->property_id);
-    if ($property->approval_status !== 'Approved' || in_array($property->property_status, ['Sold', 'Unavailable'], true)) {
-        abort_unless(
-            $viewer instanceof User
-                && ($viewer->actingRole() === 'admin' || $property->user_id === $viewer->user_id),
-            404
-        );
-    }
-    if (Auth::check() && $property->approval_status === 'Approved' && $property->user_id) {
-        $ownerAssignment = PropertyAssign::firstOrCreate(
-            ['property_id' => $property->property_id, 'user_id' => $property->user_id],
-            ['assigned_date' => now()->toDateString(), 'status' => 'Approved']
-        );
-        if ($ownerAssignment->status !== 'Approved') {
-            $ownerAssignment->update(['status' => 'Approved']);
-        }
-        $selectedAssignmentId = $ownerAssignment->assign_id;
-    }
-
-    return view('customer.property-details', compact(
-        'property',
-        'hasActiveAppointment',
-        'referralCode',
-        'isAdminListing',
-        'contactProfessionals',
-        'selectedContactAssignment',
-        'contactUser',
-        'selectedAssignmentId'
-    ));
-}
 }

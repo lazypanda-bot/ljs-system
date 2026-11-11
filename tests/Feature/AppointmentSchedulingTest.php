@@ -472,12 +472,17 @@ class AppointmentSchedulingTest extends TestCase
             ->assertOk()
             ->assertSee('Reschedule appointment')
             ->assertSee('data-reschedule-modal', false)
-            ->assertSee('data-proposal-availability-url', false);
+            ->assertSee('data-proposal-availability-url', false)
+            ->assertSee('<select name="time_period" required disabled>', false)
+            ->assertSee('Morning (8:00 AM–12:00 PM)')
+            ->assertSee('Afternoon (1:00 PM–5:00 PM)')
+            ->assertDontSee('Whole day');
 
         $this->actingAs($client)
             ->get(route('appointments.index', ['selected' => $appointment->appointment_id]))
             ->assertOk()
             ->assertSee('Propose a new time')
+            ->assertSee('<select name="time_period" required disabled>', false)
             ->assertDontSee('data-reschedule-modal', false);
     }
 

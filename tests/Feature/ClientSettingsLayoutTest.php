@@ -30,7 +30,7 @@ class ClientSettingsLayoutTest extends TestCase
         ]);
     }
 
-    public function test_client_settings_has_account_and_history_tabs_with_delete_as_a_button(): void
+    public function test_client_can_delete_account_but_professionals_cannot(): void
     {
         $agent = User::factory()->create(['role_name' => 'Agent']);
         $client = User::factory()->create(['role_name' => 'Client']);
@@ -43,7 +43,7 @@ class ClientSettingsLayoutTest extends TestCase
             ->assertDontSee('id="password-tab"', false);
 
         $this->actingAs($agent)->get(route('app.page', ['page' => 'settings']))
-            ->assertOk()->assertSee('id="password-tab"', false)->assertSee('data-open-delete-account', false);
+            ->assertOk()->assertSee('id="password-tab"', false)->assertDontSee('data-open-delete-account', false);
     }
 
     public function test_floating_appointment_icon_lists_only_active_appointments_before_messages_and_bell(): void

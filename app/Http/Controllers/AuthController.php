@@ -279,24 +279,18 @@ class AuthController extends Controller
         ];
 
         if ($user->isProfessional()) {
-            $rules['license_number'] = ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9\-\/ ]+$/'];
             $rules['professional_bio'] = ['nullable', 'string', 'max:2000'];
             $rules['credential_document'] = ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'];
         }
 
-        $credentialLabel = $user->role_name === 'Agent' ? 'accreditation number' : 'PRC license number';
-        $validated = $request->validate($rules, \App\Support\InputRules::messages() + [
-            'license_number.required' => 'Please input your ' . $credentialLabel . '.',
-            'license_number.regex' => 'The ' . $credentialLabel . ' may only contain letters, numbers, spaces, hyphens and slashes.',
-        ]);
+        $validated = $request->validate($rules, \App\Support\InputRules::messages());
 
         $profileFields = [];
         if ($user->isProfessional()) {
             $profileFields = [
-                'license_number' => $validated['license_number'] ?? null,
                 'professional_bio' => $validated['professional_bio'] ?? null,
             ];
-            unset($validated['license_number'], $validated['professional_bio'], $validated['credential_document']);
+            unset($validated['professional_bio'], $validated['credential_document']);
         }
 
         $removePhoto = $request->boolean('remove_profile_photo');
@@ -315,7 +309,7 @@ class AuthController extends Controller
         }
 
         if ($user->isProfessional()) {
-            // A credential on file (added by an admin or earlier) is kept; only a missing one can be added here.
+            // A credential document on file is kept; only a missing document can be added here.
             if ($request->hasFile('credential_document') && ! $user->professionalProfile?->document_file) {
                 $profileFields['document_file'] = $request->file('credential_document')->store('professional-credentials', 'local');
             }
@@ -374,6 +368,7 @@ class AuthController extends Controller
     {
         $user = $request->user();
         abort_unless($user instanceof User, 403);
+        abort_if($user->isProfessional(), 403, 'Professionals cannot deactivate their own accounts. Contact an admin.');
 
         $request->validate([
             'current_password' => ['required', 'current_password'],

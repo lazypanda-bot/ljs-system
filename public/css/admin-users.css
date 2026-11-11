@@ -56,6 +56,10 @@
     display: block;
 }
 
+.au-tab-content.au-team-edit-open {
+    animation: none;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
@@ -93,6 +97,22 @@
 .au-modal-overlay .au-form-card {
     width: min(720px, 100%);
     margin-bottom: 0;
+}
+
+.au-team-edit-modal {
+    padding: 24px 16px;
+    overscroll-behavior: contain;
+}
+
+.au-team-edit-modal .au-form-card {
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+}
+
+@supports (height: 100dvh) {
+    .au-team-edit-modal .au-form-card {
+        max-height: calc(100dvh - 48px);
+    }
 }
 
 .au-modal-close {

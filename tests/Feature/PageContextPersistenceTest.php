@@ -26,7 +26,7 @@ class PageContextPersistenceTest extends TestCase
             ->assertHeader('Location', $returnTo);
         $this->post(route('admin.users.store'), [
             'name' => 'Added Agent', 'email' => 'added@context.test', 'password' => 'InitialPass1!',
-            'role_name' => 'Agent', 'account_status' => 'Active', '_return_to' => $returnTo,
+            'role_name' => 'Agent', 'account_status' => 'Active', 'license_number' => 'ACC-333222', '_return_to' => $returnTo,
         ])->assertSessionHasNoErrors()->assertHeader('Location', $returnTo);
     }
 
@@ -106,14 +106,18 @@ class PageContextPersistenceTest extends TestCase
         }
     }
 
-    public function test_deleting_the_last_user_on_a_page_returns_to_the_last_valid_page(): void
+    public function test_user_delete_action_is_temporarily_disabled(): void
     {
         $admin = User::factory()->create(['role_name' => 'Admin']);
-        $agents = User::factory()->count(7)->create(['role_name' => 'Agent']);
-        $this->actingAs($admin)->deleteJson(route('admin.users.destroy', $agents->last()))->assertOk();
-        $response = $this->get('/admin/users?tab=all-users&page=2')->assertRedirect();
-        $this->assertSame(url('/admin/users?tab=all-users&page=1'), $response->headers->get('Location'));
-        $this->get($response->headers->get('Location'))->assertOk()
-            ->assertViewHas('users', fn ($users) => $users->currentPage() === 1 && $users->count() === 7);
+        $agent = User::factory()->create(['role_name' => 'Agent']);
+
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('admin.users.destroy'));
+        $response = $this->actingAs($admin)->get('/app/users?table_only=1')->assertOk();
+        $this->assertStringNotContainsString('data-delete-user', $response->json('html'));
+        $this->assertStringNotContainsString('<th class="text-end">ACTIONS</th>', $response->json('html'));
+        $this->actingAs($admin)->deleteJson("/admin/users/{$agent->user_id}")->assertMethodNotAllowed();
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('admin.teams.destroy'));
+        $this->deleteJson('/admin/teams/1')->assertMethodNotAllowed();
+        $this->assertDatabaseHas('users', ['user_id' => $agent->user_id]);
     }
 }

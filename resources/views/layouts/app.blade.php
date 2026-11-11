@@ -215,65 +215,35 @@
                     <li><a href="{{ route('about') }}">About Us</a></li>
                 </ul>
             </div>
-            {{-- <div class="footer-col">
+            <div class="footer-col">
                 <h4>Contact Us</h4>
                 <ul class="contact-list">
                     <li><a href="tel:+639213456789"><i data-lucide="phone" aria-hidden="true"></i> +63 921 345 6789</a></li>
                     <li><a href="mailto:ljsrealty@gmail.com"><i data-lucide="mail" aria-hidden="true"></i> ljsrealty@gmail.com</a></li>
                     <li class="footer-address"><i data-lucide="map-pin" aria-hidden="true"></i> <span>Unit 6 Labangon Town Center<br>Katipunan St, Cebu City</span></li>
                 </ul>
-            </div> --}}
-            {{--
-                IF THIS IS USED, MAKE A TABLE FOR COMPANY_SETTINGS AND UNCOMMENT THIS TO USE.
-                Put the dynamic footer contact display in this file once AppServiceProvider shares $contactInfo.
-
-                <div class="footer-col">
-                    <h4>Contact Us</h4>
-                    <ul class="contact-list">
-                        @if(!empty($contactInfo['phone']))
-                            <li><a href="tel:{{ $contactInfo['phone'] }}"><i data-lucide="phone" aria-hidden="true"></i> {{ $contactInfo['phone'] }}</a></li>
-                        @endif
-                        @if(!empty($contactInfo['email']))
-                            <li><a href="mailto:{{ $contactInfo['email'] }}"><i data-lucide="mail" aria-hidden="true"></i> {{ $contactInfo['email'] }}</a></li>
-                        @endif
-                        @if(!empty($contactInfo['address']))
-                            <li class="footer-address"><i data-lucide="map-pin" aria-hidden="true"></i> <span>{{ $contactInfo['address'] }}</span></li>
-                        @endif
-                    </ul>
-                </div>
-            --}}
+            </div>
             <div class="footer-col">
                 <h4>Contact Us</h4>
                 <ul class="contact-list">
-                    {{-- @if(!empty($contactInfo['phone']))
-                        <li><a href="tel:{{ $contactInfo['phone'] }}"><i data-lucide="phone" aria-hidden="true"></i> {{ $contactInfo['phone'] }}</a></li>
+                    @if(!empty($contactInfo['address']))
+                        <li class="footer-address"><i data-lucide="map-pin" aria-hidden="true"></i> <span>{{ $contactInfo['address'] }}</span></li>
+                    @endif
+                    @if(!empty($contactInfo['phone']))
+                        <li><i data-lucide="phone" aria-hidden="true"></i> <a href="tel:{{ preg_replace('/[^0-9+]/', '', $contactInfo['phone']) }}">{{ $contactInfo['phone'] }}</a></li>
                     @endif
                     @if(!empty($contactInfo['email']))
-                        <li><a href="mailto:{{ $contactInfo['email'] }}"><i data-lucide="mail" aria-hidden="true"></i> {{ $contactInfo['email'] }}</a></li>
+                        <li><i data-lucide="mail" aria-hidden="true"></i> <a href="mailto:{{ $contactInfo['email'] }}">{{ $contactInfo['email'] }}</a></li>
                     @endif
-                    @if(!empty($contactInfo['address']))
-                        <li class="footer-address"><i data-lucide="map-pin" aria-hidden="false"></i> <span>{{ $contactInfo['address'] }}</span></li>
-                    @endif --}}
-                    <li class="footer-address"><i data-lucide="map-pin" aria-hidden="false"></i> <span>Unit 6 Labangon Town Center Katipunan St,<br>Cebu City, Philippines, 6000</span></li>
-                    <li><i data-lucide="phone" aria-hidden="true"></i> 0922 581 1593</li>
-                    <li><i data-lucide="mail" aria-hidden="true"></i> rimmon.sendiong@gmail.com</li>
                 </ul>
-            </div>  
+            </div>
             <div class="footer-col">
                 <h4>Social Media</h4>
                 <div class="footer-social">
-                    <a href="https://www.facebook.com/LJSRealtyAndBrokerage" class="footer-social-link footer-social-facebook" aria-label="Facebook"><i data-lucide="facebook" aria-hidden="true"></i></a>
+                    @if(!empty($socialLinks['facebook']))
+                        <a href="{{ $socialLinks['facebook'] }}" class="footer-social-link footer-social-facebook" aria-label="Facebook"><i data-lucide="facebook" aria-hidden="true"></i></a>
+                    @endif
                 </div>
-                {{--
-                    IF THIS IS USED, MAKE A TABLE FOR COMPANY_SETTINGS AND UNCOMMENT THIS TO USE.
-                    Put the dynamic social media links in this file once AppServiceProvider shares $socialLinks.
-
-                    <div class="footer-social">
-                        @if(!empty($socialLinks['facebook']))
-                            <a href="{{ $socialLinks['facebook'] }}" class="footer-social-link footer-social-facebook" aria-label="Facebook"><i data-lucide="facebook" aria-hidden="true"></i></a>
-                        @endif
-                    </div>
-                --}}
             </div>
         </div>
     </footer>

@@ -81,7 +81,17 @@
             @endphp
             <div class="chat-header">
                 <a class="thread-back" href="{{ route('messages.inbox', array_merge(request()->only(['q', 'type', 'status']), ['panel' => ($panelMode ?? false) ? 1 : null]), false) }}" aria-label="Back to conversations"><i data-lucide="arrow-left" aria-hidden="true"></i></a>
-                <div class="chat-header-info"><h3>{{ $title }}</h3>@if ($conversation->type === 'team')<span>{{ $conversation->participants->count() }} participants</span>@endif</div>
+                <div class="chat-header-info"><h3>{{ $title }}</h3>
+                    @if ($conversation->type === 'team')
+                        @if ($conversation->team?->team_status === 'Inactive')
+                            <span>Inactive team · read-only archive</span>
+                        @elseif (! $canReplyToConversation)
+                            <span>Read-only · no longer a member of this team</span>
+                        @else
+                            <span>{{ $conversation->participants->count() }} participants</span>
+                        @endif
+                    @endif
+                </div>
             </div>
             <div class="chat-messages" data-last-message-id="{{ $conversation->messages->last()?->message_id ?? 0 }}" data-current-user-id="{{ auth()->id() }}">
                 @foreach ($conversation->messages as $message)
@@ -96,7 +106,7 @@
                                 <a class="message-attachment" href="{{ route('messages.attachments.download', $message) }}" target="_blank" rel="noopener"><i class="fas fa-paperclip" aria-hidden="true"></i> Attachment</a>
                             @endif
                             <div class="message-meta">{{ $message->created_at->format('M d, g:i A') }}</div>
-                            @if ($isOwnMessage)
+                            @if ($isOwnMessage && $canReplyToConversation)
                                 <form method="POST" action="{{ route('messages.update', ['message' => $message, 'panel' => ($panelMode ?? false) ? 1 : null]) }}" class="message-edit-form" data-message-edit-form hidden>
                                     @csrf @method('PATCH')
                                     <label class="visually-hidden" for="editMessage{{ $message->message_id }}">Edit message</label>
@@ -105,7 +115,7 @@
                                 </form>
                             @endif
                         </div>
-                        @if ($isOwnMessage)
+                        @if ($isOwnMessage && $canReplyToConversation)
                             <div class="message-actions">
                                 <button type="button" class="message-menu-toggle" aria-label="Message actions" aria-haspopup="menu" aria-expanded="false" data-message-menu-toggle><i data-lucide="ellipsis" aria-hidden="true"></i></button>
                                 <div class="message-action-menu" role="menu" hidden>
@@ -120,15 +130,19 @@
                     </div>
                 @endforeach
             </div>
-            <form class="reply-box" method="POST" action="{{ $replyUrl }}" enctype="multipart/form-data">
-                @csrf
-                <label class="reply-attach-button" for="replyAttachment" title="Attach a file" aria-label="Attach a file"><i data-lucide="plus" aria-hidden="true"></i><input id="replyAttachment" name="attachment" type="file"></label>
-                <div class="reply-input-wrapper">
-                    <div class="reply-attachment-status" id="replyAttachmentStatus" aria-live="polite" hidden></div>
-                    <textarea class="reply-input" name="body" placeholder="Type a message..." rows="1" maxlength="4000" required></textarea>
-                </div>
-                <button class="message-send-button" type="submit"><span>Send</span></button>
-            </form>
+            @if ($canReplyToConversation)
+                <form class="reply-box" method="POST" action="{{ $replyUrl }}" enctype="multipart/form-data">
+                    @csrf
+                    <label class="reply-attach-button" for="replyAttachment" title="Attach a file" aria-label="Attach a file"><i data-lucide="plus" aria-hidden="true"></i><input id="replyAttachment" name="attachment" type="file"></label>
+                    <div class="reply-input-wrapper">
+                        <div class="reply-attachment-status" id="replyAttachmentStatus" aria-live="polite" hidden></div>
+                        <textarea class="reply-input" name="body" placeholder="Type a message..." rows="1" maxlength="4000" required></textarea>
+                    </div>
+                    <button class="message-send-button" type="submit"><span>Send</span></button>
+                </form>
+            @else
+                <div class="reply-box reply-box-readonly" role="status">This team conversation is read-only. You can still view its message history.</div>
+            @endif
         @else
             <div class="empty-chat-panel">Select a conversation or start a new one.</div>
         @endif

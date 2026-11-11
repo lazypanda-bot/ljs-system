@@ -160,7 +160,7 @@
 .property-gallery-controls .gallery-nav-button { justify-self: center; }
 .property-gallery-controls #propertyImagePrevious :is(i, svg) { transform: rotate(90deg); }
 .property-gallery-controls #propertyImageNext :is(i, svg) { transform: rotate(90deg); }
-.property-thumbnail-strip { display: flex; min-width: 0; min-height: 0; flex-direction: column; gap: 8px; overflow-y: auto; overflow-x: hidden; padding: 2px; }
+.property-thumbnail-strip { display: flex; min-width: 0; min-height: 0; max-height: 308px; flex-direction: column; gap: 8px; overflow-y: auto; overflow-x: hidden; padding: 2px; }
 .property-thumbnail { display: block; width: 92px; height: 70px; flex: 0 0 70px; border: 2px solid transparent; border-radius: 7px; object-fit: cover; cursor: pointer; }
 .property-thumbnail.active { border-color: var(--color-primary); }
 .property-content-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.8fr); align-items: start; gap: 20px; }

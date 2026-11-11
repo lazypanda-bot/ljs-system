@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         form.dataset.proposalInitialized = 'true';
         const date = form.querySelector('[name="preferred_date"]');
         const time = form.querySelector('[name="preferred_time"]');
+        const period = form.querySelector('[name="time_period"]');
         const utcSlot = form.querySelector('[name="slot_start_utc"]');
         const timezone = form.querySelector('[name="timezone"]');
         const status = form.querySelector('.appointment-slots-status');
@@ -61,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dateInput: date,
             timeSelect: time,
             utcField: utcSlot,
+            periodSelect: period,
             status,
             timezone: () => timezone.value,
             urlFor: ({ date: day, withDates }) => {

@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const dateField = form.querySelector('#appointmentDate');
     const timeField = form.querySelector('#appointmentTime');
+    const periodField = form.querySelector('#appointmentTimePeriod');
     const timezoneField = form.querySelector('#appointmentTimezone');
     const slotField = form.querySelector('#appointmentSlotUtc');
     const status = form.querySelector('#appointmentSlotsStatus');
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dateInput: dateField,
         timeSelect: timeField,
         utcField: slotField,
+        periodSelect: periodField,
         status,
         timezone: () => timezoneField.value,
         ready: () => Boolean(assignmentField?.value),

@@ -63,15 +63,27 @@ class UserController extends Controller
             : ['Agent', 'Broker'];
 
         \App\Support\InputRules::normalize($request);
-        $validated = $request->validate([
+        $rules = [
             'name' => \App\Support\InputRules::name(),
             'email' => \App\Support\InputRules::email(),
             'role_name' => ['required', Rule::in($allowedRoles)],
             'account_status' => 'required|in:Active,Inactive,Suspended',
             'password' => 'required|string|min:8',
             'credential_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
-        ], \App\Support\InputRules::messages());
+        ];
 
+        if (in_array($request->input('role_name'), ['Lead Broker', 'Broker', 'Agent'], true)) {
+            $rules['license_number'] = ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9\-\/ ]+$/'];
+        }
+
+        $credentialLabel = $request->input('role_name') === 'Agent' ? 'accreditation number' : 'PRC license number';
+        $validated = $request->validate($rules, \App\Support\InputRules::messages() + [
+            'license_number.required' => "Please input the professional's " . $credentialLabel . '.',
+            'license_number.regex' => 'The ' . $credentialLabel . ' may only contain letters, numbers, spaces, hyphens and slashes.',
+        ]);
+
+        $licenseNumber = $validated['license_number'] ?? null;
+        unset($validated['license_number']);
         unset($validated['credential_document']);
 
         $existingUser = User::withTrashed()->where('email', $validated['email'])->first();
@@ -92,9 +104,18 @@ class UserController extends Controller
             $user = User::create($validated);
         }
 
+        $profileFields = [];
+        if ($user->isProfessional() && $licenseNumber !== null) {
+            $profileFields['license_number'] = $licenseNumber;
+        }
+
         if ($request->hasFile('credential_document')) {
             $path = $request->file('credential_document')->store('professional-credentials', 'local');
-            $user->professionalProfile()->updateOrCreate([], ['document_file' => $path]);
+            $profileFields['document_file'] = $path;
+        }
+
+        if ($profileFields !== []) {
+            $user->professionalProfile()->updateOrCreate([], $profileFields);
         }
 
         $mailed = true;
@@ -150,10 +171,13 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $this->authorizeAdmin();
+        $actor = Auth::user();
 
         // Previously authorizeAdmin() allowed an Admin to change any other user's status.
         abort_if(
-            Auth::user()?->normalizedRole() === 'admin' && $user->normalizedRole() === 'lead_broker',
+            $actor instanceof User
+                && $actor->normalizedRole() === 'admin'
+                && $user->normalizedRole() === 'lead_broker',
             403,
             'Only a Lead Broker can change a Lead Broker account status.'
         );
@@ -172,9 +196,11 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('success', $user->name . ' is now ' . strtolower($validated['account_status']) . '.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    /*
+     * **FOR DELETE ACTIONS**
+     * Temporarily disabled. Restore the destroy route and this method together
+     * if user deletion is re-enabled.
+     *
     public function destroy(User $user)
     {
         $this->authorizeAdmin();
@@ -183,6 +209,7 @@ class UserController extends Controller
 
         return response()->json(['success' => true, 'message' => 'User deleted successfully.']);
     }
+    */
 
     public function downloadCredentials(User $user)
     {

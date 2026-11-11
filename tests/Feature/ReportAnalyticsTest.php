@@ -77,6 +77,35 @@ class ReportAnalyticsTest extends TestCase
         $this->assertStringContainsString($ownerOne->name, $csv->streamedContent());
     }
 
+    public function test_professional_performance_page_can_be_loaded_without_rendering_the_full_report(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin', 'name' => 'zz Report Admin']);
+        foreach (range(1, 6) as $number) {
+            User::factory()->create(['role_name' => 'Agent', 'name' => 'Performance ' . $number]);
+        }
+
+        $filters = [
+            'page' => 'report',
+            'from' => today()->subDays(7)->toDateString(),
+            'to' => today()->toDateString(),
+            'owners_page' => 2,
+        ];
+
+        $response = $this->actingAs($admin)->get(route('app.page', $filters), [
+            'Accept' => 'application/json',
+            'X-Report-Fragment' => 'performance',
+        ]);
+
+        $response->assertOk()->assertJsonStructure(['html']);
+        $html = $response->json('html');
+        $this->assertStringContainsString('Performance 6', $html);
+        $this->assertStringContainsString('zz Report Admin', $html);
+        $this->assertStringNotContainsString('Performance 1', $html);
+        $this->assertStringContainsString('owners_page=1', $html);
+        $this->assertStringContainsString('from=', $html);
+        $this->assertStringNotContainsString('data-report-value=', $html);
+    }
+
     public function test_report_repair_migration_restores_a_missing_inquiry_table(): void
     {
         \Illuminate\Support\Facades\Schema::dropIfExists('property_inquiries');

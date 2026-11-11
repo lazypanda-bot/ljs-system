@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Team;
+use App\Models\TeamMember;
 use App\Models\User;
 use App\Models\AppNotification;
 use Illuminate\Http\Request;
@@ -128,7 +129,7 @@ class TeamController extends Controller
                 Rule::exists('users', 'user_id')->whereIn('role_name', ['Broker', 'Lead Broker']),
                 // Ensure the leader is not already assigned as a member or leader in another team
                 function ($attribute, $value, $fail) {
-                    if (\App\Models\TeamMember::where('user_id', $value)->exists() || Team::where('user_id', $value)->exists()) {
+                    if ($this->isAssignedToActiveTeam($value)) {
                         $fail('The selected team leader already belongs to another team.');
                     }
                 }
@@ -139,7 +140,7 @@ class TeamController extends Controller
                 'exists:users,user_id',
                 // Ensure each member does not already belong to any team
                 function ($attribute, $value, $fail) {
-                    if (\App\Models\TeamMember::where('user_id', $value)->exists() || Team::where('user_id', $value)->exists()) {
+                    if ($this->isAssignedToActiveTeam($value)) {
                         $fail('One or more selected users already belong to a team.');
                     }
                 }
@@ -147,6 +148,18 @@ class TeamController extends Controller
         ]);
 
         DB::transaction(function () use ($validated) {
+            $memberIds = collect($validated['member_ids'] ?? [])
+                ->map(fn ($userId) => (int) $userId)
+                ->reject(fn ($userId) => $userId === (int) $validated['user_id'])
+                ->unique()
+                ->values();
+            $assignedIds = $memberIds->push((int) $validated['user_id'])->unique();
+
+            TeamMember::query()
+                ->whereIn('user_id', $assignedIds)
+                ->whereHas('team', fn ($query) => $query->where('team_status', 'Inactive'))
+                ->delete();
+
             $team = Team::create(collect($validated)->except('member_ids')->all());
 
             // 1. Ensure team leader is an approved member
@@ -156,10 +169,6 @@ class TeamController extends Controller
             );
 
             // 2. Process other members
-            $memberIds = collect($validated['member_ids'] ?? [])
-                ->reject(fn ($userId) => (int) $userId === (int) $validated['user_id'])
-                ->unique();
-
             foreach ($memberIds as $userId) {
                 $team->members()->firstOrCreate(
                     ['user_id' => $userId],
@@ -213,9 +222,23 @@ class TeamController extends Controller
     public function edit(Team $team)
     {
         $this->authorizeAdmin();
+        abort_if($team->team_status !== 'Active', 403, 'Reactivate this team before editing its membership.');
 
         $team->load('user', 'members');
-        return view('admin.admin-users', array_merge($this->usersPageData(), compact('team')));
+        $currentTeamUserIds = $team->members->pluck('user_id')
+            ->push($team->user_id)
+            ->map(fn ($userId) => (int) $userId)
+            ->unique()
+            ->values()
+            ->all();
+        $selectedMemberIds = $team->members->pluck('user_id')
+            ->map(fn ($userId) => (int) $userId)
+            ->all();
+
+        return view('admin.admin-users', array_merge(
+            $this->usersPageData(),
+            compact('team', 'currentTeamUserIds', 'selectedMemberIds')
+        ));
     }
 
     /**
@@ -334,9 +357,7 @@ class TeamController extends Controller
                 'required', 
                 Rule::exists('users', 'user_id')->whereIn('role_name', ['Broker', 'Lead Broker']),
                 function ($attribute, $value, $fail) use ($team) {
-                    $isLeaderElsewhere = Team::where('user_id', $value)->where('team_id', '!=', $team->team_id)->exists();
-                    $isMemberElsewhere = \App\Models\TeamMember::where('user_id', $value)->where('team_id', '!=', $team->team_id)->exists();
-                    if ($isLeaderElsewhere || $isMemberElsewhere) {
+                    if ($this->isAssignedToActiveTeam($value, $team->team_id)) {
                         $fail('The selected team leader already belongs to another team.');
                     }
                 }
@@ -347,17 +368,40 @@ class TeamController extends Controller
                 'integer',
                 'exists:users,user_id',
                 function ($attribute, $value, $fail) use ($team) {
-                    $isLeaderElsewhere = Team::where('user_id', $value)->exists();
-                    $isMemberElsewhere = \App\Models\TeamMember::where('user_id', $value)->where('team_id', '!=', $team->team_id)->exists();
-                    if ($isLeaderElsewhere || $isMemberElsewhere) {
+                    if ($this->isAssignedToActiveTeam($value, $team->team_id)) {
                         $fail('One or more selected users already belong to another team.');
                     }
                 }
             ],
+            'team_status' => ['sometimes', 'required', Rule::in(['Active', 'Inactive'])],
         ]);
+
+        if (count($validated) === 1 && array_key_exists('team_status', $validated)) {
+            $team->update(['team_status' => $validated['team_status']]);
+
+            return redirect()->route('admin.teams.index')->with(
+                'success',
+                $team->team_name . ' is now ' . strtolower($validated['team_status']) . '.'
+            );
+        }
+
+        abort_if($team->team_status !== 'Active', 403, 'Reactivate this team before editing its membership.');
+        abort_if(array_key_exists('team_status', $validated), 422, 'Update team status separately from team details.');
 
         DB::transaction(function () use ($team, $validated): void {
             $team->update(collect($validated)->except('member_ids')->all());
+
+            $selectedIds = collect($validated['member_ids'] ?? [])
+                ->map(fn ($userId) => (int) $userId)
+                ->reject(fn ($userId) => $userId === (int) $team->user_id)
+                ->unique()
+                ->values();
+            $assignedIds = $selectedIds->push((int) $team->user_id)->unique();
+
+            TeamMember::query()
+                ->whereIn('user_id', $assignedIds)
+                ->whereHas('team', fn ($query) => $query->where('team_status', 'Inactive'))
+                ->delete();
 
             // 1. Ensure leader is an approved member
             $team->members()->firstOrCreate(
@@ -366,12 +410,6 @@ class TeamController extends Controller
             );
 
             if (array_key_exists('member_ids', $validated)) {
-                $selectedIds = collect($validated['member_ids'] ?? [])
-                    ->map(fn ($userId) => (int) $userId)
-                    ->reject(fn ($userId) => $userId === (int) $team->user_id)
-                    ->unique()
-                    ->values();
-
                 $currentIds = $team->members()->pluck('user_id')->map(fn ($userId) => (int) $userId);
                 $removedIds = $currentIds->diff($selectedIds)->reject(fn ($userId) => $userId === (int) $team->user_id);
                 
@@ -456,8 +494,10 @@ class TeamController extends Controller
         //     'allUsers' => User::where('role_name', '!=', 'Client')->get(),
         //     'teams' => Team::with(['user', 'members.user'])->latest()->get(),
         // ];
-        $takenUserIds = Team::pluck('user_id')
-            ->merge(\App\Models\TeamMember::pluck('user_id'))
+        $activeTeamIds = Team::query()->where('team_status', 'Active')->select('team_id');
+        $takenUserIds = Team::query()->where('team_status', 'Active')->pluck('user_id')
+            ->merge(TeamMember::query()->whereIn('team_id', $activeTeamIds)->pluck('user_id'))
+            ->map(fn ($userId) => (int) $userId)
             ->unique()
             ->toArray();
 
@@ -469,6 +509,27 @@ class TeamController extends Controller
         ];
     }
 
+    private function isAssignedToActiveTeam(int|string $userId, ?int $exceptTeamId = null): bool
+    {
+        return Team::query()
+            ->where('team_status', 'Active')
+            ->where('user_id', $userId)
+            ->when($exceptTeamId !== null, fn ($query) => $query->where('team_id', '!=', $exceptTeamId))
+            ->exists()
+            || TeamMember::query()
+                ->where('user_id', $userId)
+                ->whereIn('team_id', Team::query()
+                    ->where('team_status', 'Active')
+                    ->when($exceptTeamId !== null, fn ($query) => $query->where('team_id', '!=', $exceptTeamId))
+                    ->select('team_id'))
+                ->exists();
+    }
+
+    /*
+     * **FOR DELETE ACTIONS**
+     * Temporarily disabled. Restore the destroy route and this method together
+     * if team deletion is re-enabled.
+     *
     public function destroy(Team $team)
     {
         $this->authorizeAdmin();
@@ -488,4 +549,5 @@ class TeamController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Team and its chat group deleted successfully.']);
     }
+    */
 }

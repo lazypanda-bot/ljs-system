@@ -130,8 +130,17 @@ class BrokerWorkspaceTest extends TestCase
         $this->actingAs($client)->get(route('properties.show', $property))
             ->assertOk()->assertDontSee('referralProfessionalSelect', false)
             ->assertSee('id="appointmentBookingForm"', false)
+            ->assertSee('<select name="time_period" id="appointmentTimePeriod" required disabled>', false)
+            ->assertSee('Morning (8:00 AM–12:00 PM)')
+            ->assertSee('Afternoon (1:00 PM–5:00 PM)')
+            ->assertDontSee('Any time')
             ->assertSee('name="assign_id" value="' . $property->assignments()->where('user_id', $lister->user_id)->value('assign_id') . '"', false);
-        $this->get(route('appointments.create', $property))->assertOk()->assertDontSee('<select name="assign_id"', false);
+        $this->get(route('appointments.create', $property))->assertOk()
+            ->assertDontSee('<select name="assign_id"', false)
+            ->assertSee('<select name="time_period" id="appointmentTimePeriod" required disabled>', false)
+            ->assertSee('Morning (8:00 AM–12:00 PM)')
+            ->assertSee('Afternoon (1:00 PM–5:00 PM)')
+            ->assertDontSee('Any time');
 
         $this->post(route('properties.message', $property), ['recipient_id' => $other->user_id])->assertRedirect();
         $this->assertDatabaseHas('conversation_participants', ['user_id' => $lister->user_id]);

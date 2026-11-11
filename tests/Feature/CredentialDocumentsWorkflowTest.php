@@ -27,6 +27,7 @@ class CredentialDocumentsWorkflowTest extends TestCase
             'password' => 'InitialPass1!',
             'role_name' => 'Agent',
             'account_status' => 'Active',
+            'license_number' => 'ACC-778899',
             'credential_document' => UploadedFile::fake()->create('license.pdf', 24, 'application/pdf'),
         ])->assertRedirect(route('admin.users.index'));
 
@@ -34,6 +35,7 @@ class CredentialDocumentsWorkflowTest extends TestCase
         $documentPath = $professional->professionalProfile?->document_file;
 
         $this->assertTrue(Hash::check('InitialPass1!', $professional->password));
+        $this->assertSame('ACC-778899', $professional->professionalProfile?->license_number);
         $this->assertNotEmpty($documentPath);
         $this->assertStringStartsWith('professional-credentials/', $documentPath);
         $this->assertTrue(Storage::disk('local')->exists($documentPath));

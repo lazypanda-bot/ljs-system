@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Property;
 use App\Models\PropertyAssign;
 use App\Models\Review;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -25,15 +26,47 @@ class AdminManagementPagesTest extends TestCase
             ->assertSee('id="openAddTeamModal"', false);
 
         $this->post(route('admin.users.store'), [
+            'name' => 'Missing Credential',
+            'email' => 'missing-credential@example.test',
+            'password' => 'InitialPass1!',
+            'role_name' => 'Agent',
+            'account_status' => 'Active',
+        ])->assertSessionHasErrors('license_number');
+
+        $this->post(route('admin.users.store'), [
             'name' => 'Created By Second Admin',
             'email' => 'second-admin-created@example.test',
             'password' => 'InitialPass1!',
             'role_name' => 'Broker',
             'account_status' => 'Active',
+            'license_number' => 'PRC-12345',
         ])->assertRedirect(route('admin.users.index'));
 
         $this->assertDatabaseHas('users', ['email' => 'second-admin-created@example.test', 'role_name' => 'Broker']);
+        $createdUser = User::where('email', 'second-admin-created@example.test')->firstOrFail();
+        $this->assertDatabaseHas('professional_profiles', [
+            'user_id' => $createdUser->user_id,
+            'license_number' => 'PRC-12345',
+        ]);
+        $this->get(route('agents.show', $createdUser))
+            ->assertOk()
+            ->assertSee('PRC-12345');
         $this->assertNotNull($firstAdmin->user_id);
+    }
+
+    public function test_team_delete_action_is_hidden_while_edit_remains_available(): void
+    {
+        $admin = User::factory()->create(['role_name' => 'Admin']);
+        $team = Team::create(['user_id' => $admin->user_id, 'team_name' => 'Retained Team']);
+
+        $this->actingAs($admin)->get('/app/users?tab=teams')
+            ->assertOk()
+            ->assertSee('Retained Team')
+            ->assertSee('name="team_status"', false)
+            ->assertSee('Active')
+            ->assertSee('Inactive')
+            ->assertSee(route('admin.teams.edit', $team->team_id), false)
+            ->assertDontSee('data-delete-team', false);
     }
 
     public function test_only_a_lead_broker_can_add_an_admin_and_projects_stay_with_their_admin(): void
@@ -92,6 +125,7 @@ class AdminManagementPagesTest extends TestCase
             $this->post(route('admin.users.store'), [
                 'name' => 'Added ' . $role, 'email' => $email, 'password' => 'InitialPass1!',
                 'role_name' => $role, 'account_status' => 'Active',
+                ...($role === 'Lead Broker' ? ['license_number' => 'PRC-667788'] : []),
             ])->assertRedirect(route('admin.users.index'));
 
             $this->assertDatabaseHas('users', ['email' => $email, 'role_name' => $role]);
@@ -182,7 +216,7 @@ class AdminManagementPagesTest extends TestCase
 
         $this->actingAs($admin)->post(route('admin.users.store'), [
             'name' => 'Mailed Agent', 'email' => 'mailed-agent@example.test', 'password' => 'InitialPass1!',
-            'role_name' => 'Agent', 'account_status' => 'Active',
+            'role_name' => 'Agent', 'account_status' => 'Active', 'license_number' => 'ACC-445566',
         ])->assertRedirect(route('admin.users.index'));
 
         $created = User::where('email', 'mailed-agent@example.test')->firstOrFail();
@@ -195,7 +229,7 @@ class AdminManagementPagesTest extends TestCase
 
         $this->from(route('admin.users.index'))->post(route('admin.users.store'), [
             'name' => 'Dup', 'email' => 'mailed-agent@example.test', 'password' => 'InitialPass1!',
-            'role_name' => 'Agent', 'account_status' => 'Active',
+            'role_name' => 'Agent', 'account_status' => 'Active', 'license_number' => 'ACC-445566',
         ])->assertRedirect(route('admin.users.index'));
         $this->get(route('admin.users.index'))->assertSee('id="addUserModalOverlay"', false)->assertSee('au-modal-overlay open', false);
 

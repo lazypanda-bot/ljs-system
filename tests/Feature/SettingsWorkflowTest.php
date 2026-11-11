@@ -24,29 +24,29 @@ class SettingsWorkflowTest extends TestCase
         $response = $this->actingAs($user)->post(route('settings.profile.update'), [
             'name' => 'Updated Name',
             'email' => $user->email,
-            'contact_number' => '555-0100',
+            'contact_number' => '09170000000',
             'profile_photo' => UploadedFile::fake()->create('profile.png', 10, 'image/png'),
         ]);
 
         $response->assertRedirect();
         $user->refresh();
         $this->assertSame('Updated Name', $user->name);
-        $this->assertSame('5550100', $user->contact_number);
+        $this->assertSame('09170000000', $user->contact_number);
         $this->assertNotEmpty($user->profile_photo);
         $this->assertTrue(Storage::disk('public')->exists($user->profile_photo));
     }
 
-    public function test_professional_can_update_credentials_and_contact_details(): void
+    public function test_professional_can_update_bio_and_contact_details_but_not_license_number(): void
     {
         Storage::fake('local');
         $agent = User::factory()->create(['role_name' => 'Agent']);
+        $agent->professionalProfile()->create(['license_number' => 'ACC-88990']);
 
         $response = $this->actingAs($agent)->post(route('settings.profile.update'), [
             'name' => $agent->name,
             'email' => $agent->email,
             'contact_number' => '09171234567',
-            'license_number' => 'PRC-88991',
-            'years_experience' => 7,
+            'license_number' => 'ATTEMPTED-CHANGE',
             'professional_bio' => 'Cebu-based agent specializing in family homes.',
             'credential_document' => UploadedFile::fake()->create('license.pdf', 20, 'application/pdf'),
         ]);
@@ -54,11 +54,12 @@ class SettingsWorkflowTest extends TestCase
         $response->assertRedirect();
         $agent->refresh();
         $this->assertSame('09171234567', $agent->contact_number);
-        $this->assertSame('PRC-88991', $agent->professionalProfile?->license_number);
-        $this->assertSame(7, (int) $agent->professionalProfile?->years_experience);
+        $this->assertSame('ACC-88990', $agent->professionalProfile?->license_number);
         $this->assertSame('Cebu-based agent specializing in family homes.', $agent->professionalProfile?->professional_bio);
         $this->assertNotEmpty($agent->professionalProfile?->document_file);
         $this->assertTrue(Storage::disk('local')->exists($agent->professionalProfile->document_file));
+        $this->actingAs($agent)->get(route('app.page', ['page' => 'settings']))
+            ->assertOk()->assertSee('readonly', false)->assertSee('Added by an admin.');
 
         $this->actingAs($agent)->get(route('settings.credentials.download'))
             ->assertOk()
@@ -177,5 +178,18 @@ class SettingsWorkflowTest extends TestCase
         $response->assertRedirect(route('home'));
         $this->assertSoftDeleted('users', ['user_id' => $user->user_id]);
         $this->assertGuest();
+    }
+
+    public function test_professional_cannot_deactivate_their_own_account(): void
+    {
+        $professional = User::factory()->create(['role_name' => 'Agent', 'password' => 'CurrentPass1!']);
+
+        $this->actingAs($professional)->delete(route('settings.account.destroy'), [
+            'current_password' => 'CurrentPass1!',
+            'confirmation' => 'DELETE',
+        ])->assertForbidden();
+
+        $this->assertDatabaseHas('users', ['user_id' => $professional->user_id]);
+        $this->assertAuthenticatedAs($professional);
     }
 }

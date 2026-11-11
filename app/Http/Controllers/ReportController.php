@@ -104,14 +104,20 @@ class ReportController extends Controller
             return $row;
         });
 
-        $ownersPage = max(1, (int) request()->query('owners_page', 1));
+        $ownersPage = max(1, (int) $request->query('owners_page', 1));
         $perUser = new \Illuminate\Pagination\LengthAwarePaginator(
             $performanceRows->forPage($ownersPage, 5)->values(),
             $performanceRows->count(),
             5,
             $ownersPage,
-            ['path' => request()->url(), 'pageName' => 'owners_page', 'query' => request()->except('owners_page')]
+            ['path' => $request->url(), 'pageName' => 'owners_page', 'query' => $request->except('owners_page')]
         );
+
+        if ($request->header('X-Report-Fragment') === 'performance') {
+            return response()->json([
+                'html' => view('pages.partials.report-performance-table', compact('perUser'))->render(),
+            ]);
+        }
 
         $reportFrom = $from->toDateString();
         $reportTo = $to->toDateString();
